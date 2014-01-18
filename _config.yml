@@ -9,6 +9,7 @@ pygments: true
 # so be sure to set them if your theme uses them.
 #
 title : Today I Learned
+tagline: Keeping track of small things
 author :
   name : Tom Van Eyck
   email : tomvaneyck@gmail.com
