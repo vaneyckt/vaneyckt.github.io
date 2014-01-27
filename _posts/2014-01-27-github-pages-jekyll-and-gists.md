@@ -12,5 +12,3 @@ This won't work on Github
 This will work on Github
 
 {% gist vaneyckt/8f353852d246f9d3053a good %}
-
-That is all.
