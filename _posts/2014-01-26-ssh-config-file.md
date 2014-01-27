@@ -13,4 +13,4 @@ However, I was never quite sure what `ForwardAgent yes` actually did. Some [quic
 Looking into this I also stumbled across [this page](http://nerderati.com/2011/03/simplify-your-life-with-an-ssh-config-file/), which has a great example of using an SSH config to create a tunnel. Turns out you can just add something like this to your config file
 {% gist vaneyckt/dc42de3b101583e4c7d7 tunnel %}
 
-and then you can setup a tunnel as a background process by running `$ ssh -f -N tunnel`. All trafic directed to your local port 9906 will now automatically get forwarded to port 3306 of database.example.com.
+and then you can setup a tunnel as a background process by running `$ ssh -f -N tunnel`. All traffic directed to your local port 9906 will now automatically get forwarded to port 3306 of database.example.com.
