@@ -1,0 +1,17 @@
+---
+layout: post
+title: "Installing redis the easy way"
+category: devops
+---
+{% include JB/setup %}
+
+Install redis and add it to upstart all in one go
+
+{% gist vaneyckt/b0953ee45db0b73b5276 %}
+
+Interesting things in this script:
+
+* `sudo useradd --system --user-group --shell /bin/false redis` creates a redis system user (no home directory, can't login) with a corresponding redis group. [More info here](http://linux.die.net/man/8/useradd).
+* `instance \$NAME` causes upstart to create a [named instance](https://blueprints.launchpad.net/upstart/+spec/named-instances). Multiple uniquely named redis instanced can now be created by invoking the same upstart script multiple times.
+* `expect fork` provides a neat way for dealing with processes that fork in order to daemonize themselves. [More info here.](http://upstart.ubuntu.com/cookbook/#expect)
+* `\$` is needed as otherwise the script will try to evaluate `${NAME}` before copying it to `/etc/init/redis-server.conf`
