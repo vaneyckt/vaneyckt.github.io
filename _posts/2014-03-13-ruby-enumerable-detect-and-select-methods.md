@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Ruby Enumerable detect and select"
+title: "Ruby Enumerable detect and select methods"
 category: ruby
 ---
 {% include JB/setup %}
