@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "SSH Config File"
+title: "SSH Config File and Tunnels"
 category: linux
 ---
 {% include JB/setup %}
