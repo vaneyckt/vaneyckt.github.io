@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Install redis the easy way"
-category: devops
+category: linux
 ---
 {% include JB/setup %}
 
