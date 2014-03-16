@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Copying folders without modifying owner and permissions"
-description: "linux"
+category: linux
 ---
 {% include JB/setup %}
 
