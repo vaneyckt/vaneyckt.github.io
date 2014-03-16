@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Converting image to byte array and back"
-description: "java"
+category: java
 ---
 {% include JB/setup %}
 
