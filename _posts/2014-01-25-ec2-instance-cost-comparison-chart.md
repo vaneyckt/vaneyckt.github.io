@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "EC2 Instance Cost Comparison Chart"
-category: devops
+category: general
 ---
 {% include JB/setup %}
 
