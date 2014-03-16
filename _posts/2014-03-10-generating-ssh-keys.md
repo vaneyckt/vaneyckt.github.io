@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Generating SSH keys"
-description: "linux"
+category: linux
 ---
 {% include JB/setup %}
 
