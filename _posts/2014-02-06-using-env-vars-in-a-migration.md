@@ -5,4 +5,10 @@ category: rails
 ---
 {% include JB/setup %}
 
-Almost everyone has at one time or another been in the position of having to undo something that had been already commited to git. Finding accurate information that is relevant to exactly your problem can be a bit hard sometimes. Luckily we now have the [choose-your-own-adventure to undoing, fixing, or removing commits in git](http://sethrobertson.github.io/GitFixUm/fixup.html). I've gone through a few of the scenarios I've encountered myself, and it seems bang-on. So give it a try yourself!
+As shown by the code below, you can easily pass ENV vars to a migration
+
+{% gist vaneyckt/7221328 migration.rb %}
+
+{% gist vaneyckt/7221328 code.sh %}
+
+While you should avoid doing this as much as possible, it sometimes can be very handy to add two codepaths to a migration: a slow one that performs safety checks without modifying the database, and a fast one that only gets run after the first one has successfully passed. The value of a given ENV var can then be used to decide which codepath to run.
