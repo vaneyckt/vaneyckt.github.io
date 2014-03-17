@@ -7,5 +7,5 @@ category: android
 
 There's a lot of good information out there, but these two were really helpful for getting started:
 
-- http://www.jetbrains.com/idea/features/android-tutorials.jsp
-- https://tutsplus.com/course/android-for-the-busy-developer/
+- [http://www.jetbrains.com/idea/features/android-tutorials.jsp](http://www.jetbrains.com/idea/features/android-tutorials.jsp)
+- [https://tutsplus.com/course/android-for-the-busy-developer/](https://tutsplus.com/course/android-for-the-busy-developer/)
