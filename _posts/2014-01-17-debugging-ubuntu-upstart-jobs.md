@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Debugging Ubuntu Upstart jobs"
-description: "linux"
+category: linux
 ---
 {% include JB/setup %}
 

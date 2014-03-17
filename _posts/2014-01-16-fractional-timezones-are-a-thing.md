@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Fractional timezones are a thing"
-description: "general"
+category: general
 ---
 {% include JB/setup %}
 

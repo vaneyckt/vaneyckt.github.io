@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Jenkins doesn't like git branch names with slashes"
-description: "jenkins"
+category: jenkins
 ---
 {% include JB/setup %}
 

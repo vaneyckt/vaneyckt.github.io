@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Squashing commits in Git"
-description: "git"
+category: git
 ---
 {% include JB/setup %}
 
