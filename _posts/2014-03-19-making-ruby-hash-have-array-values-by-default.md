@@ -5,11 +5,9 @@ category: ruby
 ---
 {% include JB/setup %}
 
-Making Ruby hash have array values by default
-
 When working with large amounts of data in Ruby I usually find myself using a hash filled with arrays. It tends to end up looking something like this
 
-{% gist vaneyckt/8da2dc0d6d469b3dc5ab wrong.rb %}
+{% gist vaneyckt/8da2dc0d6d469b3dc5ab original.rb %}
 
 I really dislike having to use two lines of code in order to safely enter something in the `output_data` hash. It just looks messy. But luckily we can do this instead
 
