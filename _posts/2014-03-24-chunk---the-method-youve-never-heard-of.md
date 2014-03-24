@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Chunk - the method you never heard of"
+title: "Chunk - the method you've never heard of"
 category: ruby
 ---
 {% include JB/setup %}
