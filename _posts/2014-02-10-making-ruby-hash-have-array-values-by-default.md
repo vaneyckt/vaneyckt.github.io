@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Making Ruby hash have array values by default"
+title: "Making Ruby hash contain array values by default"
 category: ruby
 ---
 {% include JB/setup %}
