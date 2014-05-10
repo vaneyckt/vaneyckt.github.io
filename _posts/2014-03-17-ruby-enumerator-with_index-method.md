@@ -11,4 +11,4 @@ Sometimes you need to iterate over an array and get both the current element and
 
 Even better is that `with_index` allows you to specify an initial offset value. So if you have a situation where your index needs to start from 1, you could write something like
 
-{% gist vaneyckt/7995628b65af8d9274cd example_b.rb }
+{% gist vaneyckt/7995628b65af8d9274cd example_b.rb %}
