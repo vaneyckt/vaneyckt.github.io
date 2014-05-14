@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "String.isEmpty() not available before 2.3"
+title: "String.isEmpty() is not available before Android 2.3"
 category: android
 ---
 {% include JB/setup %}
