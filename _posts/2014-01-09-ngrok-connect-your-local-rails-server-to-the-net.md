@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Ngrok: connect your local rails server to the net"
+title: "Ngrok: connect your local Rails server to the net"
 category: linux
 ---
 {% include JB/setup %}
