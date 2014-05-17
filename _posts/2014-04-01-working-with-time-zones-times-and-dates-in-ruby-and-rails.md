@@ -11,7 +11,7 @@ category: rails
 
 What you should take away from this:
 
-- `Time.now` is a Ruby method that does not know about rails time zones and returns the system time instead
-- `.in_time_zone` and `.zone` are `ActiveSupport` methods specifically added to help you with time zone manipulation
+- `Time.now` is a Ruby method that does not know about rails time zones and returns the system time
+- `.in_time_zone` and `.zone` are `ActiveSupport` methods to help you with time zone manipulation
 
 Also if you're using the wonderful [chronic gem](https://rubygems.org/gems/chronic), you can use `Chronic.time_class = Time.zone` to specify a time zone.
