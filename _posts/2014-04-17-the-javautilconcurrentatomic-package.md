@@ -8,7 +8,7 @@ category: java
 A super useful [java package](http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/atomic
 /package-summary.html) for when you find yourself writing multithreaded code. It contains a set of atomic variable classes for effecting atomic state transitions on numbers and object references.
 
-Let's say you have a need for atomic transactions on an integer counter. You could either create a class with synchronized methods for modifying an integer counter field, or alternatively you could just use `AtomicInteger`.
+Let's say you have a need for atomic transactions on an integer counter. You could either create a class with synchronized methods for modifying an integer counter field, or you could just use `AtomicInteger`.
 
 Some of the more straightforward classes in this package:
 
