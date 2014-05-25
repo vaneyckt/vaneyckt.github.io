@@ -9,4 +9,4 @@ In the absence of synchronization, it is impossible to predict the order in whic
 
 {% gist vaneyckt/ab7025819f7d88d20ecb %}
 
-We would expect the above code to print the number 1. However, it is quite possible for it to print 0 due to a reordering of the operations on lines 17-18. You should therefore never share data between threads without appropriate synchronization.
+We would expect the above code to print the number 1. However, it is quite possible for it to print 0 due to a reordering of the operations on lines 16-17. You should therefore never share data between threads without appropriate synchronization.
