@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Formatting numbers"
+title: "Formatting numbers made easy"
 category: rails
 ---
 {% include JB/setup %}
