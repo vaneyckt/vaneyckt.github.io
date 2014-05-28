@@ -15,4 +15,4 @@ After a bit of searching I found that you can use [locales](http://stackoverflow
 
 {% gist vaneyckt/8040afa3b95a412ba6bb %}
 
-Which now gives us the error message `User Id prefers the term 'vertically challenged'`.
+This now gives us the error message `User Id prefers the term 'vertically challenged'`.
