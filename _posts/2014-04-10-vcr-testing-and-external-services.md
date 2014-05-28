@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "VCR: Testing and external services"
+title: "Vcr: Testing and external services"
 category: general
 ---
 {% include JB/setup %}
