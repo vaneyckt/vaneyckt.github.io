@@ -5,9 +5,7 @@ category: ruby
 ---
 {% include JB/setup %}
 
-I found myself wondering about safe ways for multiple threads to write to a given file in Ruby. Here's what I found.
-
-Our first stop is a post on [Threadsafe File Consistency in Ruby](http://blog.douglasfshearer.com/post/17547062422/threadsafe-file-consistency-in-ruby). It's an absolutely brilliant write-up by someone who has clearly invested a lot of time into this. Things learned:
+I found myself wondering about safe ways for multiple threads to write to a given file in Ruby and ended up finding a great post on [Threadsafe File Consistency in Ruby](http://blog.douglasfshearer.com/post/17547062422/threadsafe-file-consistency-in-ruby). It's an absolutely brilliant write-up by someone who has clearly invested a lot of time into this:
 
 [Atomic writes](http://apidock.com/rails/File/atomic_write/class) ensure that a process (or thread) that reads from a file will never see a half-written file no matter how frequent the file is being written to. The approach take here is to redirect any writes into a temporary file; once the write has finished the original file is replaced with the temporary one by making a `mv` system call. Since the `mv` system call is [guaranteed to be atomic](http://www.linuxmisc.com/9-unix-programmer/457187f6a27d0540.htm) within [file boundaries](http://superuser.com/questions/586540/where-does-boundary-of-file-system-lie-in-linux), the replacement of the file will appear to be instantaneous to any reading processes.
 
