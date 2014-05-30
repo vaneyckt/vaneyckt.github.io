@@ -8,9 +8,11 @@ category: ruby
 I found myself wondering about safe ways for multiple threads to write to a given file in Ruby and ended up finding a great post on [Threadsafe File Consistency in Ruby](http://blog.douglasfshearer.com/post/17547062422/threadsafe-file-consistency-in-ruby). It's an absolutely brilliant write-up by someone who has clearly invested a lot of time in this. Here's my summary.
 
 **Atomic Writes**
+
 [Atomic writes](http://apidock.com/rails/File/atomic_write/class) ensure that a process (or thread) that reads from a file will never see a half-written file no matter how frequent the file is being written to. The approach take here is to redirect any writes into a temporary file; once the write has finished the original file is replaced with the temporary one by making a `mv` system call. Since the `mv` system call is [guaranteed to be atomic](http://www.linuxmisc.com/9-unix-programmer/457187f6a27d0540.htm) within [file boundaries](http://superuser.com/questions/586540/where-does-boundary-of-file-system-lie-in-linux), the replacement of the file will appear to be instantaneous to any reading processes.
 
 **File Locks**
+
 Note that the above approach only guarantees that no half-written files will be read from. It does not make any guarantees about what happens when multiple processes try to write to a file at the same time. The problem in this case is two-fold. In order to write to a file a process first needs to locate where in the file to write to. This is done using the `lseek` system call. The actual writing is then done by a separate `write` system call.
 
 The first problem is that multiple processes writing to a single file can interleave their calls like so:
