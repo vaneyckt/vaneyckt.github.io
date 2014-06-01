@@ -7,7 +7,7 @@ category: ruby
 
 In a previous post on this topic we went over the importance of using file locks when having multiple concurrent processes writing to the same file. However, using a file lock can cause a certain amount of contention between processes. This is why you'll sometimes see [lock-free logging implementations](http://www.jstorimer.com/blogs/workingwithcode/7982047-is-lock-free-logging-safe).
 
-*** Lock-free Logging ***
+**Lock-free Logging**
 
 Lock-free logging is all about the use of the `O_APPEND` flag. By opening a file with this flag you are effectively telling the OS to force each `write` call to this file to append its data to the end of the file. Unlike the scenario in our previous post where `lseek` and `write` calls of different processes could end up interleaved, the `O_APPEND` flag guarantees that ["the file offset shall be set to the end of the file prior to each write and no intervening file modification operation shall occur between changing the file offset and the write operation"](http://pubs.opengroup.org/onlinepubs/009695399/functions/pwrite.html). This guarantee causes lots of people to think that having multiple processes writing to the same file opened with the `O_APPEND` flag is safe to do. Unfortunately this is [not correct](https://github.com/steveklabnik/mono_logger/issues/2).
 
