@@ -11,4 +11,4 @@ This could cause a new hire trying to setup a local application database by runn
 
 Luckily the solution for this is straightforward. You should always declare any models needed by your migration in the migration itself along with any methods or relationships that the migration might rely upon. Think of it as storing a snapshot of the required model information. This way it is okay for your models to evolve as the migration will use the locally defined models instead.
 
-Two excellent articles with code examples can be found [here](http://complicated-simplicity.com/2010/05/using-models-in-rails-migrations) and [here](http://blog.makandra.com/2010/03/how-to-use-models-in-your-migrations-without-killing-kittens).
+Two excellent articles on this topic, along with code examples, can be found [here](http://complicated-simplicity.com/2010/05/using-models-in-rails-migrations) and [here](http://blog.makandra.com/2010/03/how-to-use-models-in-your-migrations-without-killing-kittens).
