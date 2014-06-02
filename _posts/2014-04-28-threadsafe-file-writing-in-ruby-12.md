@@ -13,7 +13,7 @@ I found myself wondering about safe ways for multiple threads to write to a give
 
 **File Locks**
 
-Note that the above approach only guarantees that no half-written files will be read from. It does not make any guarantees about what happens when multiple processes try to write to a file at the same time. The problem in this case is two-fold. In order to write to a file a process first needs to locate where in the file to write to. This is done using the `lseek` system call. The actual writing is then done by a separate `write` system call.
+Note that the above approach only guarantees that no half-written files will be read from. It does not make any guarantees about what happens when multiple processes try to write to a file at the same time. The problem in this case is two-fold. In order to write to a file a process first needs to locate where in the file to write to. This is done using the `lseek` system call. The actual writing is then done by a separate `write` system call. You can invoke this low-level call with [syswrite](http://ruby-doc.org/core-2.1.2/IO.html#method-i-syswrite) in Ruby.
 
 The first problem is that multiple processes writing to a single file can interleave their calls like so:
 
@@ -22,6 +22,6 @@ The first problem is that multiple processes writing to a single file can interl
 - process A calls `write`
 - process B calls `write` and ends up overwriting the changes made by process A
 
-The second problem is the [lack of any guarantee](http://stackoverflow.com/questions/14387104/atomic-writes-in-linux) that all the changes made by a single process will be performed in a single `write` call. Instead multiple processes writing to a single file could have their `write` calls interleaved, causing the new contents of the file to be out of order.
+The second problem is the [lack of any guarantee](http://stackoverflow.com/questions/14387104/atomic-writes-in-linux) that all the changes made by a single process will be performed in a single `write` call, e.g. the OS could interrupt an ongoing `write` call halfway through and expect you to schedule another `write` call to write the remaining data. This means that multiple processes writing to a single file could have their `write` calls interleaved, causing the new contents of the file to be out of order.
 
 The solution here is to use a [file lock](http://unix.stackexchange.com/questions/107038/obtain-exclusive-read-write-lock-on-a-file-for-atomic-updates). There is some great Ruby code for this on the site I linked at the top of this post, as well as some examples in the [docs](http://www.ruby-doc.org/core-2.1.1/File.html#method-i-flock), and of course some [great posts on StackOverflow](http://stackoverflow.com/a/15304835/1420382).
