@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Using models in Rails migrations"
+title: "Using models in Rails migrations (1/2)"
 category: rails
 ---
 {% include JB/setup %}
