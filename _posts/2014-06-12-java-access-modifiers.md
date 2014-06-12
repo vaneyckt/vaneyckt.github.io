@@ -16,7 +16,7 @@ Just a quick post to help me keep track of the differences between C++ and Java 
 **Java**
 
 - public: any class can access the feature
-- protected: any class in the same package AND any subclass (regardless of package)
+- protected: any class in the same package and ANY subclass (regardless of package)
 - package private (default): any class in the same package can access the feature
 - private: no other class can access the feature
 
