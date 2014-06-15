@@ -5,7 +5,7 @@ category: ruby
 ---
 {% include JB/setup %}
 
-Jesse Storimer wrote an amazing [three](http://www.jstorimer.com/blogs/workingwithcode/8085491-nobody-understands-the-gil) [part](http://www.jstorimer.com/blogs/workingwithcode/8100871-nobody-understands-the-gil-part-2-implementation) [series](http://www.rubyinside.com/does-the-gil-make-your-ruby-code-thread-safe-6051.html) about this. I'm just going to mention the bits that interest me as it is massive.
+Jesse Storimer wrote an amazing [three](http://www.jstorimer.com/blogs/workingwithcode/8085491-nobody-understands-the-gil) [part](http://www.jstorimer.com/blogs/workingwithcode/8100871-nobody-understands-the-gil-part-2-implementation) [series](http://www.rubyinside.com/does-the-gil-make-your-ruby-code-thread-safe-6051.html) about this. These are the bits that interest me.
 
 **The problem**
 
