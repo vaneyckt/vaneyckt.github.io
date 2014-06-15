@@ -7,7 +7,7 @@ category: java
 
 I recently came across [ThreadLocal](http://docs.oracle.com/javase/6/docs/api/java/lang/ThreadLocal.html) variables in Java. These variables differ from their normal counterparts in that each thread that accesses one (via its `get` or `set` method) has its own, independently initialized copy of the variable. Such instances are typically private static fields in classes that wish to associate state with a thread.
 
-Notice how the example below overrides the `initialValue()` method. This method will be invoked the first time a thread accesses the *ThreadLocal* variable with the `get()` method, unless the thread has previously invoked the `set()` method. Normally, this method is invoked at most once per thread, but it may be invoked again in case of subsequent invocations of `remove()` followed by `get()`.
+Notice how the example below overrides the `initialValue` method. This method will be invoked the first time a thread accesses the *ThreadLocal* variable with the `get` method, unless the thread has previously invoked the `set` method. Normally, this method is invoked at most once per thread, but it may be invoked again in case of subsequent invocations of `remove` followed by `get`.
 
 {% gist vaneyckt/770ecd28cf7daae98cac UniqueThreadIdGenerator.java %}
 
