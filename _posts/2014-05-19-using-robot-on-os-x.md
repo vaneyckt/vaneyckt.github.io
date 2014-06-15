@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Using Robot on OS X"
-category: ruby
+category: java
 ---
 {% include JB/setup %}
 
