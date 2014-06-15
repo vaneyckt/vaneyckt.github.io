@@ -11,7 +11,7 @@ Notice how the example below overrides the `initialValue()` method. This method 
 
 {% gist vaneyckt/770ecd28cf7daae98cac UniqueThreadIdGenerator.java %}
 
-****When to use it****
+**When to use it**
 
 The [javarevisited website](http://javarevisited.blogspot.ie/2012/05/how-to-use-threadlocal-in-java-benefits.html) mentions several scenarios that can benefit from using *ThreadLocal* variables:
 
