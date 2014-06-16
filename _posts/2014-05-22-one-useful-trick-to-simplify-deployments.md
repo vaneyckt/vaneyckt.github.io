@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "One useful trick to simplify deployments"
-category: rails
+category: general
 ---
 {% include JB/setup %}
 
