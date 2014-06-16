@@ -5,7 +5,7 @@ category: general
 ---
 {% include JB/setup %}
 
-We have this Android app that displays user specified images at regular time intervals. Today I was trying to come up with a foolproof way to test whether the right images were being displayed at the right times across a whole range of devices.
+We have this Android app that displays user specified images at regular time intervals. We were trying to come up with a foolproof way to test whether the right images were being displayed at the right times across a whole range of devices.
 
 That doesn't seem very hard, does it? Just take a bunch of screenshots at regular intervals and check whether the captured images match the specified ones. Unfortunately we are talking about 50+ android devices, all of which could have different resolutions as well as unique anti-aliasing filters. This makes comparing images far from a trivial problem.
 
