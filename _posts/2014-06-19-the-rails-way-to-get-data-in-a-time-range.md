@@ -7,10 +7,10 @@ category: rails
 
 I'm writing this mostly as a reminder to myself, since I keep forgetting this :)
 
-Instead of:
+Don't do this:
 
 {% gist vaneyckt/6926335 wrong.rb %}
 
-do this:
+Do this instead:
 
 {% gist vaneyckt/6926335 right.rb %}
