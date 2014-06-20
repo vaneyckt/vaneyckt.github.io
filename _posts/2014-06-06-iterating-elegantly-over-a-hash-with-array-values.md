@@ -11,4 +11,4 @@ Some neat syntactic sugar in Ruby:
 
 You can even do this with nested arrays:
 
-{% gist vaneyckt/7276602" %}
+{% gist vaneyckt/7276602 %}
