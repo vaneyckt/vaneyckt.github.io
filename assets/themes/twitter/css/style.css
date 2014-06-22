@@ -4,7 +4,7 @@
   max-width: 700px; }
 
 .container-narrow > hr {
-  margin: 30px 0; }
+  margin: 20px 0px 12px; }
 
 .navbar .nav {
   float: right; }
@@ -63,3 +63,14 @@
   background: #57A957;
   border: 1px solid #4c964d;
   color: #FFF; }
+
+/* overwrites */
+.gist-data {
+  font-size: 13px !important;
+  line-height: 18px !important;
+}
+
+.gist-meta {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
