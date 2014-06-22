@@ -5,7 +5,7 @@ category: ruby
 ---
 {% include JB/setup %}
 
-A previous post on this topic showed a closure-based approach for breadth-first and depth-first search. This post is going to highlight a very subtle bug that could sneak into your own closure-centric code. We have gone over this before when talking about Ruby's lesser known scope rules, but it might be good to showcase them again in a real-life scenario.
+A previous post on this topic showed a closure-based approach for breadth-first and depth-first search. This post is going to highlight a very subtle bug that could sneak into your own closure-centric code. We have gone over this before when talking about Ruby's lesser known scope rules, but it might be good to showcase it again in a real-life scenario.
 
 For reference, this is the correctly functioning code:
 
