@@ -5,7 +5,7 @@ category: ruby
 ---
 {% include JB/setup %}
 
-Before we talked about how the `if` statement does not introduce scope in Ruby. When looking deepter into this I found there are several looping constructs that have similar behaviour.
+Before we talked about how the `if` statement does not introduce scope in Ruby. When looking deeper into this I found there are several looping constructs that have similar behaviour.
 
 {% gist vaneyckt/b9d99d78631a380715d6 binding.rb %}
 
