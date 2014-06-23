@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Invocating a shell command from a Java program"
+title: "Invoking a shell command from a Java program"
 category: java
 ---
 {% include JB/setup %}
