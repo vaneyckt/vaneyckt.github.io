@@ -5,7 +5,7 @@ category: java
 ---
 {% include JB/setup %}
 
-Just a quick post to help me keep track of the differences between C++ and Java access modifers. It turns out Martin Fowler has a [really useful post](http://martinfowler.com/bliki/AccessModifier.html) about this already. In fact, it's so useful I'm pretty much just going to be copying the bits I'm interested in.
+Just a quick post to help me keep track of the differences between C++ and Java access modifiers. It turns out Martin Fowler has a [really useful post](http://martinfowler.com/bliki/AccessModifier.html) about this already. In fact, it's so useful I'm pretty much just going to be copying the bits I'm interested in.
 
 **C++**
 
