@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Adding a post execution hook to a rake task"
-category: ruby
+category: rake
 ---
 {% include JB/setup %}
 
