@@ -2,7 +2,6 @@
 layout: post
 title: "Bug hunting with git bisect"
 category: git
-tags : [short]
 ---
 {% include JB/setup %}
 
