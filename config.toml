@@ -1,0 +1,18 @@
+baseurl = "http://vaneyckt.io"
+languageCode = "en-us"
+title = "vaneyckt"
+theme = "hyde"
+copyright = "Tom Van Eyck"
+
+[Author]
+	name = "Tom Van Eyck"
+
+[Permalinks]
+	blog = "/:year/:month/:filename/"
+
+[Taxonomies]
+	tag = "tags"
+
+[params]
+	description = "notes to my future self"
+	github = "https://github.com/vaneyckt"

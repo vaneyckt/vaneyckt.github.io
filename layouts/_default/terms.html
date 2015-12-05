@@ -1,0 +1,25 @@
+{{ template "theme/chrome/head.html" . }}
+<body>
+
+{{ template "theme/chrome/sidebar.html" . }}
+
+  <div class="content container">
+    <h1 class="title">Posts By Tag</h1>
+    <section>
+      {{ range $taxonomyname, $taxonomy := .Site.Taxonomies }}
+        <ul>
+          {{ range $key, $value := $taxonomy }}
+            <li> {{ $key }} </li>
+            <ul>
+              {{ range $value.Pages }}
+                <li hugo-nav="{{ .RelPermalink}}"><a href="{{ .Permalink}}"> {{ .LinkTitle }} </a> </li>
+              {{ end }}
+            </ul>
+          {{ end }}
+        </ul>
+      {{ end }}
+    </section>
+  </div>
+
+</body>
+</html>

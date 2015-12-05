@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="Singleton Pattern in Go" />
+<meta property="og:description" content="" />
+
+<meta property="og:type" content="article" />
+
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="http://localhost:1313/posts/singleton-pattern-in-go/" />
+
+
+  <title> Singleton Pattern in Go  &middot; vaneyckt </title>
+
+  
+
+  <link rel="stylesheet" href="/css/monokai.css">
+  <script src="/js/highlight.pack.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  
+  <link rel="stylesheet" href="http://localhost:1313//css/poole.css">
+  <link rel="stylesheet" href="http://localhost:1313//css/syntax.css">
+  <link rel="stylesheet" href="http://localhost:1313//css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt" />
+
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+  <link href='http://fonts.googleapis.com/css?family=Raleway:400,300' rel='stylesheet' type='text/css'>
+
+  <script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
+  <script>
+    WebFont.load({
+      google: {
+        families: ['Raleway']
+      }
+    });
+  </script>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1 class="brand"><a href="http://localhost:1313/">vaneyckt</a></h1>
+      <p class="lead">
+         notes to my future self 
+      </p>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li><a href="http://localhost:1313//posts">Posts</a></li>
+      <li><a href="http://localhost:1313//tags">Tags</a></li>
+      
+      <br/>
+      
+    </ul>
+      
+      
+      
+      <a href="https://github.com/vaneyckt"><i class="fa fa-github-square"></i></a>&nbsp;&nbsp;
+      
+
+    <p class="footnote">powered by <a href="http://hugo.spf13.com">Hugo</a> <br/>
+  </div>
+</div>
+
+
+  <div class="content container">
+    <div class="post">
+      <h1 class="post-title">Singleton Pattern in Go</h1>
+      <span class="post-date">Sun, Jul 12, 2015</span>
+      
+
+<p>The Go Language growth has been phenomenal in the last few years, and is attracting language converts from all walks of life. There has been a lot articles recently about companies switching from Ruby, and experiencing the new world of Go and it&rsquo;s parallel and concurrent approach to problems.</p>
+
+<p>In the last 10 years, Ruby on Rails has allowed many developers and startups to quickly develop powerful systems, most of the time without needing to worry on how the inner things work, or worry about thread-safety and concurrency. It is very rare for a RoR application to create threads and run things in parallel. The whole hosting infrastructure and framework stack uses a different approach, by parallelizing it via multiple processes. It has only been in the last few years that multithreaded rack servers like <a href="http://puma.io/">Puma</a> has surged in popularity, but even that brought a lot of issues in the beggining with third-party gems and other code that weren&rsquo;t designed to be thread safe.</p>
+
+<p>Now with a lot of new developers embarking into the Go Language boat, we need to carefully look at our code and see how it will behave, it needs to be designed in a  thread-safe way.</p>
+
+<h3 id="the-common-mistake:dad286903448e7ad7641ef7a6de34a28">The Common Mistake</h3>
+
+<p>Recently, I have seen this kind of mistake more and more in github repositories. Singleton implementations that doesn&rsquo;t have any consideration for thread-safety. Below is the most common example of this mistake.</p>
+
+<pre><code class="language-go">package singleton
+
+type singleton struct {
+}
+
+var instance *singleton
+
+func GetInstance() *singleton {
+	if instance == nil {
+		instance = &amp;singleton{}   // &lt;--- NOT THREAD SAFE
+	}
+	return instance
+}
+</code></pre>
+
+<p>In the above scenario, multiple go routines could evaluate the first check and they would all create an instance of the <code>singleton</code> type and override each other. There is no guarantee which instance it will be returned here, and other further operations on the instance can be come inconsistent with the expectations by the developer.</p>
+
+<p>The reason this is bad is that if references to the singleton instance are being held around through the code, there could be potentially multiple instances of the type with different states, generating potential different code behaviours. It also becomes a real nightmare during debugging and becomes really hard to spot the the bug, since that at debugging time nothing really appears to be wrong due to the run-time pauses minimizing the potential of a non-thread-safe execution, easily hiding the problem from the developer.</p>
+
+<h3 id="the-aggressive-locking:dad286903448e7ad7641ef7a6de34a28">The Aggressive Locking</h3>
+
+<p>I have also seen this poor solution to the thread-safety problem. Indeed this solves the thread-safety issue, but creates other potential serious problems. It introduces a threading contention by perform aggressive locking of the entire method.</p>
+
+<pre><code class="language-go">var mu Sync.Mutex
+
+func GetInstance() *singleton {
+    mu.Lock()                    // &lt;--- Unnecessary locking if instance already created
+    defer mu.Unlock()
+
+    if instance == nil {
+        instance = &amp;singleton{}
+    }
+    return instance
+}
+</code></pre>
+
+<p>In the code above, we can see that we solve the thread-safety issue by introducing the <code>Sync.Mutex</code> and acquiring the Lock before creating the singleton instance. The problem is that here we are performing excessive locking even when we wouldn&rsquo;t be required to do so, in the case the instance has been already created and we should simply have returned the cached singleton instance. On a highly concurrent code base, this can generate a bottle-neck since only one go routine could get the singleton instance at a time.</p>
+
+<p>So, this is not the best approach. We have to look at other solutions.</p>
+
+<h3 id="check-lock-check-pattern:dad286903448e7ad7641ef7a6de34a28">Check-Lock-Check Pattern</h3>
+
+<p>In C++ and other languages, the best and safest way to ensure minimal locking and still be thread-safe is to utilize the well known pattern called Check-Lock-Check, when acquiring locks. The pseudo-code for the pattern is something like this.</p>
+
+<pre><code>if check() {
+    lock() {
+        if check() {
+            // perform your lock-safe code here
+        }
+    }
+}
+</code></pre>
+
+<p>The idea behind this pattern is that you would want to check first, to minimize any aggressive locking, since an IF statement is less expensive than the locking. Secondly we would want to wait and acquire the exclusive lock so only one execution is inside that block at a single time. But butween the first check and the acquisition of the exclusive lock there could have been another thread that did acquire the lock, therefore we would need to check again inside the lock to avoid replacing the instance with another one.</p>
+
+<p>Over the years, the people that has worked with me knows this well, that I have been very strict with my engineering teams during code-reviews about this pattern and thread-safety mentality.</p>
+
+<p>If we apply this pattern to our <code>GetInstance()</code> method we would have something as follow:</p>
+
+<pre><code class="language-go">func GetInstance() *singleton {
+    if instance == nil {     // &lt;-- Not yet perfect. since it's not fully atomic
+        mu.Lock()
+        defer mu.Unlock()
+
+        if instance == nil {
+            instance = &amp;singleton{}
+        }
+    }
+    return instance
+}
+</code></pre>
+
+<p>This is a better approach, but still is <strong>not</strong> perfect. Since due to compiler optimizations there is not an atomic check on the instance store state. With all the technical considerations this is still not perfect. But it is much better than the initial approach.</p>
+
+<p>But using the <code>sync/atomic</code> package, we can atomically load and set a flag that will indicate if we have initialized or not our instance.</p>
+
+<pre><code class="language-go">import &quot;sync&quot;
+import &quot;sync/atomic&quot;
+
+var initialized uint32
+...
+
+func GetInstance() *singleton {
+
+    if atomic.LoadUInt32(&amp;initialized) == 1 {
+		return instance
+	}
+
+    mu.Lock()
+    defer mu.Unlock()
+
+    if initialized == 0 {
+         instance = &amp;singleton{}
+         atomic.StoreUint32(&amp;initialized, 1)
+    }
+
+    return instance
+}
+</code></pre>
+
+<p>But&hellip; I believe we could do better by looking into how the Go Language and standard library implements go routines synchronization.</p>
+
+<h3 id="an-idiomatic-singleton-approach-in-go:dad286903448e7ad7641ef7a6de34a28">An Idiomatic Singleton Approach in Go</h3>
+
+<p>We want to implement this Singleton pattern utilizing the Go idiomatic way of doing things. So we have to look at the excellent standard library packaged called <code>sync</code>. We can find the type <code>Once</code>. This object will perform an action exactly once and no more. Below you can find the source code from the Go standard library.</p>
+
+<pre><code class="language-go">// Once is an object that will perform exactly one action.
+type Once struct {
+	m    Mutex
+	done uint32
+}
+
+// Do calls the function f if and only if Do is being called for the
+// first time for this instance of Once. In other words, given
+// 	var once Once
+// if once.Do(f) is called multiple times, only the first call will invoke f,
+// even if f has a different value in each invocation.  A new instance of
+// Once is required for each function to execute.
+//
+// Do is intended for initialization that must be run exactly once.  Since f
+// is niladic, it may be necessary to use a function literal to capture the
+// arguments to a function to be invoked by Do:
+// 	config.once.Do(func() { config.init(filename) })
+//
+// Because no call to Do returns until the one call to f returns, if f causes
+// Do to be called, it will deadlock.
+//
+// If f panics, Do considers it to have returned; future calls of Do return
+// without calling f.
+//
+func (o *Once) Do(f func()) {
+	if atomic.LoadUint32(&amp;o.done) == 1 { // &lt;-- Check
+		return
+	}
+	// Slow-path.
+	o.m.Lock()                           // &lt;-- Lock
+	defer o.m.Unlock()
+	if o.done == 0 {                     // &lt;-- Check
+		defer atomic.StoreUint32(&amp;o.done, 1)
+		f()
+	}
+}
+</code></pre>
+
+<p>What this means is the we can leverage the awesome Go sync package to invoke a method exactly only once. Therefore, we can invoke the <code>once.Do()</code> method like this:</p>
+
+<pre><code class="language-go">once.Do(func() {
+    // perform safe initialization here
+})
+</code></pre>
+
+<p>Below you can find the full code of this singleton implementation that utilizes the <code>sync.Once</code> type to syncronize access to the <code>GetInstance()</code> and ensures that our type only gets initialized exactly once.</p>
+
+<pre><code class="language-go">package singleton
+
+import (
+    &quot;sync&quot;
+)
+
+type singleton struct {
+}
+
+var instance *singleton
+var once sync.Once
+
+func GetInstance() *singleton {
+    once.Do(func() {
+        instance = &amp;singleton{}
+    })
+    return instance
+}
+</code></pre>
+
+<p>Therefore, using the <code>sync.Once</code> package is the preferred way of implementing this safely, in similar way that Objective-C and Swift (Cocoa) implements the <code>dispatch_once</code> metod to perform similar initialization.</p>
+
+<h3 id="conclusion:dad286903448e7ad7641ef7a6de34a28">Conclusion</h3>
+
+<p>When it comes to concurrent and parallel code, a lot more careful examination of your code is needed. Always have your team members perform code-reviews, since things like this is easy to have an oversight.</p>
+
+<p>All the new developers that are switching to Go needs to really understand how thread-safety works to better improve their code. Even though the Go language itself does a lot of the heavy-lifting by allowing you to design concurrent code with minimal knowledge of concurrency. There are several cases where the language doesn&rsquo;t help you, and you still need to apply best practices in developing your code.</p>
+
+    </div>
+  </div>
+
+</body>
+</html>
