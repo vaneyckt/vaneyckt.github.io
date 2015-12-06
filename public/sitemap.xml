@@ -13,6 +13,11 @@
   </url>
   
   <url>
+    <loc>http://vaneyckt.io/posts/character_set_vs_collation/</loc>
+    <lastmod>2013-10-19T20:31:43+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</loc>
     <lastmod>2013-10-17T17:20:45+00:00</lastmod>
   </url>
