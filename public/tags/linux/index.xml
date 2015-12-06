@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux on vaneyckt</title>
+    <link>http://vaneyckt.io/tags/linux/</link>
+    <description>Recent content in Linux on vaneyckt</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Sun, 16 Aug 2015 19:43:34 +0000</lastBuildDate>
+    <atom:link href="http://vaneyckt.io/tags/linux/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Installing Chromedriver</title>
+      <link>http://vaneyckt.io/posts/installing_chromedriver/</link>
+      <pubDate>Sun, 16 Aug 2015 19:43:34 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
+      <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open &lt;a href=&#34;https://stackoverflow.com/&#34;&gt;StackOverflow&lt;/a&gt; questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
+
+&lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+$ wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
+$ unzip chromedriver_linux64.zip
+$ rm chromedriver_linux64.zip
+$ sudo mv chromedriver /usr/local/bin
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Let&amp;rsquo;s see what happens when we try and run it.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ chromedriver
+    chromedriver: error while loading shared libraries: libgconf-2.so.4:
+    cannot open shared object file: No such file or directory
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;That&amp;rsquo;s a bit unexpected. Luckily we can easily fix this.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ sudo apt-get install libgconf-2-4
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now that we have a functioning chromedriver, the only thing left to do is to install Chrome. After all, chromedriver can&amp;rsquo;t function without Chrome.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+$ sudo sh -c &#39;echo &amp;quot;deb http://dl.google.com/linux/chrome/deb/ stable main&amp;quot; &amp;gt;&amp;gt; /etc/apt/sources.list.d/google.list&#39;
+$ sudo apt-get update
+$ sudo apt-get install google-chrome-stable
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

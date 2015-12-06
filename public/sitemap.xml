@@ -3,8 +3,13 @@
   
   <url>
     <loc>http://vaneyckt.io/</loc>
-    <lastmod>2015-07-13T11:07:43-04:00</lastmod>
+    <lastmod>2015-08-16T19:43:34+00:00</lastmod>
     <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://vaneyckt.io/posts/installing_chromedriver/</loc>
+    <lastmod>2015-08-16T19:43:34+00:00</lastmod>
   </url>
   
   <url>

@@ -7,20 +7,17 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
-  <meta property="og:title" content="Posts" />
+  <meta property="og:title" content="Installing Chromedriver" />
 <meta property="og:description" content="" />
 
-<meta property="og:type" content="website" />
+<meta property="og:type" content="article" />
 
 <meta property="og:locale" content="en_US" />
-<meta property="og:url" content="http://vaneyckt.io/posts/" />
+<meta property="og:url" content="http://vaneyckt.io/posts/installing_chromedriver/" />
 
 
-  <title> Posts  &middot; vaneyckt </title>
+  <title> Installing Chromedriver  &middot; vaneyckt </title>
 
-  
-  <link href="http://vaneyckt.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
-  <link href="http://vaneyckt.io/posts/index.xml" rel="feed" type="application/rss+xml" title="vaneyckt" />
   
 
   <link rel="stylesheet" href="/css/monokai.css">
@@ -39,7 +36,7 @@
   <link rel="shortcut icon" href="/favicon.ico">
 
   
-  <link href="http://vaneyckt.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt" />
 
   <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
@@ -85,22 +82,41 @@
 
 
   <div class="content container">
-    <h1 class="title">Posts By Date</h1>
-    <ul class="posts">
-      
-        <li><span><a href="http://vaneyckt.io/posts/installing_chromedriver/">Installing Chromedriver</a><time class="pull-right post-list">Sun, Aug 16, 2015</h4></time></span></span></li>
-      
-        <li><span><a href="http://vaneyckt.io/posts/cheap-mapreduce-in-go/">Cheap MapReduce in Go</a><time class="pull-right post-list">Mon, Jul 13, 2015</h4></time></span></span></li>
-      
-        <li><span><a href="http://vaneyckt.io/posts/singleton-pattern-in-go/">Singleton Pattern in Go</a><time class="pull-right post-list">Sun, Jul 12, 2015</h4></time></span></span></li>
-      
-        <li><span><a href="http://vaneyckt.io/posts/supercharging-atom-editor-for-go-development/">Supercharging the Atom Editor for Go Development</a><time class="pull-right post-list">Tue, Jul 7, 2015</h4></time></span></span></li>
-      
-        <li><span><a href="http://vaneyckt.io/posts/calculating-multiple-file-hashes-in-a-single-pass/">Calculating Multiple File Hashes in a Single Pass</a><time class="pull-right post-list">Tue, Jul 7, 2015</h4></time></span></span></li>
-      
-        <li><span><a href="http://vaneyckt.io/posts/handling-1-million-requests-per-minute-with-golang/">Handling 1 Million Requests per Minute with Go</a><time class="pull-right post-list">Mon, Jul 6, 2015</h4></time></span></span></li>
-      
-    </ul>
+    <div class="post">
+      <h1 class="post-title">Installing Chromedriver</h1>
+      <span class="post-date">Sun, Aug 16, 2015</span>
+      <p>Some time ago I needed to install <a href="https://sites.google.com/a/chromium.org/chromedriver/">chromedriver</a> on a ubuntu machine. While this wasn&rsquo;t too hard, I was nevertheless surprised by the number of open <a href="https://stackoverflow.com/">StackOverflow</a> questions on this topic. So I decided to leave some notes for my future self.</p>
+
+<p>First of all, let&rsquo;s install chromedriver.</p>
+
+<pre><code class="language-bash">$ LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+$ wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
+$ unzip chromedriver_linux64.zip
+$ rm chromedriver_linux64.zip
+$ sudo mv chromedriver /usr/local/bin
+</code></pre>
+
+<p>Let&rsquo;s see what happens when we try and run it.</p>
+
+<pre><code class="language-bash">$ chromedriver
+    chromedriver: error while loading shared libraries: libgconf-2.so.4:
+    cannot open shared object file: No such file or directory
+</code></pre>
+
+<p>That&rsquo;s a bit unexpected. Luckily we can easily fix this.</p>
+
+<pre><code class="language-bash">$ sudo apt-get install libgconf-2-4
+</code></pre>
+
+<p>Now that we have a functioning chromedriver, the only thing left to do is to install Chrome. After all, chromedriver can&rsquo;t function without Chrome.</p>
+
+<pre><code class="language-bash">$ wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+$ sudo sh -c 'echo &quot;deb http://dl.google.com/linux/chrome/deb/ stable main&quot; &gt;&gt; /etc/apt/sources.list.d/google.list'
+$ sudo apt-get update
+$ sudo apt-get install google-chrome-stable
+</code></pre>
+
+    </div>
   </div>
 
 </body>
