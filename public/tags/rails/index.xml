@@ -7,8 +7,28 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
-    <lastBuildDate>Sun, 01 Sep 2013 21:01:02 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 10 Oct 2013 19:22:45 +0000</lastBuildDate>
     <atom:link href="http://vaneyckt.io/tags/rails/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Retrieving data in a time range with rails</title>
+      <link>http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/</link>
+      <pubDate>Thu, 10 Oct 2013 19:22:45 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/</guid>
+      <description>&lt;p&gt;I&amp;rsquo;m writing this mostly as a reminder to myself, since I keep forgetting this :)&lt;/p&gt;
+
+&lt;p&gt;Instead of:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;widgets = Widget.where(&amp;quot;? &amp;lt;= created_at AND created_at &amp;lt;= ?&amp;quot;, time_from, time_to)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;do this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;widgets = Widget.where(:created_at =&amp;gt; time_from .. time_to)
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
     
     <item>
       <title>Profiling rails assets precompilation</title>

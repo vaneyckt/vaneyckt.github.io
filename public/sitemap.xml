@@ -38,6 +38,11 @@
   </url>
   
   <url>
+    <loc>http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/</loc>
+    <lastmod>2013-10-10T19:22:45+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://vaneyckt.io/posts/get_vs_post/</loc>
     <lastmod>2013-10-09T16:09:32+00:00</lastmod>
   </url>

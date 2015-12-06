@@ -1564,6 +1564,34 @@ func (d *Dispatcher) dispatch() {
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/">
+        Retrieving data in a time range with rails
+      </a>
+    </h1>
+
+    <span class="post-date">Oct 10, 2013</span>
+
+    
+
+
+    <p>I&rsquo;m writing this mostly as a reminder to myself, since I keep forgetting this :)</p>
+
+<p>Instead of:</p>
+
+<pre><code class="language-ruby">widgets = Widget.where(&quot;? &lt;= created_at AND created_at &lt;= ?&quot;, time_from, time_to)
+</code></pre>
+
+<p>do this:</p>
+
+<pre><code class="language-ruby">widgets = Widget.where(:created_at =&gt; time_from .. time_to)
+</code></pre>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/get_vs_post/">
         GET vs POST
       </a>
