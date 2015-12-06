@@ -2,33 +2,33 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://localhost:1313/</loc>
+    <loc>http://vaneyckt.io/</loc>
     <lastmod>2015-07-13T11:07:43-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://localhost:1313/posts/cheap-mapreduce-in-go/</loc>
+    <loc>http://vaneyckt.io/posts/cheap-mapreduce-in-go/</loc>
     <lastmod>2015-07-13T11:07:43-04:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/posts/singleton-pattern-in-go/</loc>
+    <loc>http://vaneyckt.io/posts/singleton-pattern-in-go/</loc>
     <lastmod>2015-07-12T13:50:25-04:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/posts/supercharging-atom-editor-for-go-development/</loc>
+    <loc>http://vaneyckt.io/posts/supercharging-atom-editor-for-go-development/</loc>
     <lastmod>2015-07-07T15:24:59-04:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/posts/calculating-multiple-file-hashes-in-a-single-pass/</loc>
+    <loc>http://vaneyckt.io/posts/calculating-multiple-file-hashes-in-a-single-pass/</loc>
     <lastmod>2015-07-07T11:14:06-04:00</lastmod>
   </url>
   
   <url>
-    <loc>http://localhost:1313/posts/handling-1-million-requests-per-minute-with-golang/</loc>
+    <loc>http://vaneyckt.io/posts/handling-1-million-requests-per-minute-with-golang/</loc>
     <lastmod>2015-07-06T16:49:35-04:00</lastmod>
   </url>
   

@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Elasticbeanstalk on vaneyckt</title>
-    <link>http://localhost:1313/tags/elasticbeanstalk/</link>
+    <link>http://vaneyckt.io/tags/elasticbeanstalk/</link>
     <description>Recent content in Elasticbeanstalk on vaneyckt</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Mon, 06 Jul 2015 16:49:35 -0400</lastBuildDate>
-    <atom:link href="http://localhost:1313/tags/elasticbeanstalk/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://vaneyckt.io/tags/elasticbeanstalk/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Handling 1 Million Requests per Minute with Go</title>
-      <link>http://localhost:1313/posts/handling-1-million-requests-per-minute-with-golang/</link>
+      <link>http://vaneyckt.io/posts/handling-1-million-requests-per-minute-with-golang/</link>
       <pubDate>Mon, 06 Jul 2015 16:49:35 -0400</pubDate>
       
-      <guid>http://localhost:1313/posts/handling-1-million-requests-per-minute-with-golang/</guid>
+      <guid>http://vaneyckt.io/posts/handling-1-million-requests-per-minute-with-golang/</guid>
       <description>
 
 &lt;p&gt;Here at &lt;a href=&#34;http://www.malwarebytes.org&#34;&gt;Malwarebytes&lt;/a&gt; we are experiencing phenomenal growth, and since I have joined the company over 1 year ago in the Silicon Valley, one my main responsibilities has been to architect and develop several systems to power a fast-growing security company and all the needed infrastructure to support a product that is used by millions of people every single day. I have worked in the anti-virus and anti-malware industry for over 12 years in a few different companies, and I knew how complex these systems could end up being due to the massive amount of data we handle daily.&lt;/p&gt;
@@ -147,7 +147,7 @@ func payloadHandler(w http.ResponseWriter, r *http.Request) {
 
 &lt;p&gt;We were simply avoiding the problem and started a count-down to the death of our system eventually. Our latency rates kept increasing in a constant rate minutes after we deployed this flawed version.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/cloudwatch-latency.png&#34; alt=&#34;cloudwatch-latency&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://vaneyckt.io/img/cloudwatch-latency.png&#34; alt=&#34;cloudwatch-latency&#34; /&gt;&lt;/p&gt;
 
 &lt;h3 id=&#34;the-better-solution:62be2ce69dda4f10948645c26c4bbfee&#34;&gt;The Better Solution&lt;/h3&gt;
 
@@ -303,17 +303,17 @@ func (d *Dispatcher) dispatch() {
 
 &lt;p&gt;Immediately after we have deployed it we saw all of our latency rates drop to insignificant numbers and our ability to handle requests surged drastically.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/cloudwatch-console.png&#34; alt=&#34;cloudwatch-console&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://vaneyckt.io/img/cloudwatch-console.png&#34; alt=&#34;cloudwatch-console&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Minutes after our Elastic Load Balancers were fully warmed up, we saw our ElasticBeanstalk application serving close to 1 million requests per minute. We usually have a few hours during the morning hours in which our traffic spikes over to more than a million per minute.&lt;/p&gt;
 
 &lt;p&gt;As soon as we have deployed the new code, the number of servers dropped considerably from 100 servers to about 20 servers.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/elasticbeanstalk-healthy-hosts.png&#34; alt=&#34;elasticbeanstalk-healthy-hosts&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://vaneyckt.io/img/elasticbeanstalk-healthy-hosts.png&#34; alt=&#34;elasticbeanstalk-healthy-hosts&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;After we had properly configured our cluster and the auto-scaling settings, we were able to lower it even more to only 4x EC2 c4.Large instances and the Elastic Auto-Scaling set to spawn a new instance if CPU goes above 90% for 5 minutes straight.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://localhost:1313/img/elasticbeanstalk-production-dashboard.png&#34; alt=&#34;elasticbeanstalk-production-dashboard&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://vaneyckt.io/img/elasticbeanstalk-production-dashboard.png&#34; alt=&#34;elasticbeanstalk-production-dashboard&#34; /&gt;&lt;/p&gt;
 
 &lt;h3 id=&#34;conclusion:62be2ce69dda4f10948645c26c4bbfee&#34;&gt;Conclusion&lt;/h3&gt;
 
