@@ -179,7 +179,7 @@ end
 end
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Now we can run &lt;code&gt;bundle exec rake profile:assets:precompile&lt;/code&gt; to precompile our assets while outputting profiling info. Hopefully now we can finally figure out why this is always taking so long :).&lt;/p&gt;
+&lt;p&gt;Now we can run &lt;code&gt;bundle exec rake profile:assets:precompile&lt;/code&gt; to precompile our assets while outputting profiling info. Hopefully we can now finally figure out why this is always taking so long :).&lt;/p&gt;
 </description>
     </item>
     

@@ -172,4 +172,4 @@ namespace :profile do
 end
 ```
 
-Now we can run `bundle exec rake profile:assets:precompile` to precompile our assets while outputting profiling info. Hopefully now we can finally figure out why this is always taking so long :).
+Now we can run `bundle exec rake profile:assets:precompile` to precompile our assets while outputting profiling info. Hopefully we can now finally figure out why this is always taking so long :).
