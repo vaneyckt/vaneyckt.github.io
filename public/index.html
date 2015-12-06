@@ -1564,6 +1564,50 @@ func (d *Dispatcher) dispatch() {
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/get_vs_post/">
+        GET vs POST
+      </a>
+    </h1>
+
+    <span class="post-date">Oct 9, 2013</span>
+
+    
+
+
+    
+
+<p>Today I was looking into why a particular GET request was failing on IE. As it turned out this was due to IE not appreciating long query strings. While going through our nginx logs, we also found nginx had a default query string limit that was being hit sporadically by some other customers as well. The solution in both cases was to move the affected calls from GET to POST.</p>
+
+<p>The above problem prompted me to take a closer look at the differences between GET and POST requests. You probably use these all the time, but do you know how each of them functions?</p>
+
+<h4 id="get-requests:4d95a9bef13dce29490ef41cb06ad212">GET requests</h4>
+
+<ul>
+<li>can be bookmarked</li>
+<li>can be cached for faster response time on subsequent request</li>
+<li>request is stored in browser history</li>
+<li>uses query strings to send data. There is a limit to the allowable length of a query string.</li>
+<li>have their url and query strings stored in plaintext in server logs. This is why you should never send passwords over GET requests!</li>
+<li>use these for actions that retrieve data. For example, you don&rsquo;t want to use GET requests for posting comments on your blog. Otherwise an attacker could copy a url that posts a specific comment and put it on twitter. Every time someone were to click this link, a comment would now be posted on your blog.</li>
+</ul>
+
+<h4 id="post-requests:4d95a9bef13dce29490ef41cb06ad212">POST requests</h4>
+
+<ul>
+<li>cannot be bookmarked</li>
+<li>cannot be cached</li>
+<li>request will not be stored in browser history</li>
+<li>uses POST body to send data. There is no limit to the amount of data sent due to the multipart content-type spreading your data across multiple messages when necessary.</li>
+<li>have their url stored in plaintext in server logs. The data itself will not be logged though.</li>
+<li>use these for actions that alter data</li>
+</ul>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/the_dig_command/">
         The dig command
       </a>

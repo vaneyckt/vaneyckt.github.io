@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Web on vaneyckt</title>
+    <link>http://vaneyckt.io/tags/web/</link>
+    <description>Recent content in Web on vaneyckt</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Wed, 09 Oct 2013 16:09:32 +0000</lastBuildDate>
+    <atom:link href="http://vaneyckt.io/tags/web/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>GET vs POST</title>
+      <link>http://vaneyckt.io/posts/get_vs_post/</link>
+      <pubDate>Wed, 09 Oct 2013 16:09:32 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/get_vs_post/</guid>
+      <description>
+
+&lt;p&gt;Today I was looking into why a particular GET request was failing on IE. As it turned out this was due to IE not appreciating long query strings. While going through our nginx logs, we also found nginx had a default query string limit that was being hit sporadically by some other customers as well. The solution in both cases was to move the affected calls from GET to POST.&lt;/p&gt;
+
+&lt;p&gt;The above problem prompted me to take a closer look at the differences between GET and POST requests. You probably use these all the time, but do you know how each of them functions?&lt;/p&gt;
+
+&lt;h4 id=&#34;get-requests:4d95a9bef13dce29490ef41cb06ad212&#34;&gt;GET requests&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;can be bookmarked&lt;/li&gt;
+&lt;li&gt;can be cached for faster response time on subsequent request&lt;/li&gt;
+&lt;li&gt;request is stored in browser history&lt;/li&gt;
+&lt;li&gt;uses query strings to send data. There is a limit to the allowable length of a query string.&lt;/li&gt;
+&lt;li&gt;have their url and query strings stored in plaintext in server logs. This is why you should never send passwords over GET requests!&lt;/li&gt;
+&lt;li&gt;use these for actions that retrieve data. For example, you don&amp;rsquo;t want to use GET requests for posting comments on your blog. Otherwise an attacker could copy a url that posts a specific comment and put it on twitter. Every time someone were to click this link, a comment would now be posted on your blog.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;post-requests:4d95a9bef13dce29490ef41cb06ad212&#34;&gt;POST requests&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;cannot be bookmarked&lt;/li&gt;
+&lt;li&gt;cannot be cached&lt;/li&gt;
+&lt;li&gt;request will not be stored in browser history&lt;/li&gt;
+&lt;li&gt;uses POST body to send data. There is no limit to the amount of data sent due to the multipart content-type spreading your data across multiple messages when necessary.&lt;/li&gt;
+&lt;li&gt;have their url stored in plaintext in server logs. The data itself will not be logged though.&lt;/li&gt;
+&lt;li&gt;use these for actions that alter data&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
