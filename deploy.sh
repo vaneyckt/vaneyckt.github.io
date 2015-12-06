@@ -1,3 +1,3 @@
 #!/bin/sh
 
-git subtree push --prefix public/ origin gh-pages
+git subtree push --prefix public/ origin master
