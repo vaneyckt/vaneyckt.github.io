@@ -7,20 +7,17 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
-  <meta property="og:title" content="Rails" />
+  <meta property="og:title" content="MySQL write locks also prevent reads" />
 <meta property="og:description" content="" />
 
-<meta property="og:type" content="website" />
+<meta property="og:type" content="article" />
 
 <meta property="og:locale" content="en_US" />
-<meta property="og:url" content="http://vaneyckt.io/tags/rails/" />
+<meta property="og:url" content="http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/" />
 
 
-  <title> Rails  &middot; vaneyckt </title>
+  <title> MySQL write locks also prevent reads  &middot; vaneyckt </title>
 
-  
-  <link href="http://vaneyckt.io/tags/rails/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
-  <link href="http://vaneyckt.io/tags/rails/index.xml" rel="feed" type="application/rss+xml" title="vaneyckt" />
   
 
   <link rel="stylesheet" href="/css/monokai.css">
@@ -39,7 +36,7 @@
   <link rel="shortcut icon" href="/favicon.ico">
 
   
-  <link href="http://vaneyckt.io/tags/rails/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt" />
 
   <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
@@ -83,43 +80,21 @@
   </div>
 </div>
 
-   <div class="content container">
-   
-    
-    
-      
-    
-      
-        
-      
-    
-      
-        
-      
-    
-      
-        
-      
-    
 
-qwqwqwqwqwqw
+  <div class="content container">
+    <div class="post">
+      <h1 class="post-title">MySQL write locks also prevent reads</h1>
+      <span class="post-date">Thu, Oct 17, 2013</span>
+      <p>Locking a table with</p>
 
-    <ul>
-    
-      <li><a href="http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/">MySQL write locks also prevent reads</a></li>
-    
-      <li><a href="http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/">Rails migrations and the dangers of implicit commits</a></li>
-    
-      <li><a href="http://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/">URI.js and URL manipulation in rails</a></li>
-    
-      <li><a href="http://vaneyckt.io/posts/finding_models_from_strings_with_rails/">Finding models from strings with rails</a></li>
-    
-      <li><a href="http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/">Retrieving data in a time range with rails</a></li>
-    
-      <li><a href="http://vaneyckt.io/posts/profiling_rails_assets_precompilation/">Profiling rails assets precompilation</a></li>
-    
-    </ul>
+<pre><code class="language-ruby">table_name = 'widgets'
+ActiveRecord::Base.connection.execute(&quot;LOCK TABLES #{table_name} WRITE&quot;)
+</code></pre>
 
+<p>ensures that <a href="http://dev.mysql.com/doc/refman/5.0/en/lock-tables.html">only the current connection can access that table</a>. Other connections cannot even read from this table while it is locked!</p>
+
+    </div>
   </div>
-  </body>
+
+</body>
 </html>

@@ -140,6 +140,30 @@ $ sudo apt-get install google-chrome-stable
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/">
+        MySQL write locks also prevent reads
+      </a>
+    </h1>
+
+    <span class="post-date">Oct 17, 2013</span>
+
+    
+
+
+    <p>Locking a table with</p>
+
+<pre><code class="language-ruby">table_name = 'widgets'
+ActiveRecord::Base.connection.execute(&quot;LOCK TABLES #{table_name} WRITE&quot;)
+</code></pre>
+
+<p>ensures that <a href="http://dev.mysql.com/doc/refman/5.0/en/lock-tables.html">only the current connection can access that table</a>. Other connections cannot even read from this table while it is locked!</p>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/">
         Rails migrations and the dangers of implicit commits
       </a>

@@ -7,8 +7,24 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
-    <lastBuildDate>Wed, 16 Oct 2013 18:45:12 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 17 Oct 2013 17:20:45 +0000</lastBuildDate>
     <atom:link href="http://vaneyckt.io/tags/rails/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>MySQL write locks also prevent reads</title>
+      <link>http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</link>
+      <pubDate>Thu, 17 Oct 2013 17:20:45 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</guid>
+      <description>&lt;p&gt;Locking a table with&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;table_name = &#39;widgets&#39;
+ActiveRecord::Base.connection.execute(&amp;quot;LOCK TABLES #{table_name} WRITE&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ensures that &lt;a href=&#34;http://dev.mysql.com/doc/refman/5.0/en/lock-tables.html&#34;&gt;only the current connection can access that table&lt;/a&gt;. Other connections cannot even read from this table while it is locked!&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Rails migrations and the dangers of implicit commits</title>
