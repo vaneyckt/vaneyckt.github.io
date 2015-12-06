@@ -52,6 +52,20 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>URI.js and URL manipulation in rails</title>
+      <link>http://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/</link>
+      <pubDate>Sun, 13 Oct 2013 14:55:23 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/</guid>
+      <description>&lt;p&gt;Manipulating urls in javascript often ends up being an exercise in string interpolation. This rarely produces good looking code. Recently we&amp;rsquo;ve started enforcing the use of the &lt;a href=&#34;https://medialize.github.io/URI.js/&#34;&gt;URI.js library&lt;/a&gt; to combat this.&lt;/p&gt;
+
+&lt;p&gt;Our new approach has us embed any necessary urls in hidden input fields on the web page in question. Rather than hardcoding these urls, we use the named route functionality offered by rails as this provides more flexibility. When the page gets rendered, these named routes are converted to actual urls through ERB templating. The embedded urls can then be fetched by javascript code and manipulated with URI.js.&lt;/p&gt;
+
+&lt;p&gt;It&amp;rsquo;s no silver bullet, but the resulting code is a lot more readable.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>The css !important keyword</title>
       <link>http://vaneyckt.io/posts/the_css_important_keyword/</link>
       <pubDate>Sat, 12 Oct 2013 15:03:23 +0000</pubDate>
