@@ -1,4 +1,4 @@
-baseurl = "http://vaneyckt.github.io"
+baseurl = "http://vaneyckt.io"
 languageCode = "en-us"
 title = "vaneyckt"
 theme = "hyde"
