@@ -7,20 +7,17 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
-  <meta property="og:title" content="Rails" />
+  <meta property="og:title" content="Rails migrations and the dangers of implicit commits" />
 <meta property="og:description" content="" />
 
-<meta property="og:type" content="website" />
+<meta property="og:type" content="article" />
 
 <meta property="og:locale" content="en_US" />
-<meta property="og:url" content="http://vaneyckt.io/tags/rails/" />
+<meta property="og:url" content="http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/" />
 
 
-  <title> Rails  &middot; vaneyckt </title>
+  <title> Rails migrations and the dangers of implicit commits  &middot; vaneyckt </title>
 
-  
-  <link href="http://vaneyckt.io/tags/rails/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
-  <link href="http://vaneyckt.io/tags/rails/index.xml" rel="feed" type="application/rss+xml" title="vaneyckt" />
   
 
   <link rel="stylesheet" href="/css/monokai.css">
@@ -39,7 +36,7 @@
   <link rel="shortcut icon" href="/favicon.ico">
 
   
-  <link href="http://vaneyckt.io/tags/rails/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt" />
 
   <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
@@ -83,41 +80,31 @@
   </div>
 </div>
 
-   <div class="content container">
-   
-    
-    
-      
-    
-      
-        
-      
-    
-      
-        
-      
-    
-      
-        
-      
-    
 
-qwqwqwqwqwqw
+  <div class="content container">
+    <div class="post">
+      <h1 class="post-title">Rails migrations and the dangers of implicit commits</h1>
+      <span class="post-date">Wed, Oct 16, 2013</span>
+      <p>I recently came across the migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.</p>
 
-    <ul>
-    
-      <li><a href="http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/">Rails migrations and the dangers of implicit commits</a></li>
-    
-      <li><a href="http://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/">URI.js and URL manipulation in rails</a></li>
-    
-      <li><a href="http://vaneyckt.io/posts/finding_models_from_strings_with_rails/">Finding models from strings with rails</a></li>
-    
-      <li><a href="http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/">Retrieving data in a time range with rails</a></li>
-    
-      <li><a href="http://vaneyckt.io/posts/profiling_rails_assets_precompilation/">Profiling rails assets precompilation</a></li>
-    
-    </ul>
+<pre><code class="language-ruby"># migration to convert table to utf8
+class ConvertWidgetsTableToUtf8Unicode &lt; ActiveRecord::Migration
+  def up
+    ActiveRecord::Base.transaction do
+      table_name = 'widgets'
+      say &quot;converting #{table_name} table to utf8_unicode_ci&quot;
 
+      execute(&quot;ALTER TABLE #{table_name} CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci&quot;)
+      execute(&quot;ALTER TABLE #{table_name} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci&quot;)
+    end
+  end
+end
+</code></pre>
+
+<p>Notice how the utf8 conversion code is wrapped inside a transaction. The assumption here is that if something goes wrong the transaction will trigger a rollback. However, an <code>ALTER TABLE</code> command in MySQL causes an <a href="http://dev.mysql.com/doc/refman/5.0/en/implicit-commit.html">implicit commit</a>. This means that the rollback will not undo any changes introduced by the <code>ALTER TABLE</code> command!</p>
+
+    </div>
   </div>
-  </body>
+
+</body>
 </html>

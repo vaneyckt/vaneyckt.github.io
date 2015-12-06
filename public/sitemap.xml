@@ -13,6 +13,11 @@
   </url>
   
   <url>
+    <loc>http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</loc>
+    <lastmod>2013-10-16T18:45:12+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/</loc>
     <lastmod>2013-10-15T16:46:02+00:00</lastmod>
   </url>

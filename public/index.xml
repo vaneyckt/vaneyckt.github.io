@@ -52,6 +52,32 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>Rails migrations and the dangers of implicit commits</title>
+      <link>http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</link>
+      <pubDate>Wed, 16 Oct 2013 18:45:12 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</guid>
+      <description>&lt;p&gt;I recently came across the migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# migration to convert table to utf8
+class ConvertWidgetsTableToUtf8Unicode &amp;lt; ActiveRecord::Migration
+  def up
+    ActiveRecord::Base.transaction do
+      table_name = &#39;widgets&#39;
+      say &amp;quot;converting #{table_name} table to utf8_unicode_ci&amp;quot;
+
+      execute(&amp;quot;ALTER TABLE #{table_name} CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci&amp;quot;)
+      execute(&amp;quot;ALTER TABLE #{table_name} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci&amp;quot;)
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Notice how the utf8 conversion code is wrapped inside a transaction. The assumption here is that if something goes wrong the transaction will trigger a rollback. However, an &lt;code&gt;ALTER TABLE&lt;/code&gt; command in MySQL causes an &lt;a href=&#34;http://dev.mysql.com/doc/refman/5.0/en/implicit-commit.html&#34;&gt;implicit commit&lt;/a&gt;. This means that the rollback will not undo any changes introduced by the &lt;code&gt;ALTER TABLE&lt;/code&gt; command!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Iterating over a hash containing arrays</title>
       <link>http://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/</link>
       <pubDate>Tue, 15 Oct 2013 16:46:02 +0000</pubDate>
