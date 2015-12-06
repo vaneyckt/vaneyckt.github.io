@@ -1435,5 +1435,17 @@ func (d *Dispatcher) dispatch() {
 </description>
     </item>
     
+    <item>
+      <title>EC2 instance cost comparison</title>
+      <link>http://vaneyckt.io/posts/ec2_instance_cost_comparison/</link>
+      <pubDate>Sun, 11 Aug 2013 21:24:12 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/ec2_instance_cost_comparison/</guid>
+      <description>&lt;p&gt;Amazon&amp;rsquo;s pricing scheme for its ec2 instances never struck me as particularly transparent. Until recently some of my DevOps colleagues even estimated cost by cross-referencing &lt;a href=&#34;https://aws.amazon.com/ec2/instance-types&#34;&gt;instance details&lt;/a&gt; with &lt;a href=&#34;http://aws.amazon.com/ec2/pricing&#34;&gt;pricing information&lt;/a&gt;. While this approach gives reasonable results for finding the cost of a given instance type, it doesn&amp;rsquo;t lend itself very well to comparing prices across a range of different types.&lt;/p&gt;
+
+&lt;p&gt;When talking to an ex-colleague of mine about the hardships encountered for such a common task, he pointed me to &lt;a href=&#34;http://www.ec2instances.info&#34;&gt;this absolutely brilliant page&lt;/a&gt;. It&amp;rsquo;s so unbelievably simple and well thought-out that I can&amp;rsquo;t help getting ever so slightly annoyed with whomever is in charge of communicating Amazon&amp;rsquo;s pricing structure and the subpar job they are doing.&lt;/p&gt;
+</description>
+    </item>
+    
   </channel>
 </rss>

@@ -7,20 +7,17 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
-  <meta property="og:title" content="Posts" />
+  <meta property="og:title" content="EC2 instance cost comparison" />
 <meta property="og:description" content="" />
 
-<meta property="og:type" content="website" />
+<meta property="og:type" content="article" />
 
 <meta property="og:locale" content="en_US" />
-<meta property="og:url" content="http://vaneyckt.io/posts/" />
+<meta property="og:url" content="http://vaneyckt.io/posts/ec2_instance_cost_comparison/" />
 
 
-  <title> Posts  &middot; vaneyckt </title>
+  <title> EC2 instance cost comparison  &middot; vaneyckt </title>
 
-  
-  <link href="http://vaneyckt.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
-  <link href="http://vaneyckt.io/posts/index.xml" rel="feed" type="application/rss+xml" title="vaneyckt" />
   
 
   <link rel="stylesheet" href="/css/monokai.css">
@@ -39,7 +36,7 @@
   <link rel="shortcut icon" href="/favicon.ico">
 
   
-  <link href="http://vaneyckt.io/posts/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt" />
 
   <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
@@ -85,24 +82,14 @@
 
 
   <div class="content container">
-    <h1 class="title">Posts By Date</h1>
-    <ul class="posts">
-      
-        <li><span><a href="http://vaneyckt.io/posts/installing_chromedriver/">Installing Chromedriver</a><time class="pull-right post-list">Sun, Aug 16, 2015</h4></time></span></span></li>
-      
-        <li><span><a href="http://vaneyckt.io/posts/cheap-mapreduce-in-go/">Cheap MapReduce in Go</a><time class="pull-right post-list">Mon, Jul 13, 2015</h4></time></span></span></li>
-      
-        <li><span><a href="http://vaneyckt.io/posts/singleton-pattern-in-go/">Singleton Pattern in Go</a><time class="pull-right post-list">Sun, Jul 12, 2015</h4></time></span></span></li>
-      
-        <li><span><a href="http://vaneyckt.io/posts/supercharging-atom-editor-for-go-development/">Supercharging the Atom Editor for Go Development</a><time class="pull-right post-list">Tue, Jul 7, 2015</h4></time></span></span></li>
-      
-        <li><span><a href="http://vaneyckt.io/posts/calculating-multiple-file-hashes-in-a-single-pass/">Calculating Multiple File Hashes in a Single Pass</a><time class="pull-right post-list">Tue, Jul 7, 2015</h4></time></span></span></li>
-      
-        <li><span><a href="http://vaneyckt.io/posts/handling-1-million-requests-per-minute-with-golang/">Handling 1 Million Requests per Minute with Go</a><time class="pull-right post-list">Mon, Jul 6, 2015</h4></time></span></span></li>
-      
-        <li><span><a href="http://vaneyckt.io/posts/ec2_instance_cost_comparison/">EC2 instance cost comparison</a><time class="pull-right post-list">Sun, Aug 11, 2013</h4></time></span></span></li>
-      
-    </ul>
+    <div class="post">
+      <h1 class="post-title">EC2 instance cost comparison</h1>
+      <span class="post-date">Sun, Aug 11, 2013</span>
+      <p>Amazon&rsquo;s pricing scheme for its ec2 instances never struck me as particularly transparent. Until recently some of my DevOps colleagues even estimated cost by cross-referencing <a href="https://aws.amazon.com/ec2/instance-types">instance details</a> with <a href="http://aws.amazon.com/ec2/pricing">pricing information</a>. While this approach gives reasonable results for finding the cost of a given instance type, it doesn&rsquo;t lend itself very well to comparing prices across a range of different types.</p>
+
+<p>When talking to an ex-colleague of mine about the hardships encountered for such a common task, he pointed me to <a href="http://www.ec2instances.info">this absolutely brilliant page</a>. It&rsquo;s so unbelievably simple and well thought-out that I can&rsquo;t help getting ever so slightly annoyed with whomever is in charge of communicating Amazon&rsquo;s pricing structure and the subpar job they are doing.</p>
+
+    </div>
   </div>
 
 </body>
