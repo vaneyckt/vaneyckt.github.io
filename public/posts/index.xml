@@ -1436,6 +1436,30 @@ func (d *Dispatcher) dispatch() {
     </item>
     
     <item>
+      <title>Finding models from strings with rails</title>
+      <link>http://vaneyckt.io/posts/finding_models_from_strings_with_rails/</link>
+      <pubDate>Fri, 11 Oct 2013 16:27:35 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/finding_models_from_strings_with_rails/</guid>
+      <description>&lt;p&gt;Imagine you have a Widget model that stores data in a table &amp;lsquo;widgets&amp;rsquo;. At some point in your rails app you find yourself being given a string &amp;lsquo;Widget&amp;rsquo; and are asked to find the Widget model. This can be done like shown here.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;str = &#39;Widget&#39;
+model = str.constantize
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;However, things get a bit harder when you have multiple Widget model subclasses (Widget::A, Widget::B), all of which are stored in the widgets table. This time around you&amp;rsquo;re given the string &amp;lsquo;Widget::A&amp;rsquo; and are asked to get the Widget model.&lt;/p&gt;
+
+&lt;p&gt;In order to solve this we&amp;rsquo;ll need to ask the Widget::A model to give us its table name. If you&amp;rsquo;re following rails conventions you can then in turn use the table name to get the model you need.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;str = &#39;Widget&#39;
+model = str.constantize.table_name.classify.constantize
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Note that the above will only work if you&amp;rsquo;ve followed rails naming conventions though :).&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Retrieving data in a time range with rails</title>
       <link>http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/</link>
       <pubDate>Thu, 10 Oct 2013 19:22:45 +0000</pubDate>

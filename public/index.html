@@ -1564,6 +1564,38 @@ func (d *Dispatcher) dispatch() {
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/finding_models_from_strings_with_rails/">
+        Finding models from strings with rails
+      </a>
+    </h1>
+
+    <span class="post-date">Oct 11, 2013</span>
+
+    
+
+
+    <p>Imagine you have a Widget model that stores data in a table &lsquo;widgets&rsquo;. At some point in your rails app you find yourself being given a string &lsquo;Widget&rsquo; and are asked to find the Widget model. This can be done like shown here.</p>
+
+<pre><code class="language-ruby">str = 'Widget'
+model = str.constantize
+</code></pre>
+
+<p>However, things get a bit harder when you have multiple Widget model subclasses (Widget::A, Widget::B), all of which are stored in the widgets table. This time around you&rsquo;re given the string &lsquo;Widget::A&rsquo; and are asked to get the Widget model.</p>
+
+<p>In order to solve this we&rsquo;ll need to ask the Widget::A model to give us its table name. If you&rsquo;re following rails conventions you can then in turn use the table name to get the model you need.</p>
+
+<pre><code class="language-ruby">str = 'Widget'
+model = str.constantize.table_name.classify.constantize
+</code></pre>
+
+<p>Note that the above will only work if you&rsquo;ve followed rails naming conventions though :).</p>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/">
         Retrieving data in a time range with rails
       </a>
