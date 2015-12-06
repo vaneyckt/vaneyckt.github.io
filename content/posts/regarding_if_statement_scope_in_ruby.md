@@ -1,6 +1,6 @@
 +++
 date = "2013-08-31T20:22:58+00:00"
-title = "Regarding the scope of the if statement in Ruby"
+title = "Regarding if statement scope in Ruby"
 type = "post"
 ogtype = "article"
 tags = [ "ruby" ]

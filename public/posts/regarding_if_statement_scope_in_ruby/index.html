@@ -7,20 +7,17 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
-  <meta property="og:title" content="Ruby" />
+  <meta property="og:title" content="Regarding if statement scope in Ruby" />
 <meta property="og:description" content="" />
 
-<meta property="og:type" content="website" />
+<meta property="og:type" content="article" />
 
 <meta property="og:locale" content="en_US" />
-<meta property="og:url" content="http://vaneyckt.io/tags/ruby/" />
+<meta property="og:url" content="http://vaneyckt.io/posts/regarding_if_statement_scope_in_ruby/" />
 
 
-  <title> Ruby  &middot; vaneyckt </title>
+  <title> Regarding if statement scope in Ruby  &middot; vaneyckt </title>
 
-  
-  <link href="http://vaneyckt.io/tags/ruby/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
-  <link href="http://vaneyckt.io/tags/ruby/index.xml" rel="feed" type="application/rss+xml" title="vaneyckt" />
   
 
   <link rel="stylesheet" href="/css/monokai.css">
@@ -39,7 +36,7 @@
   <link rel="shortcut icon" href="/favicon.ico">
 
   
-  <link href="http://vaneyckt.io/tags/ruby/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt" />
 
   <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
@@ -83,33 +80,51 @@
   </div>
 </div>
 
-   <div class="content container">
-   
-    
-    
-      
-    
-      
-        
-      
-    
-      
-        
-      
-    
-      
-        
-      
-    
 
-qwqwqwqwqwqw
+  <div class="content container">
+    <div class="post">
+      <h1 class="post-title">Regarding if statement scope in Ruby</h1>
+      <span class="post-date">Sat, Aug 31, 2013</span>
+      <p>I recently learned that <code>if</code> statements in Ruby do not introduce scope. This means that you can write code like shown below and it&rsquo;ll work fine.</p>
 
-    <ul>
-    
-      <li><a href="http://vaneyckt.io/posts/regarding_if_statement_scope_in_ruby/">Regarding if statement scope in Ruby</a></li>
-    
-    </ul>
+<pre><code class="language-ruby"># perfectly valid Ruby code
+if true
+  foo = 5
+end
 
+puts foo
+</code></pre>
+
+<p>At first this seemed a bit weird to me. It wasn&rsquo;t until I read <a href="http://programmers.stackexchange.com/questions/58900/why-if-statements-do-not-introduce-scope-in-ruby-1-9">this</a> that I realized Ruby was even more versatile than I had first thought. As it turns out, it is this somewhat unconventional scoping rule that allows us to conditionally replace methods.</p>
+
+<pre><code class="language-ruby">if foo == 5
+  def some_method
+    # do something
+  end
+else
+  def some_method
+    # do something else
+  end
+end
+</code></pre>
+
+<p>As well as conditionally modify implementations.</p>
+
+<pre><code class="language-ruby">if foo == 5
+  class someClass
+    # ...
+  end
+else
+  module someModule
+    # ...
+  end
+end
+</code></pre>
+
+<p>And that&rsquo;s amazing!</p>
+
+    </div>
   </div>
-  </body>
+
+</body>
 </html>

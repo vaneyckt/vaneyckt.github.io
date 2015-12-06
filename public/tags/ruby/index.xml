@@ -11,11 +11,11 @@
     <atom:link href="http://vaneyckt.io/tags/ruby/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Regarding the scope of the if statement in Ruby</title>
-      <link>http://vaneyckt.io/posts/regarding_the_scope_of_the_if_statement_in_ruby/</link>
+      <title>Regarding if statement scope in Ruby</title>
+      <link>http://vaneyckt.io/posts/regarding_if_statement_scope_in_ruby/</link>
       <pubDate>Sat, 31 Aug 2013 20:22:58 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/regarding_the_scope_of_the_if_statement_in_ruby/</guid>
+      <guid>http://vaneyckt.io/posts/regarding_if_statement_scope_in_ruby/</guid>
       <description>&lt;p&gt;I recently learned that &lt;code&gt;if&lt;/code&gt; statements in Ruby do not introduce scope. This means that you can write code like shown below and it&amp;rsquo;ll work fine.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# perfectly valid Ruby code
