@@ -1564,6 +1564,60 @@ func (d *Dispatcher) dispatch() {
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/regarding_the_scope_of_the_if_statement_in_ruby/">
+        Regarding the scope of the if statement in Ruby
+      </a>
+    </h1>
+
+    <span class="post-date">Aug 31, 2013</span>
+
+    
+
+
+    <p>I recently learned that <code>if</code> statements in Ruby do not introduce scope. This means that you can write code like shown below and it&rsquo;ll work fine.</p>
+
+<pre><code class="language-ruby"># perfectly valid Ruby code
+if true
+  foo = 5
+end
+
+puts foo
+</code></pre>
+
+<p>At first this seemed a bit weird to me. It wasn&rsquo;t until I read <a href="http://programmers.stackexchange.com/questions/58900/why-if-statements-do-not-introduce-scope-in-ruby-1-9">this</a> that I realized Ruby was even more versatile than I had first thought. As it turns out, it is this somewhat unconventional scoping rule that allows us to conditionally replace methods.</p>
+
+<pre><code class="language-ruby">if foo == 5
+  def some_method
+    # do something
+  end
+else
+  def some_method
+    # do something else
+  end
+end
+</code></pre>
+
+<p>As well as conditionally modify implementations.</p>
+
+<pre><code class="language-ruby">if foo == 5
+  class someClass
+    # ...
+  end
+else
+  module someModule
+    # ...
+  end
+end
+</code></pre>
+
+<p>And that&rsquo;s amazing!</p>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/ec2_instance_cost_comparison/">
         EC2 instance cost comparison
       </a>

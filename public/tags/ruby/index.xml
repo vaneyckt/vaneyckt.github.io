@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ruby on vaneyckt</title>
+    <link>http://vaneyckt.io/tags/ruby/</link>
+    <description>Recent content in Ruby on vaneyckt</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Sat, 31 Aug 2013 20:22:58 +0000</lastBuildDate>
+    <atom:link href="http://vaneyckt.io/tags/ruby/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Regarding the scope of the if statement in Ruby</title>
+      <link>http://vaneyckt.io/posts/regarding_the_scope_of_the_if_statement_in_ruby/</link>
+      <pubDate>Sat, 31 Aug 2013 20:22:58 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/regarding_the_scope_of_the_if_statement_in_ruby/</guid>
+      <description>&lt;p&gt;I recently learned that &lt;code&gt;if&lt;/code&gt; statements in Ruby do not introduce scope. This means that you can write code like shown below and it&amp;rsquo;ll work fine.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# perfectly valid Ruby code
+if true
+  foo = 5
+end
+
+puts foo
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;At first this seemed a bit weird to me. It wasn&amp;rsquo;t until I read &lt;a href=&#34;http://programmers.stackexchange.com/questions/58900/why-if-statements-do-not-introduce-scope-in-ruby-1-9&#34;&gt;this&lt;/a&gt; that I realized Ruby was even more versatile than I had first thought. As it turns out, it is this somewhat unconventional scoping rule that allows us to conditionally replace methods.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;if foo == 5
+  def some_method
+    # do something
+  end
+else
+  def some_method
+    # do something else
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As well as conditionally modify implementations.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;if foo == 5
+  class someClass
+    # ...
+  end
+else
+  module someModule
+    # ...
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And that&amp;rsquo;s amazing!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
