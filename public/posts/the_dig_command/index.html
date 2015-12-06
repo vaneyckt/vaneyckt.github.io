@@ -7,20 +7,17 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
-  <meta property="og:title" content="Linux" />
+  <meta property="og:title" content="The dig command" />
 <meta property="og:description" content="" />
 
-<meta property="og:type" content="website" />
+<meta property="og:type" content="article" />
 
 <meta property="og:locale" content="en_US" />
-<meta property="og:url" content="http://vaneyckt.io/tags/linux/" />
+<meta property="og:url" content="http://vaneyckt.io/posts/the_dig_command/" />
 
 
-  <title> Linux  &middot; vaneyckt </title>
+  <title> The dig command  &middot; vaneyckt </title>
 
-  
-  <link href="http://vaneyckt.io/tags/linux/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
-  <link href="http://vaneyckt.io/tags/linux/index.xml" rel="feed" type="application/rss+xml" title="vaneyckt" />
   
 
   <link rel="stylesheet" href="/css/monokai.css">
@@ -39,7 +36,7 @@
   <link rel="shortcut icon" href="/favicon.ico">
 
   
-  <link href="http://vaneyckt.io/tags/linux/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt" />
 
   <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
@@ -83,35 +80,40 @@
   </div>
 </div>
 
-   <div class="content container">
-   
-    
-    
-      
-    
-      
-        
-      
-    
-      
-        
-      
-    
-      
-        
-      
-    
 
-qwqwqwqwqwqw
+  <div class="content container">
+    <div class="post">
+      <h1 class="post-title">The dig command</h1>
+      <span class="post-date">Tue, Oct 8, 2013</span>
+      <p>Today I learned of the existence of the <a href="http://linux.die.net/man/1/dig">dig command</a>. A very useful little tool for DNS lookups. Here&rsquo;s an example of it in action.</p>
 
-    <ul>
-    
-      <li><a href="http://vaneyckt.io/posts/installing_chromedriver/">Installing Chromedriver</a></li>
-    
-      <li><a href="http://vaneyckt.io/posts/the_dig_command/">The dig command</a></li>
-    
-    </ul>
+<pre><code class="language-bash">$ dig www.google.com
 
+; &lt;&lt;&gt;&gt; DiG 9.8.3-P1 &lt;&lt;&gt;&gt; www.google.com
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 4868
+;; flags: qr rd ra; QUERY: 1, ANSWER: 6, AUTHORITY: 0, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;www.google.com.			IN	A
+
+;; ANSWER SECTION:
+www.google.com.		72	IN	A	74.125.24.105
+www.google.com.		72	IN	A	74.125.24.103
+www.google.com.		72	IN	A	74.125.24.104
+www.google.com.		72	IN	A	74.125.24.99
+www.google.com.		72	IN	A	74.125.24.147
+www.google.com.		72	IN	A	74.125.24.106
+
+;; Query time: 11 msec
+;; SERVER: 192.168.0.1#53(192.168.0.1)
+;; WHEN: Sat Aug 29 13:38:48 2015
+;; MSG SIZE  rcvd: 128
+</code></pre>
+
+    </div>
   </div>
-  </body>
+
+</body>
 </html>

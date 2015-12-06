@@ -1436,6 +1436,41 @@ func (d *Dispatcher) dispatch() {
     </item>
     
     <item>
+      <title>The dig command</title>
+      <link>http://vaneyckt.io/posts/the_dig_command/</link>
+      <pubDate>Tue, 08 Oct 2013 13:24:17 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/the_dig_command/</guid>
+      <description>&lt;p&gt;Today I learned of the existence of the &lt;a href=&#34;http://linux.die.net/man/1/dig&#34;&gt;dig command&lt;/a&gt;. A very useful little tool for DNS lookups. Here&amp;rsquo;s an example of it in action.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ dig www.google.com
+
+; &amp;lt;&amp;lt;&amp;gt;&amp;gt; DiG 9.8.3-P1 &amp;lt;&amp;lt;&amp;gt;&amp;gt; www.google.com
+;; global options: +cmd
+;; Got answer:
+;; -&amp;gt;&amp;gt;HEADER&amp;lt;&amp;lt;- opcode: QUERY, status: NOERROR, id: 4868
+;; flags: qr rd ra; QUERY: 1, ANSWER: 6, AUTHORITY: 0, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;www.google.com.			IN	A
+
+;; ANSWER SECTION:
+www.google.com.		72	IN	A	74.125.24.105
+www.google.com.		72	IN	A	74.125.24.103
+www.google.com.		72	IN	A	74.125.24.104
+www.google.com.		72	IN	A	74.125.24.99
+www.google.com.		72	IN	A	74.125.24.147
+www.google.com.		72	IN	A	74.125.24.106
+
+;; Query time: 11 msec
+;; SERVER: 192.168.0.1#53(192.168.0.1)
+;; WHEN: Sat Aug 29 13:38:48 2015
+;; MSG SIZE  rcvd: 128
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Profiling rails assets precompilation</title>
       <link>http://vaneyckt.io/posts/profiling_rails_assets_precompilation/</link>
       <pubDate>Sun, 01 Sep 2013 21:01:02 +0000</pubDate>
