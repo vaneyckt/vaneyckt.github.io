@@ -6,7 +6,7 @@ ogtype = "article"
 tags = [ "mysql" ]
 +++
 
-There's a surprising amount of confusion about this. The best explanation I've found is [here](http://stackoverflow.com/questions/341273/what-does-character-set-and-collation-mean-exactly/341481#341481).
+There's a surprising amount of confusion about the difference between these two terms. The best explanation I've found is [here](http://stackoverflow.com/questions/341273/what-does-character-set-and-collation-mean-exactly/341481#341481).
 
 >A character set is a subset of all written glyphs. A character encoding specifies how those characters are mapped to numeric values. Some character encodings, like UTF-8 and UTF-16, can encode any character in the Universal Character Set. Others, like US-ASCII or ISO-8859-1 can only encode a small subset, since they use 7 and 8 bits per character, respectively. Because many standards specify both a character set and a character encoding, the term "character set" is often substituted freely for "character encoding".
 
