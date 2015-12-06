@@ -140,6 +140,31 @@ $ sudo apt-get install google-chrome-stable
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/the_css_important_keyword/">
+        The css !important keyword
+      </a>
+    </h1>
+
+    <span class="post-date">Oct 12, 2013</span>
+
+    
+
+
+    <p>Today I learned about the css !important keyword. I was trying to change the way code snippets (gists) were being displayed on a site, but found my css rules being ignored.</p>
+
+<p>As it turned out, the javascript snippets used for embedding gists were adding an additional css stylesheet to the page. Since this stylesheet was getting added after my own stylesheet, its rules had priority over my own. The solution was to add <code>!important</code> to my own rules.</p>
+
+<pre><code class="language-css">.gist-data {
+  border-bottom: 1px !important;
+}
+</code></pre>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/finding_models_from_strings_with_rails/">
         Finding models from strings with rails
       </a>
