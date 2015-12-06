@@ -52,6 +52,32 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>Iterating over a hash containing arrays</title>
+      <link>http://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/</link>
+      <pubDate>Tue, 15 Oct 2013 16:46:02 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/</guid>
+      <description>&lt;p&gt;Last week I was implementing some auditing functionality in a rails app. At some point I was writing a page that would display how the attributes of a given ActiveRecord object had been changed. One of my colleagues spotted this and pointed out the following neat bit of syntactic sugar in Ruby.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;changes = {:attribute_a =&amp;gt; [1, 2], :attribute_b =&amp;gt; [3, 4]}
+
+changes.each do |attribute, (before, after)|
+  puts &amp;quot;#{attribute}: #{before} - #{after}&amp;quot;
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I later learned you can even do things like this.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;data = {:foo =&amp;gt; [[1, 2], 3]}
+
+data.each do |key, ((a, b), c)|
+  puts &amp;quot;#{key}: #{a} - #{b} - #{c}&amp;quot;
+end
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>URI.js and URL manipulation in rails</title>
       <link>http://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/</link>
       <pubDate>Sun, 13 Oct 2013 14:55:23 +0000</pubDate>

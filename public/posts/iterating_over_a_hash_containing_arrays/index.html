@@ -7,20 +7,17 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
-  <meta property="og:title" content="Ruby" />
+  <meta property="og:title" content="Iterating over a hash containing arrays" />
 <meta property="og:description" content="" />
 
-<meta property="og:type" content="website" />
+<meta property="og:type" content="article" />
 
 <meta property="og:locale" content="en_US" />
-<meta property="og:url" content="http://vaneyckt.io/tags/ruby/" />
+<meta property="og:url" content="http://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/" />
 
 
-  <title> Ruby  &middot; vaneyckt </title>
+  <title> Iterating over a hash containing arrays  &middot; vaneyckt </title>
 
-  
-  <link href="http://vaneyckt.io/tags/ruby/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
-  <link href="http://vaneyckt.io/tags/ruby/index.xml" rel="feed" type="application/rss+xml" title="vaneyckt" />
   
 
   <link rel="stylesheet" href="/css/monokai.css">
@@ -39,7 +36,7 @@
   <link rel="shortcut icon" href="/favicon.ico">
 
   
-  <link href="http://vaneyckt.io/tags/ruby/index.xml" rel="alternate" type="application/rss+xml" title="vaneyckt" />
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt" />
 
   <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
@@ -83,35 +80,31 @@
   </div>
 </div>
 
-   <div class="content container">
-   
-    
-    
-      
-    
-      
-        
-      
-    
-      
-        
-      
-    
-      
-        
-      
-    
 
-qwqwqwqwqwqw
+  <div class="content container">
+    <div class="post">
+      <h1 class="post-title">Iterating over a hash containing arrays</h1>
+      <span class="post-date">Tue, Oct 15, 2013</span>
+      <p>Last week I was implementing some auditing functionality in a rails app. At some point I was writing a page that would display how the attributes of a given ActiveRecord object had been changed. One of my colleagues spotted this and pointed out the following neat bit of syntactic sugar in Ruby.</p>
 
-    <ul>
-    
-      <li><a href="http://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/">Iterating over a hash containing arrays</a></li>
-    
-      <li><a href="http://vaneyckt.io/posts/regarding_if_statement_scope_in_ruby/">Regarding if statement scope in Ruby</a></li>
-    
-    </ul>
+<pre><code class="language-ruby">changes = {:attribute_a =&gt; [1, 2], :attribute_b =&gt; [3, 4]}
 
+changes.each do |attribute, (before, after)|
+  puts &quot;#{attribute}: #{before} - #{after}&quot;
+end
+</code></pre>
+
+<p>I later learned you can even do things like this.</p>
+
+<pre><code class="language-ruby">data = {:foo =&gt; [[1, 2], 3]}
+
+data.each do |key, ((a, b), c)|
+  puts &quot;#{key}: #{a} - #{b} - #{c}&quot;
+end
+</code></pre>
+
+    </div>
   </div>
-  </body>
+
+</body>
 </html>
