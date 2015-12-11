@@ -52,6 +52,25 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>Bug hunting with git bisect</title>
+      <link>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</link>
+      <pubDate>Mon, 04 Nov 2013 20:02:14 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</guid>
+      <description>&lt;p&gt;Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.&lt;/p&gt;
+
+&lt;p&gt;It was at this point that I remembered &lt;code&gt;git bisect&lt;/code&gt;. This git command asks you to specify two commits: one where things are working, and another one where things are broken. It then does a binary search across the range of commits in between these two. Each search step asks you whether the current commit contains broken code or not, after which it automatically selects the next commit for you. There&amp;rsquo;s a great tutorial over &lt;a href=&#34;http://webchick.net/node/99&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ git bisect start
+$ git bisect good rj6y4j3
+$ git bisect bad 2q7f529
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It took me all of five minutes to discover the source of the bug this way. I can safely say that it would have taken me ages to track down this particular bit of offending code as it was located in a custom bug fix for a popular third party library (I&amp;rsquo;m looking at you &lt;a href=&#34;https://github.com/getsentry/raven-ruby&#34;&gt;Sentry&lt;/a&gt;).&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Why is MySQL converting my NULLs to blanks?</title>
       <link>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</link>
       <pubDate>Fri, 01 Nov 2013 19:17:56 +0000</pubDate>
@@ -493,41 +512,6 @@ model = str.constantize.table_name.classify.constantize
 &lt;li&gt;have their url stored in plaintext in server logs. The data itself will not be logged though.&lt;/li&gt;
 &lt;li&gt;use these for actions that alter data&lt;/li&gt;
 &lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>The dig command</title>
-      <link>http://vaneyckt.io/posts/the_dig_command/</link>
-      <pubDate>Tue, 08 Oct 2013 13:24:17 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/the_dig_command/</guid>
-      <description>&lt;p&gt;Today I learned of the existence of the &lt;a href=&#34;http://linux.die.net/man/1/dig&#34;&gt;dig command&lt;/a&gt;. A very useful little tool for DNS lookups. Here&amp;rsquo;s an example of it in action.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ dig www.google.com
-
-; &amp;lt;&amp;lt;&amp;gt;&amp;gt; DiG 9.8.3-P1 &amp;lt;&amp;lt;&amp;gt;&amp;gt; www.google.com
-;; global options: +cmd
-;; Got answer:
-;; -&amp;gt;&amp;gt;HEADER&amp;lt;&amp;lt;- opcode: QUERY, status: NOERROR, id: 4868
-;; flags: qr rd ra; QUERY: 1, ANSWER: 6, AUTHORITY: 0, ADDITIONAL: 0
-
-;; QUESTION SECTION:
-;www.google.com.			IN	A
-
-;; ANSWER SECTION:
-www.google.com.		72	IN	A	74.125.24.105
-www.google.com.		72	IN	A	74.125.24.103
-www.google.com.		72	IN	A	74.125.24.104
-www.google.com.		72	IN	A	74.125.24.99
-www.google.com.		72	IN	A	74.125.24.147
-www.google.com.		72	IN	A	74.125.24.106
-
-;; Query time: 11 msec
-;; SERVER: 192.168.0.1#53(192.168.0.1)
-;; WHEN: Sat Aug 29 13:38:48 2015
-;; MSG SIZE  rcvd: 128
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     

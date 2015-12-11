@@ -13,6 +13,11 @@
   </url>
   
   <url>
+    <loc>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</loc>
+    <lastmod>2013-11-04T20:02:14+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</loc>
     <lastmod>2013-11-01T19:17:56+00:00</lastmod>
   </url>

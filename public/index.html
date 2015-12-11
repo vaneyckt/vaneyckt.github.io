@@ -140,6 +140,33 @@ $ sudo apt-get install google-chrome-stable
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/bug_hunting_with_git_bisect/">
+        Bug hunting with git bisect
+      </a>
+    </h1>
+
+    <span class="post-date">Nov 4, 2013</span>
+
+    
+
+
+    <p>Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.</p>
+
+<p>It was at this point that I remembered <code>git bisect</code>. This git command asks you to specify two commits: one where things are working, and another one where things are broken. It then does a binary search across the range of commits in between these two. Each search step asks you whether the current commit contains broken code or not, after which it automatically selects the next commit for you. There&rsquo;s a great tutorial over <a href="http://webchick.net/node/99">here</a>.</p>
+
+<pre><code class="language-bash">$ git bisect start
+$ git bisect good rj6y4j3
+$ git bisect bad 2q7f529
+</code></pre>
+
+<p>It took me all of five minutes to discover the source of the bug this way. I can safely say that it would have taken me ages to track down this particular bit of offending code as it was located in a custom bug fix for a popular third party library (I&rsquo;m looking at you <a href="https://github.com/getsentry/raven-ruby">Sentry</a>).</p>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/">
         Why is MySQL converting my NULLs to blanks?
       </a>
