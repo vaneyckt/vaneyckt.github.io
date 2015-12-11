@@ -52,6 +52,73 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>Using the lsof command to get connection information</title>
+      <link>http://vaneyckt.io/posts/using_the_lsof_command_to_get_connection_information/</link>
+      <pubDate>Mon, 21 Oct 2013 17:21:52 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/using_the_lsof_command_to_get_connection_information/</guid>
+      <description>&lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/8/lsof&#34;&gt;lsof command&lt;/a&gt; is one of those super useful commands for figuring out what connections are taking place on your machine. While the &lt;code&gt;lsof&lt;/code&gt; command technically just &lt;strong&gt;l&lt;/strong&gt;i&lt;strong&gt;s&lt;/strong&gt;ts &lt;strong&gt;o&lt;/strong&gt;pen &lt;strong&gt;f&lt;/strong&gt;iles, just about everything in linux (even sockets) is a file!&lt;/p&gt;
+
+&lt;p&gt;Some useful commands:&lt;/p&gt;
+
+&lt;p&gt;######List all network connections&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i
+
+COMMAND     PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+Spotify   36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
+Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:4371 (LISTEN)
+Spotify   36908 vaneyckt   71u  IPv4 0x2097c8deba747c1d      0t0  UDP *:57621
+Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cd      0t0  TCP *:57621 (LISTEN)
+Spotify   36908 vaneyckt   77u  IPv4 0x2097c8deb993b255      0t0  UDP ip-192-168-0-101.ec2.internal:61009
+Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&amp;gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
+Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;######List all network connections on port 4381&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i :4381
+
+COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+Spotify 36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;######Find ports listening for connections&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i | grep -i LISTEN
+
+Spotify   36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
+Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:4371 (LISTEN)
+Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cd      0t0  TCP *:57621 (LISTEN)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;######Find established connections&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i | grep -i ESTABLISHED
+
+Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&amp;gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;######Show all files opened by a given process&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -p 36908
+
+COMMAND   PID     USER   FD     TYPE             DEVICE  SIZE/OFF     NODE NAME
+Spotify 36908 vaneyckt   90u    IPv4 0x2097c8dea8c4a66d       0t0      TCP ip-192-168-0-101.ec2.internal:62432-&amp;gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
+Spotify 36908 vaneyckt   91u    IPv4 0x2097c8de8d029f2d       0t0      UDP ip-192-168-0-101.ec2.internal:52706
+Spotify 36908 vaneyckt   92u     REG                1,4   9389456 59387889 /Users/vaneyckt/Library/Caches/com.spotify.client/Data/4a/4a5a23cf1e9dc4210b3c801d57a899098dc12418.file
+Spotify 36908 vaneyckt   93u     REG                1,4   8658944 58471210 /private/var/folders/xv/fjmwzr9x5mq_s7dchjq87hjm0000gn/T/.org.chromium.Chromium.6b0Vzp
+Spotify 36908 vaneyckt   94u     REG                1,4    524656 54784499 /Users/vaneyckt/Library/Caches/com.spotify.client/Browser/index
+Spotify 36908 vaneyckt   95u     REG                1,4     81920 54784500 /Users/vaneyckt/Library/Caches/com.spotify.client/Browser/data_0
+Spotify 36908 vaneyckt   96u     REG                1,4    532480 54784501 /Users/vaneyckt/Library/Caches/com.spotify.client/Browser/data_1
+Spotify 36908 vaneyckt   97u     REG                1,4   2105344 54784502 /Users/vaneyckt/Library/Caches/com.spotify.client/Browser/data_2
+Spotify 36908 vaneyckt   98u     REG                1,4  12591104 54784503 /Users/vaneyckt/Library/Caches/com.spotify.client/Browser/data_3
+Spotify 36908 vaneyckt   99r     REG                1,4    144580    28952 /System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/HIToolbox.framework/Versions/A/Resources/HIToolbox.rsrc
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>The paranoid approach to converting your MySQL database to utf8</title>
       <link>http://vaneyckt.io/posts/the_paranoid_approach_to_converting_your_mysql_database_to_utf8/</link>
       <pubDate>Sun, 20 Oct 2013 17:19:31 +0000</pubDate>
@@ -613,18 +680,6 @@ end
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;And that&amp;rsquo;s amazing!&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>EC2 instance cost comparison</title>
-      <link>http://vaneyckt.io/posts/ec2_instance_cost_comparison/</link>
-      <pubDate>Sun, 11 Aug 2013 21:24:12 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/ec2_instance_cost_comparison/</guid>
-      <description>&lt;p&gt;Amazon&amp;rsquo;s pricing scheme for its ec2 instances never struck me as particularly transparent. Until recently some of my DevOps colleagues even estimated cost by cross-referencing &lt;a href=&#34;https://aws.amazon.com/ec2/instance-types&#34;&gt;instance details&lt;/a&gt; with &lt;a href=&#34;http://aws.amazon.com/ec2/pricing&#34;&gt;pricing information&lt;/a&gt;. While this approach gives reasonable results for finding the cost of a given instance type, it doesn&amp;rsquo;t lend itself very well to comparing prices across a range of different types.&lt;/p&gt;
-
-&lt;p&gt;When talking to an ex-colleague of mine about the hardships encountered for such a common task, he pointed me to &lt;a href=&#34;http://www.ec2instances.info&#34;&gt;this absolutely brilliant page&lt;/a&gt;. It&amp;rsquo;s so unbelievably simple and well thought-out that I can&amp;rsquo;t help getting ever so slightly annoyed with whomever is in charge of communicating Amazon&amp;rsquo;s pricing structure and the subpar job they are doing.&lt;/p&gt;
 </description>
     </item>
     
