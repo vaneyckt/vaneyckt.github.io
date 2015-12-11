@@ -52,12 +52,120 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>The paranoid approach to converting your MySQL database to utf8</title>
+      <link>http://vaneyckt.io/posts/the_paranoid_approach_to_converting_your_mysql_database_to_utf8/</link>
+      <pubDate>Sun, 20 Oct 2013 17:19:31 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/the_paranoid_approach_to_converting_your_mysql_database_to_utf8/</guid>
+      <description>&lt;p&gt;Converting all the data in your database can be a nail-biting experience. As you can see from the code below we are doing our best to be super careful. We convert each table separately and before each conversion we store the table&amp;rsquo;s column types and an MD5 hash of every row in the table (we were lucky enough to not have enormous tables). After converting the table we check that no column types or rows were changed. It goes without saying that we do a trial run on a database dump first.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;require &#39;set&#39;
+require &#39;digest/md5&#39;
+
+CHARACTER_SET = &#39;utf8&#39;
+COLLATION = &#39;utf8_unicode_ci&#39;
+
+class ConvertAllTablesToUtf8 &amp;lt; ActiveRecord::Migration
+  def up
+    ActiveRecord::Base.connection.tables.each do |table|
+      ActiveRecord::Base.transaction do
+        ActiveRecord::Base.connection.execute(&amp;quot;LOCK TABLES #{table} WRITE&amp;quot;)
+          say &amp;quot;starting work on table: #{table}&amp;quot;
+
+          model = table.classify.constantize
+          say &amp;quot;associated model: #{model}&amp;quot;
+
+          say &#39;storing column types information before converting table to unicode&#39;
+          column_types_before = model.columns_hash.each_with_object({}) do |(column_name, column_info), column_types_before|
+            column_types_before[column_name] = [column_info.sql_type, column_info.type]
+          end
+
+          say &#39;storing set of table data hashes before converting table to unicode&#39;
+          table_data_before = Set.new
+          model.find_each do |datum|
+            table_data_before &amp;lt;&amp;lt; Digest::MD5.hexdigest(datum.inspect)
+          end
+
+          say &#39;converting table to unicode&#39;
+          execute(&amp;quot;ALTER TABLE #{table} CONVERT TO CHARACTER SET #{CHARACTER_SET} COLLATE #{COLLATION}&amp;quot;)
+          execute(&amp;quot;ALTER TABLE #{table} DEFAULT CHARACTER SET #{CHARACTER_SET} COLLATE #{COLLATION}&amp;quot;)
+
+          say &#39;getting column types information after conversion to unicode&#39;
+          column_types_after = model.columns_hash.each_with_object({}) do |(column_name, column_info), column_types_after|
+            column_types_after[column_name] = [column_info.sql_type, column_info.type]
+          end
+
+          say &#39;getting set of table data hashes after conversion to unicode&#39;
+          table_data_after = Set.new
+          model.find_each do |datum|
+            table_data_after &amp;lt;&amp;lt; Digest::MD5.hexdigest(datum.inspect)
+          end
+
+          say &amp;quot;checking that column types haven&#39;t changed&amp;quot;
+          if column_types_before != column_types_after
+            raise &amp;quot;Column types of the #{table} table have changed&amp;quot;
+          end
+
+          say &amp;quot;checking that data hasn&#39;t changed&amp;quot;
+          if table_data_before != table_data_after
+            raise &amp;quot;Data in the #{table} table has changed&amp;quot;
+          end
+        ActiveRecord::Base.connection.execute(&#39;UNLOCK TABLES&#39;)
+      end
+    end
+
+    execute(&amp;quot;ALTER DATABASE #{ActiveRecord::Base.connection.current_database} DEFAULT CHARACTER SET #{CHARACTER_SET} COLLATE #{COLLATION}&amp;quot;)
+  end
+
+  def down
+    raise ActiveRecord::IrreversibleMigration
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Note how we lock each table before converting it. If we didn&amp;rsquo;t lock it then new data could be written to the table while we are busy storing MD5 hashes of the rows in preparation for the actual conversion. This, in turn, would cause our migration to complain that new data was present after the conversion had taken place.&lt;/p&gt;
+
+&lt;p&gt;We also wrap each table conversion inside a transaction. I&amp;rsquo;ve talked before about &lt;a href=&#34;http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/&#34;&gt;how converting a table will cause an implicit commit&lt;/a&gt;, meaning that a rollback won&amp;rsquo;t undo any of the changes made by the conversion. So why have a transaction here then? Imagine that an exception were to be raised during our migration. In that case we want to ensure our table lock gets dropped as soon as possible. The transaction guarantees this behavior.&lt;/p&gt;
+
+&lt;p&gt;Also, if we weren&amp;rsquo;t so paranoid about checking the before and after data as part of our migration, we could simplify this code quite a bit.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;CHARACTER_SET = &#39;utf8&#39;
+COLLATION = &#39;utf8_unicode_ci&#39;
+
+class ConvertAllTablesToUtf8 &amp;lt; ActiveRecord::Migration
+  def up
+    ActiveRecord::Base.connection.tables.each do |table|
+      say &#39;converting table to unicode&#39;
+      execute(&amp;quot;ALTER TABLE #{table} CONVERT TO CHARACTER SET #{CHARACTER_SET} COLLATE #{COLLATION}&amp;quot;)
+      execute(&amp;quot;ALTER TABLE #{table} DEFAULT CHARACTER SET #{CHARACTER_SET} COLLATE #{COLLATION}&amp;quot;)
+    end
+
+    execute(&amp;quot;ALTER DATABASE #{ActiveRecord::Base.connection.current_database} DEFAULT CHARACTER SET #{CHARACTER_SET} COLLATE #{COLLATION}&amp;quot;)
+  end
+
+  def down
+    raise ActiveRecord::IrreversibleMigration
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Notice how we can drop the lock as the &lt;code&gt;ALTER TABLE&lt;/code&gt; command &lt;a href=&#34;https://dev.mysql.com/doc/refman/5.1/en/alter-table.html&#34;&gt;will prevent all writes to the table while simultaneously allowing all reads&lt;/a&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;In most cases, ALTER TABLE makes a temporary copy of the original table. MySQL waits for other operations that are modifying the table, then proceeds. It incorporates the alteration into the copy, deletes the original table, and renames the new one. While ALTER TABLE is executing, the original table is readable by other sessions. Updates and writes to the table that begin after the ALTER TABLE operation begins are stalled until the new table is ready, then are automatically redirected to the new table without any failed updates. The temporary copy of the original table is created in the database directory of the new table. This can differ from the database directory of the original table for ALTER TABLE operations that rename the table to a different database.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Furthermore, since we now no longer have a lock on our table we can also drop the transaction. This gives us the much-simplified code shown above.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Character set vs collation</title>
       <link>http://vaneyckt.io/posts/character_set_vs_collation/</link>
       <pubDate>Sat, 19 Oct 2013 20:31:43 +0000</pubDate>
       
       <guid>http://vaneyckt.io/posts/character_set_vs_collation/</guid>
-      <description>&lt;p&gt;There&amp;rsquo;s a surprising amount of confusion about this. The best explanation I&amp;rsquo;ve found is &lt;a href=&#34;http://stackoverflow.com/questions/341273/what-does-character-set-and-collation-mean-exactly/341481#341481&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+      <description>&lt;p&gt;There&amp;rsquo;s a surprising amount of confusion about the difference between these two terms. The best explanation I&amp;rsquo;ve found is &lt;a href=&#34;http://stackoverflow.com/questions/341273/what-does-character-set-and-collation-mean-exactly/341481#341481&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 &lt;blockquote&gt;
 &lt;p&gt;A character set is a subset of all written glyphs. A character encoding specifies how those characters are mapped to numeric values. Some character encodings, like UTF-8 and UTF-16, can encode any character in the Universal Character Set. Others, like US-ASCII or ISO-8859-1 can only encode a small subset, since they use 7 and 8 bits per character, respectively. Because many standards specify both a character set and a character encoding, the term &amp;ldquo;character set&amp;rdquo; is often substituted freely for &amp;ldquo;character encoding&amp;rdquo;.&lt;/p&gt;

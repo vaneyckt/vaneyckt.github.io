@@ -13,6 +13,11 @@
   </url>
   
   <url>
+    <loc>http://vaneyckt.io/posts/the_paranoid_approach_to_converting_your_mysql_database_to_utf8/</loc>
+    <lastmod>2013-10-20T17:19:31+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://vaneyckt.io/posts/character_set_vs_collation/</loc>
     <lastmod>2013-10-19T20:31:43+00:00</lastmod>
   </url>
