@@ -140,8 +140,8 @@ $ sudo apt-get install google-chrome-stable
   
   <div class="post">
     <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/get_connection_information_with_the_lsof_command/">
-        Get connection information with the lsof command
+      <a href="http://vaneyckt.io/posts/getting_connection_information_with_the_lsof_command/">
+        Getting connection information with the lsof command
       </a>
     </h1>
 
@@ -156,7 +156,7 @@ $ sudo apt-get install google-chrome-stable
 
 <p>Some useful commands:</p>
 
-<h3 id="list-all-network-connections:9e5b21edff3ac354b157add6b880356d">List all network connections</h3>
+<h3 id="list-all-network-connections:0bc120d9cb212921894b68382ac7bd44">List all network connections</h3>
 
 <pre><code class="language-bash">$ lsof -i
 
@@ -170,7 +170,7 @@ Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168
 Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
 </code></pre>
 
-<h3 id="list-all-network-connections-on-port-4381:9e5b21edff3ac354b157add6b880356d">List all network connections on port 4381</h3>
+<h3 id="list-all-network-connections-on-port-4381:0bc120d9cb212921894b68382ac7bd44">List all network connections on port 4381</h3>
 
 <pre><code class="language-bash">$ lsof -i :4381
 
@@ -178,7 +178,7 @@ COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 Spotify 36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
 </code></pre>
 
-<h3 id="find-ports-listening-for-connections:9e5b21edff3ac354b157add6b880356d">Find ports listening for connections</h3>
+<h3 id="find-ports-listening-for-connections:0bc120d9cb212921894b68382ac7bd44">Find ports listening for connections</h3>
 
 <pre><code class="language-bash">$ lsof -i | grep -i LISTEN
 
@@ -187,14 +187,14 @@ Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:
 Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cd      0t0  TCP *:57621 (LISTEN)
 </code></pre>
 
-<h3 id="find-established-connections:9e5b21edff3ac354b157add6b880356d">Find established connections</h3>
+<h3 id="find-established-connections:0bc120d9cb212921894b68382ac7bd44">Find established connections</h3>
 
 <pre><code class="language-bash">$ lsof -i | grep -i ESTABLISHED
 
 Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
 </code></pre>
 
-<h3 id="show-all-files-opened-by-a-given-process:9e5b21edff3ac354b157add6b880356d">Show all files opened by a given process</h3>
+<h3 id="show-all-files-opened-by-a-given-process:0bc120d9cb212921894b68382ac7bd44">Show all files opened by a given process</h3>
 
 <pre><code class="language-bash">$ lsof -p 36908
 
