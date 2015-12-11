@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Android on vaneyckt</title>
+    <link>http://vaneyckt.io/tags/android/</link>
+    <description>Recent content in Android on vaneyckt</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Tue, 04 Mar 2014 20:40:56 +0000</lastBuildDate>
+    <atom:link href="http://vaneyckt.io/tags/android/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Programmatically creating Android touch events</title>
+      <link>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</link>
+      <pubDate>Tue, 04 Mar 2014 20:40:56 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</guid>
+      <description>&lt;p&gt;Recent versions of Android have the &lt;code&gt;adb shell input touch&lt;/code&gt; functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running &lt;code&gt;adb shell getevent&lt;/code&gt; to capture events as they are being generated. These events can then later be replayed using the &lt;code&gt;adb shell sendevent&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;p&gt;Running &lt;code&gt;adb shell getevent&lt;/code&gt; when touching the screen might get you something like shown below. Notice how the output is in hexadecimal.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;/dev/input/event7: 0001 014a 00000001
+/dev/input/event7: 0003 003a 00000001
+/dev/input/event7: 0003 0035 000001ce
+/dev/input/event7: 0003 0036 00000382
+/dev/input/event7: 0000 0002 00000000
+/dev/input/event7: 0000 0000 00000000
+/dev/input/event7: 0001 014a 00000000
+/dev/input/event7: 0003 003a 00000000
+/dev/input/event7: 0003 0035 000001ce
+/dev/input/event7: 0003 0036 00000382
+/dev/input/event7: 0000 0002 00000000
+/dev/input/event7: 0000 0000 00000000
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;However, the &lt;code&gt;adb shell sendevent&lt;/code&gt; command expect all of its input to be in decimal. So if we wanted to replay the above events, we&amp;rsquo;d need to do something like shown below. Note that 462 and 898 are the x and y coordinates of this particular touch event.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;adb shell sendevent /dev/input/event7: 1 330 1
+adb shell sendevent /dev/input/event7: 3 58 1
+adb shell sendevent /dev/input/event7: 3 53 462
+adb shell sendevent /dev/input/event7: 3 54 898
+adb shell sendevent /dev/input/event7: 0 2 0
+adb shell sendevent /dev/input/event7: 0 0 0
+adb shell sendevent /dev/input/event7: 1 330 0
+adb shell sendevent /dev/input/event7: 3 58 0
+adb shell sendevent /dev/input/event7: 3 53 462
+adb shell sendevent /dev/input/event7: 3 54 898
+adb shell sendevent /dev/input/event7: 0 2 0
+adb shell sendevent /dev/input/event7: 0 0 0
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -140,6 +140,56 @@ $ sudo apt-get install google-chrome-stable
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/programmatically_creating_android_touch_events/">
+        Programmatically creating Android touch events
+      </a>
+    </h1>
+
+    <span class="post-date">Mar 4, 2014</span>
+
+    
+
+
+    <p>Recent versions of Android have the <code>adb shell input touch</code> functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running <code>adb shell getevent</code> to capture events as they are being generated. These events can then later be replayed using the <code>adb shell sendevent</code> command.</p>
+
+<p>Running <code>adb shell getevent</code> when touching the screen might get you something like shown below. Notice how the output is in hexadecimal.</p>
+
+<pre><code class="language-bash">/dev/input/event7: 0001 014a 00000001
+/dev/input/event7: 0003 003a 00000001
+/dev/input/event7: 0003 0035 000001ce
+/dev/input/event7: 0003 0036 00000382
+/dev/input/event7: 0000 0002 00000000
+/dev/input/event7: 0000 0000 00000000
+/dev/input/event7: 0001 014a 00000000
+/dev/input/event7: 0003 003a 00000000
+/dev/input/event7: 0003 0035 000001ce
+/dev/input/event7: 0003 0036 00000382
+/dev/input/event7: 0000 0002 00000000
+/dev/input/event7: 0000 0000 00000000
+</code></pre>
+
+<p>However, the <code>adb shell sendevent</code> command expect all of its input to be in decimal. So if we wanted to replay the above events, we&rsquo;d need to do something like shown below. Note that 462 and 898 are the x and y coordinates of this particular touch event.</p>
+
+<pre><code class="language-bash">adb shell sendevent /dev/input/event7: 1 330 1
+adb shell sendevent /dev/input/event7: 3 58 1
+adb shell sendevent /dev/input/event7: 3 53 462
+adb shell sendevent /dev/input/event7: 3 54 898
+adb shell sendevent /dev/input/event7: 0 2 0
+adb shell sendevent /dev/input/event7: 0 0 0
+adb shell sendevent /dev/input/event7: 1 330 0
+adb shell sendevent /dev/input/event7: 3 58 0
+adb shell sendevent /dev/input/event7: 3 53 462
+adb shell sendevent /dev/input/event7: 3 54 898
+adb shell sendevent /dev/input/event7: 0 2 0
+adb shell sendevent /dev/input/event7: 0 0 0
+</code></pre>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/">
         A visual explanation of SQL joins
       </a>
