@@ -57,11 +57,13 @@ $ sudo apt-get install google-chrome-stable
       <pubDate>Mon, 21 Oct 2013 17:21:52 +0000</pubDate>
       
       <guid>http://vaneyckt.io/posts/get_connection_information_with_the_lsof_command/</guid>
-      <description>&lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/8/lsof&#34;&gt;lsof command&lt;/a&gt; is one of those super useful commands for figuring out what connections are taking place on your machine. While the &lt;code&gt;lsof&lt;/code&gt; command technically just &lt;strong&gt;l&lt;/strong&gt;i&lt;strong&gt;s&lt;/strong&gt;ts &lt;strong&gt;o&lt;/strong&gt;pen &lt;strong&gt;f&lt;/strong&gt;iles, just about everything in linux (even sockets) is a file!&lt;/p&gt;
+      <description>
+
+&lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/8/lsof&#34;&gt;lsof command&lt;/a&gt; is one of those super useful commands for figuring out what connections are taking place on your machine. While the &lt;code&gt;lsof&lt;/code&gt; command technically just lists open files, just about everything in linux (even sockets) is a file!&lt;/p&gt;
 
 &lt;p&gt;Some useful commands:&lt;/p&gt;
 
-&lt;p&gt;####List all network connections&lt;/p&gt;
+&lt;h3 id=&#34;list-all-network-connections:9e5b21edff3ac354b157add6b880356d&#34;&gt;List all network connections&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i
 
@@ -75,7 +77,7 @@ Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168
 Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;####List all network connections on port 4381&lt;/p&gt;
+&lt;h3 id=&#34;list-all-network-connections-on-port-4381:9e5b21edff3ac354b157add6b880356d&#34;&gt;List all network connections on port 4381&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i :4381
 
@@ -83,7 +85,7 @@ COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 Spotify 36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;####Find ports listening for connections&lt;/p&gt;
+&lt;h3 id=&#34;find-ports-listening-for-connections:9e5b21edff3ac354b157add6b880356d&#34;&gt;Find ports listening for connections&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i | grep -i LISTEN
 
@@ -92,14 +94,14 @@ Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:
 Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cd      0t0  TCP *:57621 (LISTEN)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;####Find established connections&lt;/p&gt;
+&lt;h3 id=&#34;find-established-connections:9e5b21edff3ac354b157add6b880356d&#34;&gt;Find established connections&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i | grep -i ESTABLISHED
 
 Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&amp;gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;####Show all files opened by a given process&lt;/p&gt;
+&lt;h3 id=&#34;show-all-files-opened-by-a-given-process:9e5b21edff3ac354b157add6b880356d&#34;&gt;Show all files opened by a given process&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -p 36908
 
