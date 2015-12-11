@@ -7,8 +7,38 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
-    <lastBuildDate>Sun, 20 Oct 2013 17:19:31 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 29 Oct 2013 17:42:28 +0000</lastBuildDate>
     <atom:link href="http://vaneyckt.io/tags/rails/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Using environment variables in your migrations</title>
+      <link>http://vaneyckt.io/posts/using_environment_variables_in_your_migrations/</link>
+      <pubDate>Tue, 29 Oct 2013 17:42:28 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/using_environment_variables_in_your_migrations/</guid>
+      <description>&lt;p&gt;Recently we had to run a migration that was so slow we couldn&amp;rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&amp;rsquo;t perform any safety checks.&lt;/p&gt;
+
+&lt;p&gt;The first path would be run on a recent database dump, whereas the latter would be executed directly on the live database once the first had finished without error. This was a lot less crazy than it might sound as the particular table under modification had very infrequent changes.&lt;/p&gt;
+
+&lt;p&gt;It was decided to use environment variables to allow for easy switching between code paths. This is what the code ended up looking like.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;class MyDangerousMigration &amp;lt; ActiveRecord::Migration
+  def change
+    if ENV[&#39;skip_checks&#39;] == &#39;true&#39;
+      # code without safety checks
+    else
+      # code with safety checks
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This could then be run like so.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;skip_checks=true bundle exec rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
     
     <item>
       <title>The paranoid approach to converting your MySQL database to utf8</title>

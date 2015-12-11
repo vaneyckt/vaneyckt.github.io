@@ -13,6 +13,11 @@
   </url>
   
   <url>
+    <loc>http://vaneyckt.io/posts/using_environment_variables_in_your_migrations/</loc>
+    <lastmod>2013-10-29T17:42:28+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://vaneyckt.io/posts/getting_connection_information_with_the_lsof_command/</loc>
     <lastmod>2013-10-21T17:21:52+00:00</lastmod>
   </url>

@@ -140,6 +140,44 @@ $ sudo apt-get install google-chrome-stable
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/using_environment_variables_in_your_migrations/">
+        Using environment variables in your migrations
+      </a>
+    </h1>
+
+    <span class="post-date">Oct 29, 2013</span>
+
+    
+
+
+    <p>Recently we had to run a migration that was so slow we couldn&rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&rsquo;t perform any safety checks.</p>
+
+<p>The first path would be run on a recent database dump, whereas the latter would be executed directly on the live database once the first had finished without error. This was a lot less crazy than it might sound as the particular table under modification had very infrequent changes.</p>
+
+<p>It was decided to use environment variables to allow for easy switching between code paths. This is what the code ended up looking like.</p>
+
+<pre><code class="language-ruby">class MyDangerousMigration &lt; ActiveRecord::Migration
+  def change
+    if ENV['skip_checks'] == 'true'
+      # code without safety checks
+    else
+      # code with safety checks
+    end
+  end
+end
+</code></pre>
+
+<p>This could then be run like so.</p>
+
+<pre><code class="language-bash">skip_checks=true bundle exec rake db:migrate
+</code></pre>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/getting_connection_information_with_the_lsof_command/">
         Getting connection information with the lsof command
       </a>
