@@ -52,11 +52,46 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
-      <title>Using environment variables in your migrations</title>
-      <link>http://vaneyckt.io/posts/using_environment_variables_in_your_migrations/</link>
+      <title>Why is MySQL converting my NULLs to blanks?</title>
+      <link>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</link>
+      <pubDate>Fri, 01 Nov 2013 19:17:56 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</guid>
+      <description>&lt;p&gt;A while ago I ran into an issue where some records were showing a blank value in a given column. This was a bit weird as a blank value had never been written to that column. After a bit of searching we found that we had a bug that had inadvertently been writing the occasional NULL value to that particular column though. So how did those NULLs get turned into blanks?&lt;/p&gt;
+
+&lt;p&gt;It turns out that MySQL can operate in different &lt;a href=&#34;https://dev.mysql.com/doc/refman/5.0/en/sql-mode.html&#34;&gt;server modes&lt;/a&gt;. You can check your server mode by running one of the two commands below. Note that your server mode will be blank by default.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;SHOW GLOBAL VARIABLES where Variable_name = &#39;sql_mode&#39;;
+SHOW SESSION VARIABLES where Variable_name = &#39;sql_mode&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now that we know about server modes we can talk about &lt;a href=&#34;https://dev.mysql.com/doc/refman/5.0/en/data-type-defaults.html&#34;&gt;data type defaults&lt;/a&gt;. Basically, each MySQL column has an implicit default value assigned to it. Under certain circumstances this default value might be used instead of the value you were expecting.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;As of MySQL 5.0.2, if a column definition includes no explicit DEFAULT value, MySQL determines the default value as follows:&lt;/p&gt;
+
+&lt;p&gt;If the column can take NULL as a value, the column is defined with an explicit DEFAULT NULL clause. This is the same as before 5.0.2.&lt;/p&gt;
+
+&lt;p&gt;If the column cannot take NULL as the value, MySQL defines the column with no explicit DEFAULT clause. Exception: If the column is defined as part of a PRIMARY KEY but not explicitly as NOT NULL, MySQL creates it as a NOT NULL column (because PRIMARY KEY columns must be NOT NULL), but also assigns it a DEFAULT clause using the implicit default value. To prevent this, include an explicit NOT NULL in the definition of any PRIMARY KEY column.&lt;/p&gt;
+
+&lt;p&gt;For data entry into a NOT NULL column that has no explicit DEFAULT clause, if an INSERT or REPLACE statement includes no value for the column, or an UPDATE statement sets the column to NULL, MySQL handles the column according to the SQL mode in effect at the time:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;If strict SQL mode is enabled, an error occurs for transactional tables and the statement is rolled back. For nontransactional tables, an error occurs, but if this happens for the second or subsequent row of a multiple-row statement, the preceding rows will have been inserted.&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;If strict mode is not enabled, MySQL sets the column to the implicit default value for the column data type.&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;We found that our code was sometimes writing NULLs to a NOT NULL column on a server that was not running in strict mode. This in turn caused our NULLs to silently get changed to blanks as this was the column default value. Mystery solved.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Using environment variables in migrations</title>
+      <link>http://vaneyckt.io/posts/using_environment_variables_in_migrations/</link>
       <pubDate>Tue, 29 Oct 2013 17:42:28 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/using_environment_variables_in_your_migrations/</guid>
+      <guid>http://vaneyckt.io/posts/using_environment_variables_in_migrations/</guid>
       <description>&lt;p&gt;Recently we had to run a migration that was so slow we couldn&amp;rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&amp;rsquo;t perform any safety checks.&lt;/p&gt;
 
 &lt;p&gt;The first path would be run on a recent database dump, whereas the latter would be executed directly on the live database once the first had finished without error. This was a lot less crazy than it might sound as the particular table under modification had very infrequent changes.&lt;/p&gt;
@@ -493,179 +528,6 @@ www.google.com.		72	IN	A	74.125.24.106
 ;; WHEN: Sat Aug 29 13:38:48 2015
 ;; MSG SIZE  rcvd: 128
 &lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Profiling rails assets precompilation</title>
-      <link>http://vaneyckt.io/posts/profiling_rails_assets_precompilation/</link>
-      <pubDate>Sun, 01 Sep 2013 21:01:02 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/profiling_rails_assets_precompilation/</guid>
-      <description>&lt;p&gt;Assets precompilation on rails can take a fair bit of time. This is especially annoying in scenarios where you want to deploy your app multiple times a day. Let&amp;rsquo;s see if we can come up with a way to actually figure out where all this time is being spent. Also, while I will be focusing on rails 3.2 in this post, the general principle should be easy enough to apply to other rails versions.&lt;/p&gt;
-
-&lt;p&gt;Our first call of action is finding the assets precompilation logic. A bit of digging will turn up the &lt;a href=&#34;https://github.com/rails/rails/blob/3-2-stable/actionpack/lib/sprockets/assets.rake&#34;&gt;assets.rake file&lt;/a&gt; for rails 3.2. The relevant code starts on lines 59-67 and from there on out invokes methods throughout the entire file.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# lines 59-67 of assets.rake
-task :all do
-  Rake::Task[&amp;quot;assets:precompile:primary&amp;quot;].invoke
-  # We need to reinvoke in order to run the secondary digestless
-  # asset compilation run - a fresh Sprockets environment is
-  # required in order to compile digestless assets as the
-  # environment has already cached the assets on the primary
-  # run.
-  if Rails.application.config.assets.digest
-    ruby_rake_task(&amp;quot;assets:precompile:nondigest&amp;quot;, false)
-  end
-end
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;When we follow the calls made by the code above we can see that the actual compilation takes place on lines 50-56 of assets.rake and is done by the compile method of the &lt;a href=&#34;https://github.com/rails/rails/blob/3-2-stable/actionpack/lib/sprockets/static_compiler.rb&#34;&gt;Sprockets::StaticCompiler class&lt;/a&gt;.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# compile method of Sprockets::StaticCompiler class
-def compile
-  manifest = {}
-  env.each_logical_path(paths) do |logical_path|
-    if asset = env.find_asset(logical_path)
-      digest_path = write_asset(asset)
-      manifest[asset.logical_path] = digest_path
-      manifest[aliased_path_for(asset.logical_path)] = digest_path
-    end
-  end
-  write_manifest(manifest) if @manifest
-end
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now that we know which code does the compiling, we can think of two ways to add some profiling to this. We could checkout the rails repo from Github, modify it locally and point our Gemfile to our modified local version of rails. Or, we could create a new rake task and monkey patch the compile method of the Sprockets::StaticCompiler class. We&amp;rsquo;ll go with the second option here as it is the more straightforward to implement.&lt;/p&gt;
-
-&lt;p&gt;We&amp;rsquo;ll create a new rake file in the /lib/tasks folder of our rails app and name it &lt;code&gt;profile_assets_precompilation.rake&lt;/code&gt;. We then copy the contents of assets.rake into it, and wrap this code inside a new &amp;lsquo;profile&amp;rsquo; namespace so as to avoid conflicts. At the top of this file we&amp;rsquo;ll also add our monkey patched compile method so as to make it output profiling info. The resulting file should look like shown below.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;namespace :profile do
-  # monkey patch the compile method to output compilation times
-  module Sprockets
-    class StaticCompiler
-      def compile
-        manifest = {}
-        env.each_logical_path(paths) do |logical_path|
-          start_time = Time.now.to_f
-
-          if asset = env.find_asset(logical_path)
-            digest_path = write_asset(asset)
-            manifest[asset.logical_path] = digest_path
-            manifest[aliased_path_for(asset.logical_path)] = digest_path
-          end
-
-          # our profiling code
-          duration = Time.now.to_f - start_time
-          puts &amp;quot;#{logical_path} - #{duration.round(3)} seconds&amp;quot;
-        end
-        write_manifest(manifest) if @manifest
-      end
-    end
-  end
-
-  # contents of assets.rake
-  namespace :assets do
-    def ruby_rake_task(task, fork = true)
-      env    = ENV[&#39;RAILS_ENV&#39;] || &#39;production&#39;
-      groups = ENV[&#39;RAILS_GROUPS&#39;] || &#39;assets&#39;
-      args   = [$0, task,&amp;quot;RAILS_ENV=#{env}&amp;quot;,&amp;quot;RAILS_GROUPS=#{groups}&amp;quot;]
-      args &amp;lt;&amp;lt; &amp;quot;--trace&amp;quot; if Rake.application.options.trace
-      if $0 =~ /rake\.bat\Z/i
-        Kernel.exec $0, *args
-      else
-        fork ? ruby(*args) : Kernel.exec(FileUtils::RUBY, *args)
-      end
-    end
-
-    # We are currently running with no explicit bundler group
-    # and/or no explicit environment - we have to reinvoke rake to
-    # execute this task.
-    def invoke_or_reboot_rake_task(task)
-      if ENV[&#39;RAILS_GROUPS&#39;].to_s.empty? || ENV[&#39;RAILS_ENV&#39;].to_s.empty?
-        ruby_rake_task task
-      else
-        Rake::Task[task].invoke
-      end
-    end
-
-    desc &amp;quot;Compile all the assets named in config.assets.precompile&amp;quot;
-    task :precompile do
-      invoke_or_reboot_rake_task &amp;quot;assets:precompile:all&amp;quot;
-    end
-
-    namespace :precompile do
-      def internal_precompile(digest=nil)
-        unless Rails.application.config.assets.enabled
-          warn &amp;quot;Cannot precompile assets if sprockets is disabled. Please set config.assets.enabled to true&amp;quot;
-          exit
-        end
-
-        # Ensure that action view is loaded and the appropriate
-        # sprockets hooks get executed
-        _ = ActionView::Base
-
-        config = Rails.application.config
-        config.assets.compile = true
-        config.assets.digest  = digest unless digest.nil?
-        config.assets.digests = {}
-
-        env      = Rails.application.assets
-        target   = File.join(Rails.public_path, config.assets.prefix)
-        compiler = Sprockets::StaticCompiler.new(env,
-                                                 target,
-                                                 config.assets.precompile,
-                                                 :manifest_path =&amp;gt; config.assets.manifest,
-                                                 :digest =&amp;gt; config.assets.digest,
-                                                 :manifest =&amp;gt; digest.nil?)
-        compiler.compile
-      end
-
-      task :all do
-        Rake::Task[&amp;quot;assets:precompile:primary&amp;quot;].invoke
-        # We need to reinvoke in order to run the secondary digestless
-        # asset compilation run - a fresh Sprockets environment is
-        # required in order to compile digestless assets as the
-        # environment has already cached the assets on the primary
-        # run.
-        ruby_rake_task(&amp;quot;assets:precompile:nondigest&amp;quot;, false) if Rails.application.config.assets.digest
-      end
-
-      task :primary =&amp;gt; [&amp;quot;assets:environment&amp;quot;, &amp;quot;tmp:cache:clear&amp;quot;] do
-        internal_precompile
-      end
-
-      task :nondigest =&amp;gt; [&amp;quot;assets:environment&amp;quot;, &amp;quot;tmp:cache:clear&amp;quot;] do
-        internal_precompile(false)
-      end
-    end
-
-    desc &amp;quot;Remove compiled assets&amp;quot;
-    task :clean do
-      invoke_or_reboot_rake_task &amp;quot;assets:clean:all&amp;quot;
-    end
-
-    namespace :clean do
-      task :all =&amp;gt; [&amp;quot;assets:environment&amp;quot;, &amp;quot;tmp:cache:clear&amp;quot;] do
-        config = Rails.application.config
-        public_asset_path = File.join(Rails.public_path, config.assets.prefix)
-        rm_rf public_asset_path, :secure =&amp;gt; true
-      end
-    end
-
-    task :environment do
-      if Rails.application.config.assets.initialize_on_precompile
-        Rake::Task[&amp;quot;environment&amp;quot;].invoke
-      else
-        Rails.application.initialize!(:assets)
-        Sprockets::Bootstrap.new(Rails.application).run
-      end
-    end
-  end
-end
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now we can run &lt;code&gt;bundle exec rake profile:assets:precompile&lt;/code&gt; to precompile our assets while outputting profiling info. Hopefully we can now finally figure out why this is always taking so long :).&lt;/p&gt;
 </description>
     </item>
     

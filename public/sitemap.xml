@@ -13,7 +13,12 @@
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/using_environment_variables_in_your_migrations/</loc>
+    <loc>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</loc>
+    <lastmod>2013-11-01T19:17:56+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://vaneyckt.io/posts/using_environment_variables_in_migrations/</loc>
     <lastmod>2013-10-29T17:42:28+00:00</lastmod>
   </url>
   

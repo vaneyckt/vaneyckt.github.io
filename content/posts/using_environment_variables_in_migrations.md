@@ -1,6 +1,6 @@
 +++
 date = "2013-10-29T17:42:28+00:00"
-title = "Using environment variables in your migrations"
+title = "Using environment variables in migrations"
 type = "post"
 ogtype = "article"
 tags = [ "rails" ]

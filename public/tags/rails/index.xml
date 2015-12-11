@@ -11,11 +11,11 @@
     <atom:link href="http://vaneyckt.io/tags/rails/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Using environment variables in your migrations</title>
-      <link>http://vaneyckt.io/posts/using_environment_variables_in_your_migrations/</link>
+      <title>Using environment variables in migrations</title>
+      <link>http://vaneyckt.io/posts/using_environment_variables_in_migrations/</link>
       <pubDate>Tue, 29 Oct 2013 17:42:28 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/using_environment_variables_in_your_migrations/</guid>
+      <guid>http://vaneyckt.io/posts/using_environment_variables_in_migrations/</guid>
       <description>&lt;p&gt;Recently we had to run a migration that was so slow we couldn&amp;rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&amp;rsquo;t perform any safety checks.&lt;/p&gt;
 
 &lt;p&gt;The first path would be run on a recent database dump, whereas the latter would be executed directly on the live database once the first had finished without error. This was a lot less crazy than it might sound as the particular table under modification had very infrequent changes.&lt;/p&gt;
