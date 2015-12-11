@@ -140,6 +140,40 @@ $ sudo apt-get install google-chrome-stable
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/javascripts_event_loop/">
+        Javascript&#39;s event loop
+      </a>
+    </h1>
+
+    <span class="post-date">Nov 10, 2013</span>
+
+    
+
+
+    <p>Sometimes you come across an article that is so well written you can&rsquo;t do anything but link to it. So if you&rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give <a href="http://blog.carbonfive.com/2013/10/27/the-javascript-event-loop-explained/">this article</a> a read.</p>
+
+<p>Some snippets:</p>
+
+<blockquote>
+<p>JavaScript runtimes contain a message queue which stores a list of messages to be processed and their associated callback functions. These messages are queued in response to external events (such as a mouse being clicked or receiving the response to an HTTP request) given a callback function has been provided. If, for example a user were to click a button and no callback function was provided – no message would have been enqueued.</p>
+
+<p>In a loop, the queue is polled for the next message (each poll referred to as a “tick”) and when a message is encountered, the callback for that message is executed.</p>
+
+<p>The calling of this callback function serves as the initial frame in the call stack, and due to JavaScript being single-threaded, further message polling and processing is halted pending the return of all calls on the stack.</p>
+</blockquote>
+
+<p>As well as:</p>
+
+<blockquote>
+<p>Using Web Workers enables you to offload an expensive operation to a separate thread of execution, freeing up the main thread to do other things. The worker includes a separate message queue, event loop, and memory space independent from the original thread that instantiated it. Communication between the worker and the main thread is done via message passing, which looks very much like the traditional, evented code-examples we’ve already seen.</p>
+</blockquote>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/bug_hunting_with_git_bisect/">
         Bug hunting with git bisect
       </a>
