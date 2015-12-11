@@ -1,6 +1,6 @@
 +++
 date = "2013-10-21T17:21:52+00:00"
-title = "Get connection information with the lsof command"
+title = "Getting connection information with the lsof command"
 type = "post"
 ogtype = "article"
 tags = [ "linux" ]
