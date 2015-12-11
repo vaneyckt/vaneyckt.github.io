@@ -1,6 +1,6 @@
 +++
 date = "2013-11-10T20:50:04+00:00"
-title = "Javascript's event loop"
+title = "The javascript event loop"
 type = "post"
 ogtype = "article"
 tags = [ "javascript" ]

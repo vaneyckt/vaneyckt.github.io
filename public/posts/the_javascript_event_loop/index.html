@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="The javascript event loop" />
+<meta property="og:description" content="" />
+
+<meta property="og:type" content="article" />
+
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="http://vaneyckt.io/posts/the_javascript_event_loop/" />
+
+
+  <title> The javascript event loop  &middot; vaneyckt </title>
+
+  
+
+  <link rel="stylesheet" href="/css/monokai.css">
+  <script src="/js/highlight.pack.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  
+  <link rel="stylesheet" href="http://vaneyckt.io/css/poole.css">
+  <link rel="stylesheet" href="http://vaneyckt.io/css/syntax.css">
+  <link rel="stylesheet" href="http://vaneyckt.io/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt" />
+
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+  <link href='http://fonts.googleapis.com/css?family=Raleway:400,300' rel='stylesheet' type='text/css'>
+
+  <script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
+  <script>
+    WebFont.load({
+      google: {
+        families: ['Raleway']
+      }
+    });
+  </script>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1 class="brand"><a href="http://vaneyckt.io">vaneyckt</a></h1>
+      <p class="lead">
+         notes to my future self 
+      </p>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li><a href="http://vaneyckt.io/posts">Posts</a></li>
+      <li><a href="http://vaneyckt.io/tags">Topics</a></li>
+      
+      <br/>
+      
+    </ul>
+      
+      
+      
+      <a href="https://github.com/vaneyckt"><i class="fa fa-github-square"></i></a>&nbsp;&nbsp;
+      
+
+    <p class="footnote">powered by <a href="http://hugo.spf13.com">Hugo</a> <br/>
+  </div>
+</div>
+
+
+  <div class="content container">
+    <div class="post">
+      <h1 class="post-title">The javascript event loop</h1>
+      <span class="post-date">Sun, Nov 10, 2013</span>
+      <p>Sometimes you come across an article that is so well written you can&rsquo;t do anything but link to it. So if you&rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give <a href="http://blog.carbonfive.com/2013/10/27/the-javascript-event-loop-explained/">this article</a> a read.</p>
+
+<p>Some snippets:</p>
+
+<blockquote>
+<p>JavaScript runtimes contain a message queue which stores a list of messages to be processed and their associated callback functions. These messages are queued in response to external events (such as a mouse being clicked or receiving the response to an HTTP request) given a callback function has been provided. If, for example a user were to click a button and no callback function was provided – no message would have been enqueued.</p>
+
+<p>In a loop, the queue is polled for the next message (each poll referred to as a “tick”) and when a message is encountered, the callback for that message is executed.</p>
+
+<p>The calling of this callback function serves as the initial frame in the call stack, and due to JavaScript being single-threaded, further message polling and processing is halted pending the return of all calls on the stack.</p>
+</blockquote>
+
+<p>As well as:</p>
+
+<blockquote>
+<p>Using Web Workers enables you to offload an expensive operation to a separate thread of execution, freeing up the main thread to do other things. The worker includes a separate message queue, event loop, and memory space independent from the original thread that instantiated it. Communication between the worker and the main thread is done via message passing, which looks very much like the traditional, evented code-examples we’ve already seen.</p>
+</blockquote>
+
+    </div>
+  </div>
+
+</body>
+</html>
