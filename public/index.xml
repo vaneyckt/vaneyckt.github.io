@@ -52,6 +52,30 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>Ensure your rescue_from handlers are in the right order</title>
+      <link>http://vaneyckt.io/posts/ensure_your_rescue_from_handlers_are_in_the_right_order/</link>
+      <pubDate>Mon, 11 Nov 2013 21:34:16 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/ensure_your_rescue_from_handlers_are_in_the_right_order/</guid>
+      <description>&lt;p&gt;Our &lt;code&gt;rescue_from&lt;/code&gt; handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;class WidgetsController &amp;lt; ActionController::Base
+  rescue_from ActionController::RoutingError, :with =&amp;gt; :render_404
+  rescue_from Exception,                      :with =&amp;gt; :render_500
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Turns out it&amp;rsquo;s not okay at all. Handlers are searched &lt;a href=&#34;http://apidock.com/rails/ActiveSupport/Rescuable/ClassMethods/rescue_from&#34;&gt;from bottom to top&lt;/a&gt;. This means that they should always be defined in order of most generic to most specific. Or in other words, the above code is exactly the wrong thing to do. Instead, we need to write our handlers like shown here.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;class WidgetsController &amp;lt; ActionController::Base
+  rescue_from Exception,                      :with =&amp;gt; :render_500
+  rescue_from ActionController::RoutingError, :with =&amp;gt; :render_404
+end
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>The javascript event loop</title>
       <link>http://vaneyckt.io/posts/the_javascript_event_loop/</link>
       <pubDate>Sun, 10 Nov 2013 20:50:04 +0000</pubDate>
@@ -482,26 +506,6 @@ model = str.constantize.table_name.classify.constantize
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Note that the above will only work if you&amp;rsquo;ve followed rails naming conventions though :).&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Retrieving data in a time range with rails</title>
-      <link>http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/</link>
-      <pubDate>Thu, 10 Oct 2013 19:22:45 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/</guid>
-      <description>&lt;p&gt;I&amp;rsquo;m writing this mostly as a reminder to myself, since I keep forgetting this :)&lt;/p&gt;
-
-&lt;p&gt;Instead of:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;widgets = Widget.where(&amp;quot;? &amp;lt;= created_at AND created_at &amp;lt;= ?&amp;quot;, time_from, time_to)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;do this:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;widgets = Widget.where(:created_at =&amp;gt; time_from .. time_to)
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     

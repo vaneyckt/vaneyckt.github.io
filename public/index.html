@@ -140,6 +140,38 @@ $ sudo apt-get install google-chrome-stable
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/ensure_your_rescue_from_handlers_are_in_the_right_order/">
+        Ensure your rescue_from handlers are in the right order
+      </a>
+    </h1>
+
+    <span class="post-date">Nov 11, 2013</span>
+
+    
+
+
+    <p>Our <code>rescue_from</code> handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?</p>
+
+<pre><code class="language-ruby">class WidgetsController &lt; ActionController::Base
+  rescue_from ActionController::RoutingError, :with =&gt; :render_404
+  rescue_from Exception,                      :with =&gt; :render_500
+end
+</code></pre>
+
+<p>Turns out it&rsquo;s not okay at all. Handlers are searched <a href="http://apidock.com/rails/ActiveSupport/Rescuable/ClassMethods/rescue_from">from bottom to top</a>. This means that they should always be defined in order of most generic to most specific. Or in other words, the above code is exactly the wrong thing to do. Instead, we need to write our handlers like shown here.</p>
+
+<pre><code class="language-ruby">class WidgetsController &lt; ActionController::Base
+  rescue_from Exception,                      :with =&gt; :render_500
+  rescue_from ActionController::RoutingError, :with =&gt; :render_404
+end
+</code></pre>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/the_javascript_event_loop/">
         The javascript event loop
       </a>

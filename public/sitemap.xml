@@ -13,6 +13,11 @@
   </url>
   
   <url>
+    <loc>http://vaneyckt.io/posts/ensure_your_rescue_from_handlers_are_in_the_right_order/</loc>
+    <lastmod>2013-11-11T21:34:16+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://vaneyckt.io/posts/the_javascript_event_loop/</loc>
     <lastmod>2013-11-10T20:50:04+00:00</lastmod>
   </url>
