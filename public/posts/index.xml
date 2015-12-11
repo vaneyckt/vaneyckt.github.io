@@ -52,6 +52,16 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>A visual explanation of SQL joins</title>
+      <link>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</link>
+      <pubDate>Thu, 20 Feb 2014 20:22:17 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</guid>
+      <description>&lt;p&gt;I admit that I find myself going to &lt;a href=&#34;http://blog.codinghorror.com/a-visual-explanation-of-sql-joins/&#34;&gt;this article&lt;/a&gt; every time I need to write some joins. Hopefully putting it here will save me from always having to google it.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Ensure your rescue_from handlers are in the right order</title>
       <link>http://vaneyckt.io/posts/ensure_your_rescue_from_handlers_are_in_the_right_order/</link>
       <pubDate>Mon, 11 Nov 2013 21:34:16 +0000</pubDate>
@@ -482,30 +492,6 @@ end
   border-bottom: 1px !important;
 }
 &lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Finding models from strings with rails</title>
-      <link>http://vaneyckt.io/posts/finding_models_from_strings_with_rails/</link>
-      <pubDate>Fri, 11 Oct 2013 16:27:35 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/finding_models_from_strings_with_rails/</guid>
-      <description>&lt;p&gt;Imagine you have a Widget model that stores data in a table &amp;lsquo;widgets&amp;rsquo;. At some point in your rails app you find yourself being given a string &amp;lsquo;Widget&amp;rsquo; and are asked to find the Widget model. This can be done like shown here.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;str = &#39;Widget&#39;
-model = str.constantize
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;However, things get a bit harder when you have multiple Widget model subclasses (Widget::A, Widget::B), all of which are stored in the widgets table. This time around you&amp;rsquo;re given the string &amp;lsquo;Widget::A&amp;rsquo; and are asked to get the Widget model.&lt;/p&gt;
-
-&lt;p&gt;In order to solve this we&amp;rsquo;ll need to ask the Widget::A model to give us its table name. If you&amp;rsquo;re following rails conventions you can then in turn use the table name to get the model you need.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;str = &#39;Widget&#39;
-model = str.constantize.table_name.classify.constantize
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Note that the above will only work if you&amp;rsquo;ve followed rails naming conventions though :).&lt;/p&gt;
 </description>
     </item>
     
