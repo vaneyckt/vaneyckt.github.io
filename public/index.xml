@@ -52,12 +52,22 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>String.isEmpty() is not available before Android 2.3</title>
+      <link>http://vaneyckt.io/posts/string_isEmpty_is_not_available_before_android_2_3/</link>
+      <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/string_isEmpty_is_not_available_before_android_2_3/</guid>
+      <description>&lt;p&gt;Today I learned that Android API level 8 and lower does &lt;a href=&#34;http://stackoverflow.com/questions/5244927/cant-call-string-isempty-in-android&#34;&gt;not support String.isEmpty()&lt;/a&gt;. Keep this is mind when you’re working on an app that needs to be able to run on older phones and use &lt;code&gt;String.length() == 0&lt;/code&gt; instead.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Programmatically changing Android screen orientation</title>
       <link>http://vaneyckt.io/posts/programmatically_changing_android_screen_orientation/</link>
       <pubDate>Thu, 20 Mar 2014 20:08:17 +0000</pubDate>
       
       <guid>http://vaneyckt.io/posts/programmatically_changing_android_screen_orientation/</guid>
-      <description>&lt;p&gt;A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the &lt;code&gt;dumpsys&lt;/code&gt; output of a Kindle Fire is different than the output of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.&lt;/p&gt;
+      <description>&lt;p&gt;A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the &lt;code&gt;dumpsys&lt;/code&gt; output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# get current orientation
 adb shell dumpsys input | grep SurfaceOrientation | awk &#39;{print $2}&#39;
@@ -71,7 +81,7 @@ adb shell content insert --uri content://settings/system --bind name:s:accelerom
 adb shell content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:1
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;If you don’t want to use ADB and prefer to change the orientation through an Android app instead, you can just use these commands.&lt;/p&gt;
+&lt;p&gt;If you don’t want to use ADB and prefer to change the orientation through an Android app instead, then you can just use these commands.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// get current orientation
 final int orientation = myActivity.getResources().getConfiguration().orientation;
@@ -511,32 +521,6 @@ end
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Notice how the utf8 conversion code is wrapped inside a transaction. The assumption here is that if something goes wrong the transaction will trigger a rollback. However, an &lt;code&gt;ALTER TABLE&lt;/code&gt; command in MySQL causes an &lt;a href=&#34;http://dev.mysql.com/doc/refman/5.0/en/implicit-commit.html&#34;&gt;implicit commit&lt;/a&gt;. This means that the rollback will not undo any changes introduced by the &lt;code&gt;ALTER TABLE&lt;/code&gt; command!&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Iterating over a hash containing arrays</title>
-      <link>http://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/</link>
-      <pubDate>Tue, 15 Oct 2013 16:46:02 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/</guid>
-      <description>&lt;p&gt;Last week I was implementing some auditing functionality in a rails app. At some point I was writing a page that would display how the attributes of a given ActiveRecord object had been changed. One of my colleagues spotted this and pointed out the following neat bit of syntactic sugar in Ruby.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;changes = {:attribute_a =&amp;gt; [1, 2], :attribute_b =&amp;gt; [3, 4]}
-
-changes.each do |attribute, (before, after)|
-  puts &amp;quot;#{attribute}: #{before} - #{after}&amp;quot;
-end
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;I later learned you can even do things like this.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;data = {:foo =&amp;gt; [[1, 2], 3]}
-
-data.each do |key, ((a, b), c)|
-  puts &amp;quot;#{key}: #{a} - #{b} - #{c}&amp;quot;
-end
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     

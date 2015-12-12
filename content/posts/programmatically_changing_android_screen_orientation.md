@@ -6,7 +6,7 @@ ogtype = "article"
 topics = [ "android" ]
 +++
 
-A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the `dumpsys` output of a Kindle Fire is different than the output of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.
+A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the `dumpsys` output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.
 
 ```bash
 # get current orientation
@@ -21,7 +21,7 @@ adb shell content insert --uri content://settings/system --bind name:s:accelerom
 adb shell content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:1
 ```
 
-If you don’t want to use ADB and prefer to change the orientation through an Android app instead, you can just use these commands.
+If you don’t want to use ADB and prefer to change the orientation through an Android app instead, then you can just use these commands.
 
 ```java
 // get current orientation

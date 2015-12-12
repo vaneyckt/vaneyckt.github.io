@@ -140,6 +140,24 @@ $ sudo apt-get install google-chrome-stable
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/string_isEmpty_is_not_available_before_android_2_3/">
+        String.isEmpty() is not available before Android 2.3
+      </a>
+    </h1>
+
+    <span class="post-date">May 14, 2014</span>
+
+    
+
+
+    <p>Today I learned that Android API level 8 and lower does <a href="http://stackoverflow.com/questions/5244927/cant-call-string-isempty-in-android">not support String.isEmpty()</a>. Keep this is mind when you’re working on an app that needs to be able to run on older phones and use <code>String.length() == 0</code> instead.</p>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/programmatically_changing_android_screen_orientation/">
         Programmatically changing Android screen orientation
       </a>
@@ -150,7 +168,7 @@ $ sudo apt-get install google-chrome-stable
     
 
 
-    <p>A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the <code>dumpsys</code> output of a Kindle Fire is different than the output of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.</p>
+    <p>A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the <code>dumpsys</code> output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.</p>
 
 <pre><code class="language-bash"># get current orientation
 adb shell dumpsys input | grep SurfaceOrientation | awk '{print $2}'
@@ -164,7 +182,7 @@ adb shell content insert --uri content://settings/system --bind name:s:accelerom
 adb shell content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:1
 </code></pre>
 
-<p>If you don’t want to use ADB and prefer to change the orientation through an Android app instead, you can just use these commands.</p>
+<p>If you don’t want to use ADB and prefer to change the orientation through an Android app instead, then you can just use these commands.</p>
 
 <pre><code class="language-java">// get current orientation
 final int orientation = myActivity.getResources().getConfiguration().orientation;
