@@ -3,7 +3,7 @@ date = "2013-10-17T17:20:45+00:00"
 title = "MySQL write locks also prevent reads"
 type = "post"
 ogtype = "article"
-tags = [ "rails", "mysql" ]
+topics = [ "rails", "mysql" ]
 +++
 
 Locking a table with

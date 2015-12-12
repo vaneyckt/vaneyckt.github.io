@@ -3,7 +3,7 @@ date = "2013-11-04T20:02:14+00:00"
 title = "Bug hunting with git bisect"
 type = "post"
 ogtype = "article"
-tags = [ "git" ]
+topics = [ "git" ]
 +++
 
 Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.

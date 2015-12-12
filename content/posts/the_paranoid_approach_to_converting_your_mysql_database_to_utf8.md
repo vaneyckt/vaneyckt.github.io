@@ -3,7 +3,7 @@ date = "2013-10-20T17:19:31+00:00"
 title = "The paranoid approach to converting your MySQL database to utf8"
 type = "post"
 ogtype = "article"
-tags = [ "rails", "mysql" ]
+topics = [ "rails", "mysql" ]
 +++
 
 Converting all the data in your database can be a nail-biting experience. As you can see from the code below we are doing our best to be super careful. We convert each table separately and before each conversion we store the table's column types and an MD5 hash of every row in the table (we were lucky enough to not have enormous tables). After converting the table we check that no column types or rows were changed. It goes without saying that we do a trial run on a database dump first.

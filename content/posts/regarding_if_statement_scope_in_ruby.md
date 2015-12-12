@@ -3,7 +3,7 @@ date = "2013-08-31T20:22:58+00:00"
 title = "Regarding if statement scope in Ruby"
 type = "post"
 ogtype = "article"
-tags = [ "ruby" ]
+topics = [ "ruby" ]
 +++
 
 I recently learned that `if` statements in Ruby do not introduce scope. This means that you can write code like shown below and it'll work fine.

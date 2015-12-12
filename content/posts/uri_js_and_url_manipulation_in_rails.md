@@ -3,7 +3,7 @@ date = "2013-10-13T14:55:23+00:00"
 title = "URI.js and URL manipulation in rails"
 type = "post"
 ogtype = "article"
-tags = [ "rails" ]
+topics = [ "rails" ]
 +++
 
 Manipulating urls in javascript often ends up being an exercise in string interpolation. This rarely produces good looking code. Recently we've started enforcing the use of the [URI.js library](https://medialize.github.io/URI.js/) to combat this.

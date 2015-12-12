@@ -3,7 +3,7 @@ date = "2013-10-09T16:09:32+00:00"
 title = "GET vs POST"
 type = "post"
 ogtype = "article"
-tags = [ "web" ]
+topics = [ "web" ]
 +++
 
 Today I was looking into why a particular GET request was failing on IE. As it turned out this was due to IE not appreciating long query strings. While going through our nginx logs, we also found nginx had a default query string limit that was being hit sporadically by some other customers as well. The solution in both cases was to move the affected calls from GET to POST.

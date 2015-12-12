@@ -1,6 +1,6 @@
 baseurl = "http://vaneyckt.io"
 languageCode = "en-us"
-title = "vaneyckt"
+title = "vaneyckt.io"
 theme = "hyde"
 copyright = "Tom Van Eyck"
 
@@ -11,7 +11,7 @@ copyright = "Tom Van Eyck"
 	blog = "/:year/:month/:filename/"
 
 [Taxonomies]
-	tag = "tags"
+	topic = "topics"
 
 [params]
 	description = "notes to my future self"

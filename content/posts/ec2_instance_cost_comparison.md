@@ -3,7 +3,7 @@ date = "2013-08-11T21:24:12+00:00"
 title = "EC2 instance cost comparison"
 type = "post"
 ogtype = "article"
-tags = [ "aws" ]
+topics = [ "aws" ]
 +++
 
 Amazon's pricing scheme for its ec2 instances never struck me as particularly transparent. Until recently some of my DevOps colleagues even estimated cost by cross-referencing [instance details](https://aws.amazon.com/ec2/instance-types) with [pricing information](http://aws.amazon.com/ec2/pricing). While this approach gives reasonable results for finding the cost of a given instance type, it doesn't lend itself very well to comparing prices across a range of different types.

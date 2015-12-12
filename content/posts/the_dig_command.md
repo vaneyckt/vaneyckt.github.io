@@ -3,7 +3,7 @@ date = "2013-10-08T13:24:17+00:00"
 title = "The dig command"
 type = "post"
 ogtype = "article"
-tags = [ "linux" ]
+topics = [ "linux" ]
 +++
 
 Today I learned of the existence of the [dig command](http://linux.die.net/man/1/dig). A very useful little tool for DNS lookups. Here's an example of it in action.

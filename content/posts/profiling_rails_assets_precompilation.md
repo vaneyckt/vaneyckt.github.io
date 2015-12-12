@@ -3,7 +3,7 @@ date = "2013-09-01T21:01:02+00:00"
 title = "Profiling rails assets precompilation"
 type = "post"
 ogtype = "article"
-tags = [ "rails" ]
+topics = [ "rails" ]
 +++
 
 Assets precompilation on rails can take a fair bit of time. This is especially annoying in scenarios where you want to deploy your app multiple times a day. Let's see if we can come up with a way to actually figure out where all this time is being spent. Also, while I will be focusing on rails 3.2 in this post, the general principle should be easy enough to apply to other rails versions.

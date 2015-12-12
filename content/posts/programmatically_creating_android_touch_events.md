@@ -3,7 +3,7 @@ date = "2014-03-04T20:40:56+00:00"
 title = "Programmatically creating Android touch events"
 type = "post"
 ogtype = "article"
-tags = [ "android" ]
+topics = [ "android" ]
 +++
 
 Recent versions of Android have the `adb shell input touch` functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running `adb shell getevent` to capture events as they are being generated. These events can then later be replayed using the `adb shell sendevent` command.

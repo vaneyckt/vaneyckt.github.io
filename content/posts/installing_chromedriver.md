@@ -3,7 +3,7 @@ date = "2015-08-16T19:43:34+00:00"
 title = "Installing Chromedriver"
 type = "post"
 ogtype = "article"
-tags = [ "linux" ]
+topics = [ "linux" ]
 +++
 
 Some time ago I needed to install [chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) on a ubuntu machine. While this wasn't too hard, I was nevertheless surprised by the number of open [StackOverflow](https://stackoverflow.com/) questions on this topic. So I decided to leave some notes for my future self.

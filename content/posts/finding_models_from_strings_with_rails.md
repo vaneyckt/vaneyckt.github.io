@@ -3,7 +3,7 @@ date = "2013-10-11T16:27:35+00:00"
 title = "Finding models from strings with rails"
 type = "post"
 ogtype = "article"
-tags = [ "rails" ]
+topics = [ "rails" ]
 +++
 
 Imagine you have a Widget model that stores data in a table 'widgets'. At some point in your rails app you find yourself being given a string 'Widget' and are asked to find the Widget model. This can be done like shown here.

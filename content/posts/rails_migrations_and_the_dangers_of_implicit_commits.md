@@ -3,7 +3,7 @@ date = "2013-10-16T18:45:12+00:00"
 title = "Rails migrations and the dangers of implicit commits"
 type = "post"
 ogtype = "article"
-tags = [ "rails", "mysql" ]
+topics = [ "rails", "mysql" ]
 +++
 
 I recently came across the migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.

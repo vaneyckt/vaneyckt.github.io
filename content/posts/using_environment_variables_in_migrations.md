@@ -3,7 +3,7 @@ date = "2013-10-29T17:42:28+00:00"
 title = "Using environment variables in migrations"
 type = "post"
 ogtype = "article"
-tags = [ "rails" ]
+topics = [ "rails" ]
 +++
 
 Recently we had to run a migration that was so slow we couldn't afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn't perform any safety checks.

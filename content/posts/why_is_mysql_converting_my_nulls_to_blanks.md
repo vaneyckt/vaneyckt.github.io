@@ -3,7 +3,7 @@ date = "2013-11-01T19:17:56+00:00"
 title = "Why is MySQL converting my NULLs to blanks?"
 type = "post"
 ogtype = "article"
-tags = [ "mysql" ]
+topics = [ "mysql" ]
 +++
 
 A while ago I ran into an issue where some records were showing a blank value in a given column. This was a bit weird as a blank value had never been written to that column. After a bit of searching we found that we had a bug that had inadvertently been writing the occasional NULL value to that particular column though. So how did those NULLs get turned into blanks?

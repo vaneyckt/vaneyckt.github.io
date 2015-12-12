@@ -2,7 +2,7 @@ name = "Hyde"
 license = "MIT"
 source_repo = ""
 description = "An elegant open source and mobile first theme"
-tags = ["blog", "company"]
+topics = ["blog", "company"]
 features = ["blog", ]
 
 [author]

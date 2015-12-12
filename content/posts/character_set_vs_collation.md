@@ -3,7 +3,7 @@ date = "2013-10-19T20:31:43+00:00"
 title = "Character set vs collation"
 type = "post"
 ogtype = "article"
-tags = [ "mysql" ]
+topics = [ "mysql" ]
 +++
 
 There's a surprising amount of confusion about the difference between these two terms. The best explanation I've found is [here](http://stackoverflow.com/questions/341273/what-does-character-set-and-collation-mean-exactly/341481#341481).

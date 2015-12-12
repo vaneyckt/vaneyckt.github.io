@@ -3,7 +3,7 @@ date = "2013-11-11T21:34:16+00:00"
 title = "Ensure your rescue_from handlers are in the right order"
 type = "post"
 ogtype = "article"
-tags = [ "rails" ]
+topics = [ "rails" ]
 +++
 
 Our `rescue_from` handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?

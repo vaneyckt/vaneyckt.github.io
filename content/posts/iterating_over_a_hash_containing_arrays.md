@@ -3,7 +3,7 @@ date = "2013-10-15T16:46:02+00:00"
 title = "Iterating over a hash containing arrays"
 type = "post"
 ogtype = "article"
-tags = [ "ruby" ]
+topics = [ "ruby" ]
 +++
 
 Last week I was implementing some auditing functionality in a rails app. At some point I was writing a page that would display how the attributes of a given ActiveRecord object had been changed. One of my colleagues spotted this and pointed out the following neat bit of syntactic sugar in Ruby.

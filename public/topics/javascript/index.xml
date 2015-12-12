@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Javascript on vaneyckt.io</title>
+    <link>http://vaneyckt.io/topics/javascript/</link>
+    <description>Recent content in Javascript on vaneyckt.io</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Sun, 10 Nov 2013 20:50:04 +0000</lastBuildDate>
+    <atom:link href="http://vaneyckt.io/topics/javascript/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>The javascript event loop</title>
+      <link>http://vaneyckt.io/posts/the_javascript_event_loop/</link>
+      <pubDate>Sun, 10 Nov 2013 20:50:04 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/the_javascript_event_loop/</guid>
+      <description>&lt;p&gt;Sometimes you come across an article that is so well written you can&amp;rsquo;t do anything but link to it. So if you&amp;rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give &lt;a href=&#34;http://blog.carbonfive.com/2013/10/27/the-javascript-event-loop-explained/&#34;&gt;this article&lt;/a&gt; a read.&lt;/p&gt;
+
+&lt;p&gt;Some snippets:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;JavaScript runtimes contain a message queue which stores a list of messages to be processed and their associated callback functions. These messages are queued in response to external events (such as a mouse being clicked or receiving the response to an HTTP request) given a callback function has been provided. If, for example a user were to click a button and no callback function was provided – no message would have been enqueued.&lt;/p&gt;
+
+&lt;p&gt;In a loop, the queue is polled for the next message (each poll referred to as a “tick”) and when a message is encountered, the callback for that message is executed.&lt;/p&gt;
+
+&lt;p&gt;The calling of this callback function serves as the initial frame in the call stack, and due to JavaScript being single-threaded, further message polling and processing is halted pending the return of all calls on the stack.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;As well as:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Using Web Workers enables you to offload an expensive operation to a separate thread of execution, freeing up the main thread to do other things. The worker includes a separate message queue, event loop, and memory space independent from the original thread that instantiated it. Communication between the worker and the main thread is done via message passing, which looks very much like the traditional, evented code-examples we’ve already seen.&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

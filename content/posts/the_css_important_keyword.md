@@ -3,7 +3,7 @@ date = "2013-10-12T15:03:23+00:00"
 title = "The css !important keyword"
 type = "post"
 ogtype = "article"
-tags = [ "css" ]
+topics = [ "css" ]
 +++
 
 Today I learned about the css !important keyword. I was trying to change the way code snippets (gists) were being displayed on a site, but found my css rules being ignored.

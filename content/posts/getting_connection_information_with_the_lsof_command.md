@@ -3,7 +3,7 @@ date = "2013-10-21T17:21:52+00:00"
 title = "Getting connection information with the lsof command"
 type = "post"
 ogtype = "article"
-tags = [ "linux" ]
+topics = [ "linux" ]
 +++
 
 The [lsof command](http://linux.die.net/man/8/lsof) is one of those super useful commands for figuring out what connections are taking place on your machine. While the `lsof` command technically just lists open files, just about everything in linux (even sockets) is a file!

@@ -3,7 +3,7 @@ date = "2013-11-10T20:50:04+00:00"
 title = "The javascript event loop"
 type = "post"
 ogtype = "article"
-tags = [ "javascript" ]
+topics = [ "javascript" ]
 +++
 
 Sometimes you come across an article that is so well written you can't do anything but link to it. So if you've ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give [this article](http://blog.carbonfive.com/2013/10/27/the-javascript-event-loop-explained/) a read.
