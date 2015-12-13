@@ -16,3 +16,4 @@ copyright = "Tom Van Eyck"
 [params]
 	description = "notes to my future self"
 	github = "https://github.com/vaneyckt"
+	rss = "http://vaneyckt.io/index.xml"
