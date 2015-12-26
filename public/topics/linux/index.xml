@@ -29,7 +29,7 @@ sudo mv chromedriver /usr/local/bin
 
 &lt;p&gt;Let&amp;rsquo;s see what happens when we try and run it.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-nohighlight&#34;&gt;$ chromedriver
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ chromedriver
     chromedriver: error while loading shared libraries: libgconf-2.so.4:
     cannot open shared object file: No such file or directory
 &lt;/code&gt;&lt;/pre&gt;
