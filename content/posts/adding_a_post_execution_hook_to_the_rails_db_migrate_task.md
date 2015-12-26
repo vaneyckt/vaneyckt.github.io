@@ -3,7 +3,7 @@ date = "2014-10-09T16:31:22+00:00"
 title = "Adding a post-execution hook to the rails db:migrate task"
 type = "post"
 ogtype = "article"
-topics = [ "rake" ]
+topics = [ "rails" ]
 +++
 
 A few days ago we discovered that our MySQL database's default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn't happen again, we looked into adding a post-execution hook to the rails `db:migrate` task.
