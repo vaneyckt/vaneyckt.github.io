@@ -20,16 +20,16 @@
 
 &lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-$ wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
-$ unzip chromedriver_linux64.zip
-$ rm chromedriver_linux64.zip
-$ sudo mv chromedriver /usr/local/bin
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
+unzip chromedriver_linux64.zip
+rm chromedriver_linux64.zip
+sudo mv chromedriver /usr/local/bin
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Let&amp;rsquo;s see what happens when we try and run it.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ chromedriver
+&lt;pre&gt;&lt;code class=&#34;language-nohighlight&#34;&gt;$ chromedriver
     chromedriver: error while loading shared libraries: libgconf-2.so.4:
     cannot open shared object file: No such file or directory
 &lt;/code&gt;&lt;/pre&gt;
@@ -48,6 +48,48 @@ $ sudo apt-get install google-chrome-stable
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;And that&amp;rsquo;s it. You should be good to go now.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Adding a post-execution hook to the rails db:migrate task</title>
+      <link>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_rails_db_migrate_task/</link>
+      <pubDate>Thu, 09 Oct 2014 16:31:22 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_rails_db_migrate_task/</guid>
+      <description>&lt;p&gt;A few days ago we discovered that our MySQL database&amp;rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&amp;rsquo;t happen again, we looked into adding a post-execution hook to the rails &lt;code&gt;db:migrate&lt;/code&gt; task.&lt;/p&gt;
+
+&lt;p&gt;Our first attempt is shown below. Here, we append a post-execution hook to the existing &lt;code&gt;db:migrate&lt;/code&gt; task by creating a new &lt;code&gt;db:migrate&lt;/code&gt; task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails &lt;code&gt;db:migrate&lt;/code&gt; task, we are actually just appending a call to the &lt;code&gt;post_execution_hook&lt;/code&gt; method to it.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;namespace :db do
+  def post_execution_hook
+    puts &#39;This code gets run after the rails db:migrate task.&#39;
+    puts &#39;However, it only runs if the db:migrate task does not throw an exception.&#39;
+  end
+
+  task :migrate do
+    post_execution_hook
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;However, the above example only runs the appended code if the original &lt;code&gt;db:migrate&lt;/code&gt; task does not throw any exceptions. Luckily we can do better than that by taking a slightly different approach. Rather than appending code, we are going to have a go at prepending it instead.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;namespace :db do
+  def post_execution_hook
+    puts &#39;This code gets run after the rails db:migrate task.&#39;
+    puts &#39;It will ALWAYS run.&#39;
+  end
+
+  task :attach_hook do
+    at_exit { post_execution_hook }
+  end
+end
+
+Rake::Task[&#39;db:migrate&#39;].enhance([&#39;db:attach_hook&#39;])
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Here we make use of the &lt;a href=&#34;http://ruby-doc.org/stdlib-2.0.0/libdoc/rake/rdoc/Rake/Task.html#method-i-enhance&#34;&gt;enhance method&lt;/a&gt; to add &lt;code&gt;db:attach_hook&lt;/code&gt; as a prerequisite task to &lt;code&gt;db:migrate&lt;/code&gt;. This means that calling &lt;code&gt;db:migrate&lt;/code&gt; will now cause the &lt;code&gt;db:attach_hook&lt;/code&gt; task to get executed before &lt;code&gt;db:migrate&lt;/code&gt; gets run. The &lt;code&gt;db:attach_hook&lt;/code&gt; task creates an &lt;code&gt;at_exit&lt;/code&gt; hook that will trigger our post-execution code upon exit of the &lt;code&gt;db:migrate&lt;/code&gt; task. This means that our post-execution hook will now get called even when &lt;code&gt;db:migrate&lt;/code&gt; raises an exception!&lt;/p&gt;
 </description>
     </item>
     
@@ -495,32 +537,6 @@ ActiveRecord::Base.connection.execute(&amp;quot;LOCK TABLES #{table_name} WRITE&
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;ensures that &lt;a href=&#34;http://dev.mysql.com/doc/refman/5.0/en/lock-tables.html&#34;&gt;only the current connection can access that table&lt;/a&gt;. Other connections cannot even read from this table while it is locked!&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Rails migrations and the dangers of implicit commits</title>
-      <link>http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</link>
-      <pubDate>Wed, 16 Oct 2013 18:45:12 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</guid>
-      <description>&lt;p&gt;I recently came across the migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# migration to convert table to utf8
-class ConvertWidgetsTableToUtf8Unicode &amp;lt; ActiveRecord::Migration
-  def up
-    ActiveRecord::Base.transaction do
-      table_name = &#39;widgets&#39;
-      say &amp;quot;converting #{table_name} table to utf8_unicode_ci&amp;quot;
-
-      execute(&amp;quot;ALTER TABLE #{table_name} CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci&amp;quot;)
-      execute(&amp;quot;ALTER TABLE #{table_name} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci&amp;quot;)
-    end
-  end
-end
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Notice how the utf8 conversion code is wrapped inside a transaction. The assumption here is that if something goes wrong the transaction will trigger a rollback. However, an &lt;code&gt;ALTER TABLE&lt;/code&gt; command in MySQL causes an &lt;a href=&#34;http://dev.mysql.com/doc/refman/5.0/en/implicit-commit.html&#34;&gt;implicit commit&lt;/a&gt;. This means that the rollback will not undo any changes introduced by the &lt;code&gt;ALTER TABLE&lt;/code&gt; command!&lt;/p&gt;
 </description>
     </item>
     

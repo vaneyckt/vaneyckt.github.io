@@ -108,16 +108,16 @@
 
 <p>First of all, let&rsquo;s install chromedriver.</p>
 
-<pre><code class="language-bash">$ LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-$ wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
-$ unzip chromedriver_linux64.zip
-$ rm chromedriver_linux64.zip
-$ sudo mv chromedriver /usr/local/bin
+<pre><code class="language-bash">LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
+unzip chromedriver_linux64.zip
+rm chromedriver_linux64.zip
+sudo mv chromedriver /usr/local/bin
 </code></pre>
 
 <p>Let&rsquo;s see what happens when we try and run it.</p>
 
-<pre><code class="language-bash">$ chromedriver
+<pre><code class="language-nohighlight">$ chromedriver
     chromedriver: error while loading shared libraries: libgconf-2.so.4:
     cannot open shared object file: No such file or directory
 </code></pre>
@@ -136,6 +136,56 @@ $ sudo apt-get install google-chrome-stable
 </code></pre>
 
 <p>And that&rsquo;s it. You should be good to go now.</p>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_rails_db_migrate_task/">
+        Adding a post-execution hook to the rails db:migrate task
+      </a>
+    </h1>
+
+    <span class="post-date">Oct 9, 2014</span>
+
+    
+
+
+    <p>A few days ago we discovered that our MySQL database&rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&rsquo;t happen again, we looked into adding a post-execution hook to the rails <code>db:migrate</code> task.</p>
+
+<p>Our first attempt is shown below. Here, we append a post-execution hook to the existing <code>db:migrate</code> task by creating a new <code>db:migrate</code> task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails <code>db:migrate</code> task, we are actually just appending a call to the <code>post_execution_hook</code> method to it.</p>
+
+<pre><code class="language-ruby">namespace :db do
+  def post_execution_hook
+    puts 'This code gets run after the rails db:migrate task.'
+    puts 'However, it only runs if the db:migrate task does not throw an exception.'
+  end
+
+  task :migrate do
+    post_execution_hook
+  end
+end
+</code></pre>
+
+<p>However, the above example only runs the appended code if the original <code>db:migrate</code> task does not throw any exceptions. Luckily we can do better than that by taking a slightly different approach. Rather than appending code, we are going to have a go at prepending it instead.</p>
+
+<pre><code class="language-ruby">namespace :db do
+  def post_execution_hook
+    puts 'This code gets run after the rails db:migrate task.'
+    puts 'It will ALWAYS run.'
+  end
+
+  task :attach_hook do
+    at_exit { post_execution_hook }
+  end
+end
+
+Rake::Task['db:migrate'].enhance(['db:attach_hook'])
+</code></pre>
+
+<p>Here we make use of the <a href="http://ruby-doc.org/stdlib-2.0.0/libdoc/rake/rdoc/Rake/Task.html#method-i-enhance">enhance method</a> to add <code>db:attach_hook</code> as a prerequisite task to <code>db:migrate</code>. This means that calling <code>db:migrate</code> will now cause the <code>db:attach_hook</code> task to get executed before <code>db:migrate</code> gets run. The <code>db:attach_hook</code> task creates an <code>at_exit</code> hook that will trigger our post-execution code upon exit of the <code>db:migrate</code> task. This means that our post-execution hook will now get called even when <code>db:migrate</code> raises an exception!</p>
 
   </div>
   

@@ -20,16 +20,16 @@
 
 &lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-$ wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
-$ unzip chromedriver_linux64.zip
-$ rm chromedriver_linux64.zip
-$ sudo mv chromedriver /usr/local/bin
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
+unzip chromedriver_linux64.zip
+rm chromedriver_linux64.zip
+sudo mv chromedriver /usr/local/bin
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Let&amp;rsquo;s see what happens when we try and run it.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ chromedriver
+&lt;pre&gt;&lt;code class=&#34;language-nohighlight&#34;&gt;$ chromedriver
     chromedriver: error while loading shared libraries: libgconf-2.so.4:
     cannot open shared object file: No such file or directory
 &lt;/code&gt;&lt;/pre&gt;

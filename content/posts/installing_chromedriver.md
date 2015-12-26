@@ -11,16 +11,16 @@ Some time ago I needed to install [chromedriver](https://sites.google.com/a/chro
 First of all, let's install chromedriver.
 
 ```bash
-$ LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-$ wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
-$ unzip chromedriver_linux64.zip
-$ rm chromedriver_linux64.zip
-$ sudo mv chromedriver /usr/local/bin
+LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
+unzip chromedriver_linux64.zip
+rm chromedriver_linux64.zip
+sudo mv chromedriver /usr/local/bin
 ```
 
 Let's see what happens when we try and run it.
 
-```bash
+```nohighlight
 $ chromedriver
     chromedriver: error while loading shared libraries: libgconf-2.so.4:
     cannot open shared object file: No such file or directory
