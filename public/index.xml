@@ -335,7 +335,7 @@ end
 
 &lt;p&gt;Some useful commands:&lt;/p&gt;
 
-&lt;h3 id=&#34;list-all-network-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;List all network connections&lt;/h3&gt;
+&lt;h4 id=&#34;list-all-network-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;List all network connections&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i
 
@@ -349,7 +349,7 @@ Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168
 Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;list-all-network-connections-on-port-4381:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;List all network connections on port 4381&lt;/h3&gt;
+&lt;h4 id=&#34;list-all-network-connections-on-port-4381:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;List all network connections on port 4381&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i :4381
 
@@ -357,7 +357,7 @@ COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 Spotify 36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;find-ports-listening-for-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Find ports listening for connections&lt;/h3&gt;
+&lt;h4 id=&#34;find-ports-listening-for-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Find ports listening for connections&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i | grep -i LISTEN
 
@@ -366,14 +366,14 @@ Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:
 Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cd      0t0  TCP *:57621 (LISTEN)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;find-established-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Find established connections&lt;/h3&gt;
+&lt;h4 id=&#34;find-established-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Find established connections&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i | grep -i ESTABLISHED
 
 Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&amp;gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;show-all-files-opened-by-a-given-process:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Show all files opened by a given process&lt;/h3&gt;
+&lt;h4 id=&#34;show-all-files-opened-by-a-given-process:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Show all files opened by a given process&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -p 36908
 

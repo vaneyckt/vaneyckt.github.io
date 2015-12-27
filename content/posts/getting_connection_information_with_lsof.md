@@ -10,7 +10,7 @@ The [lsof command](http://linux.die.net/man/8/lsof) is one of those super useful
 
 Some useful commands:
 
-### List all network connections
+#### List all network connections
 ```bash
 $ lsof -i
 
@@ -24,7 +24,7 @@ Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168
 Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
 ```
 
-### List all network connections on port 4381
+#### List all network connections on port 4381
 ```bash
 $ lsof -i :4381
 
@@ -32,7 +32,7 @@ COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 Spotify 36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
 ```
 
-### Find ports listening for connections
+#### Find ports listening for connections
 ```bash
 $ lsof -i | grep -i LISTEN
 
@@ -41,14 +41,14 @@ Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:
 Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cd      0t0  TCP *:57621 (LISTEN)
 ```
 
-### Find established connections
+#### Find established connections
 ```bash
 $ lsof -i | grep -i ESTABLISHED
 
 Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432->lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
 ```
 
-### Show all files opened by a given process
+#### Show all files opened by a given process
 ```bash
 $ lsof -p 36908
 
