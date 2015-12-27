@@ -2,138 +2,138 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://vaneyckt.io/</loc>
+    <loc>http://localhost:1313/</loc>
     <lastmod>2015-08-16T19:43:34+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/installing_chromedriver/</loc>
+    <loc>http://localhost:1313/posts/installing_chromedriver/</loc>
     <lastmod>2015-08-16T19:43:34+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</loc>
+    <loc>http://localhost:1313/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</loc>
     <lastmod>2014-10-09T16:31:22+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/string_isEmpty_is_not_available_before_android_2_3/</loc>
+    <loc>http://localhost:1313/posts/string_isEmpty_is_not_available_before_android_2_3/</loc>
     <lastmod>2014-05-14T20:14:48+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</loc>
+    <loc>http://localhost:1313/posts/programmatically_rotating_the_android_screen/</loc>
     <lastmod>2014-03-20T20:08:17+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</loc>
+    <loc>http://localhost:1313/posts/programmatically_creating_android_touch_events/</loc>
     <lastmod>2014-03-04T20:40:56+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</loc>
+    <loc>http://localhost:1313/posts/a_visual_explanation_of_sql_joins/</loc>
     <lastmod>2014-02-20T20:22:17+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</loc>
+    <loc>http://localhost:1313/posts/check_the_order_of_your_rescue_from_handlers/</loc>
     <lastmod>2013-11-11T21:34:16+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/the_javascript_event_loop/</loc>
+    <loc>http://localhost:1313/posts/the_javascript_event_loop/</loc>
     <lastmod>2013-11-10T20:50:04+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</loc>
+    <loc>http://localhost:1313/posts/bug_hunting_with_git_bisect/</loc>
     <lastmod>2013-11-04T20:02:14+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</loc>
+    <loc>http://localhost:1313/posts/why_is_mysql_converting_my_nulls_to_blanks/</loc>
     <lastmod>2013-11-01T19:17:56+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/using_environment_variables_in_migrations/</loc>
+    <loc>http://localhost:1313/posts/using_environment_variables_in_migrations/</loc>
     <lastmod>2013-10-29T17:42:28+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</loc>
+    <loc>http://localhost:1313/posts/getting_connection_information_with_lsof/</loc>
     <lastmod>2013-10-21T17:21:52+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</loc>
+    <loc>http://localhost:1313/posts/carefully_converting_your_mysql_database_to_utf8/</loc>
     <lastmod>2013-10-20T17:19:31+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/character_set_vs_collation/</loc>
+    <loc>http://localhost:1313/posts/character_set_vs_collation/</loc>
     <lastmod>2013-10-19T20:31:43+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</loc>
+    <loc>http://localhost:1313/posts/mysql_write_locks_also_prevent_reads/</loc>
     <lastmod>2013-10-17T17:20:45+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</loc>
+    <loc>http://localhost:1313/posts/rails_migrations_and_the_dangers_of_implicit_commits/</loc>
     <lastmod>2013-10-16T18:45:12+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/</loc>
+    <loc>http://localhost:1313/posts/iterating_over_a_hash_containing_arrays/</loc>
     <lastmod>2013-10-15T16:46:02+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/</loc>
+    <loc>http://localhost:1313/posts/uri_js_and_url_manipulation_in_rails/</loc>
     <lastmod>2013-10-13T14:55:23+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/the_css_important_keyword/</loc>
+    <loc>http://localhost:1313/posts/the_css_important_keyword/</loc>
     <lastmod>2013-10-12T15:03:23+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/finding_models_from_strings_with_rails/</loc>
+    <loc>http://localhost:1313/posts/finding_models_from_strings_with_rails/</loc>
     <lastmod>2013-10-11T16:27:35+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/</loc>
+    <loc>http://localhost:1313/posts/retrieving_data_in_a_time_range_with_rails/</loc>
     <lastmod>2013-10-10T19:22:45+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/get_vs_post/</loc>
+    <loc>http://localhost:1313/posts/get_vs_post/</loc>
     <lastmod>2013-10-09T16:09:32+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/the_dig_command/</loc>
+    <loc>http://localhost:1313/posts/the_dig_command/</loc>
     <lastmod>2013-10-08T13:24:17+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/profiling_rails_assets_precompilation/</loc>
+    <loc>http://localhost:1313/posts/profiling_rails_assets_precompilation/</loc>
     <lastmod>2013-09-01T21:01:02+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/regarding_if_statement_scope_in_ruby/</loc>
+    <loc>http://localhost:1313/posts/regarding_if_statement_scope_in_ruby/</loc>
     <lastmod>2013-08-31T20:22:58+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/ec2_instance_cost_comparison/</loc>
+    <loc>http://localhost:1313/posts/ec2_instance_cost_comparison/</loc>
     <lastmod>2013-08-11T21:24:12+00:00</lastmod>
   </url>
   

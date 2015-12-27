@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Linux on vaneyckt.io</title>
-    <link>http://vaneyckt.io/topics/linux/</link>
+    <link>http://localhost:1313/topics/linux/</link>
     <description>Recent content in Linux on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Sun, 16 Aug 2015 19:43:34 +0000</lastBuildDate>
-    <atom:link href="http://vaneyckt.io/topics/linux/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/topics/linux/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Installing Chromedriver</title>
-      <link>http://vaneyckt.io/posts/installing_chromedriver/</link>
+      <link>http://localhost:1313/posts/installing_chromedriver/</link>
       <pubDate>Sun, 16 Aug 2015 19:43:34 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
+      <guid>http://localhost:1313/posts/installing_chromedriver/</guid>
       <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open &lt;a href=&#34;https://stackoverflow.com/&#34;&gt;StackOverflow&lt;/a&gt; questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
 
 &lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
@@ -53,10 +53,10 @@ $ sudo apt-get install google-chrome-stable
     
     <item>
       <title>Getting connection information with lsof</title>
-      <link>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</link>
+      <link>http://localhost:1313/posts/getting_connection_information_with_lsof/</link>
       <pubDate>Mon, 21 Oct 2013 17:21:52 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</guid>
+      <guid>http://localhost:1313/posts/getting_connection_information_with_lsof/</guid>
       <description>
 
 &lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/8/lsof&#34;&gt;lsof command&lt;/a&gt; is one of those super useful commands for figuring out what connections are taking place on your machine. While the &lt;code&gt;lsof&lt;/code&gt; command technically just lists open files, just about everything in linux (even sockets) is a file!&lt;/p&gt;
@@ -122,10 +122,10 @@ Spotify 36908 vaneyckt   99r     REG                1,4    144580    28952 /Syst
     
     <item>
       <title>The dig command</title>
-      <link>http://vaneyckt.io/posts/the_dig_command/</link>
+      <link>http://localhost:1313/posts/the_dig_command/</link>
       <pubDate>Tue, 08 Oct 2013 13:24:17 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_dig_command/</guid>
+      <guid>http://localhost:1313/posts/the_dig_command/</guid>
       <description>&lt;p&gt;Today I learned of the existence of the &lt;a href=&#34;http://linux.die.net/man/1/dig&#34;&gt;dig command&lt;/a&gt;. A very useful little tool for DNS lookups. Here&amp;rsquo;s an example of it in action.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ dig www.google.com
