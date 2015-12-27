@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on vaneyckt.io</title>
-    <link>http://localhost:1313/posts/</link>
+    <link>http://vaneyckt.io/posts/</link>
     <description>Recent content in Posts on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Sun, 16 Aug 2015 19:43:34 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://vaneyckt.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Installing Chromedriver</title>
-      <link>http://localhost:1313/posts/installing_chromedriver/</link>
+      <link>http://vaneyckt.io/posts/installing_chromedriver/</link>
       <pubDate>Sun, 16 Aug 2015 19:43:34 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/installing_chromedriver/</guid>
+      <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
       <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open &lt;a href=&#34;https://stackoverflow.com/&#34;&gt;StackOverflow&lt;/a&gt; questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
 
 &lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
@@ -53,10 +53,10 @@ $ sudo apt-get install google-chrome-stable
     
     <item>
       <title>Adding a post-execution hook to the db:migrate task</title>
-      <link>http://localhost:1313/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
+      <link>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
       <pubDate>Thu, 09 Oct 2014 16:31:22 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
+      <guid>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
       <description>&lt;p&gt;A few days ago we discovered that our MySQL database&amp;rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&amp;rsquo;t happen again, we looked into adding a post-execution hook to the rails &lt;code&gt;db:migrate&lt;/code&gt; task.&lt;/p&gt;
 
 &lt;p&gt;Our first attempt is shown below. Here, we append a post-execution hook to the existing &lt;code&gt;db:migrate&lt;/code&gt; task by creating a new &lt;code&gt;db:migrate&lt;/code&gt; task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails &lt;code&gt;db:migrate&lt;/code&gt; task, we are actually just appending a call to the &lt;code&gt;post_execution_hook&lt;/code&gt; method to it.&lt;/p&gt;
@@ -95,20 +95,20 @@ Rake::Task[&#39;db:migrate&#39;].enhance([&#39;db:attach_hook&#39;])
     
     <item>
       <title>String.isEmpty() is not available before Android 2.3</title>
-      <link>http://localhost:1313/posts/string_isEmpty_is_not_available_before_android_2_3/</link>
+      <link>http://vaneyckt.io/posts/string_isEmpty_is_not_available_before_android_2_3/</link>
       <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/string_isEmpty_is_not_available_before_android_2_3/</guid>
+      <guid>http://vaneyckt.io/posts/string_isEmpty_is_not_available_before_android_2_3/</guid>
       <description>&lt;p&gt;Today I learned that Android API level 8 and lower does &lt;a href=&#34;http://stackoverflow.com/questions/5244927/cant-call-string-isempty-in-android&#34;&gt;not support String.isEmpty()&lt;/a&gt;. Keep this is mind when you’re working on an app that needs to be able to run on older phones and use &lt;code&gt;String.length() == 0&lt;/code&gt; instead.&lt;/p&gt;
 </description>
     </item>
     
     <item>
       <title>Programmatically rotating the Android screen</title>
-      <link>http://localhost:1313/posts/programmatically_rotating_the_android_screen/</link>
+      <link>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</link>
       <pubDate>Thu, 20 Mar 2014 20:08:17 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/programmatically_rotating_the_android_screen/</guid>
+      <guid>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</guid>
       <description>&lt;p&gt;A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the &lt;code&gt;dumpsys&lt;/code&gt; output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# get current orientation
@@ -139,10 +139,10 @@ myActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     
     <item>
       <title>Programmatically creating Android touch events</title>
-      <link>http://localhost:1313/posts/programmatically_creating_android_touch_events/</link>
+      <link>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</link>
       <pubDate>Tue, 04 Mar 2014 20:40:56 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/programmatically_creating_android_touch_events/</guid>
+      <guid>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</guid>
       <description>&lt;p&gt;Recent versions of Android have the &lt;code&gt;adb shell input touch&lt;/code&gt; functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running &lt;code&gt;adb shell getevent&lt;/code&gt; to capture events as they are being generated. These events can then later be replayed using the &lt;code&gt;adb shell sendevent&lt;/code&gt; command.&lt;/p&gt;
 
 &lt;p&gt;Running &lt;code&gt;adb shell getevent&lt;/code&gt; when touching the screen might get you something like shown below. Notice how the output is in hexadecimal.&lt;/p&gt;
@@ -181,20 +181,20 @@ adb shell sendevent /dev/input/event7: 0 0 0
     
     <item>
       <title>A visual explanation of SQL joins</title>
-      <link>http://localhost:1313/posts/a_visual_explanation_of_sql_joins/</link>
+      <link>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</link>
       <pubDate>Thu, 20 Feb 2014 20:22:17 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/a_visual_explanation_of_sql_joins/</guid>
+      <guid>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</guid>
       <description>&lt;p&gt;I admit that I find myself going to &lt;a href=&#34;http://blog.codinghorror.com/a-visual-explanation-of-sql-joins/&#34;&gt;this article&lt;/a&gt; every time I need to write some joins. Hopefully putting it here will save me from always having to google it.&lt;/p&gt;
 </description>
     </item>
     
     <item>
       <title>Check the order of your rescue_from handlers!</title>
-      <link>http://localhost:1313/posts/check_the_order_of_your_rescue_from_handlers/</link>
+      <link>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</link>
       <pubDate>Mon, 11 Nov 2013 21:34:16 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/check_the_order_of_your_rescue_from_handlers/</guid>
+      <guid>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</guid>
       <description>&lt;p&gt;Our &lt;code&gt;rescue_from&lt;/code&gt; handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;class WidgetsController &amp;lt; ActionController::Base
@@ -215,10 +215,10 @@ end
     
     <item>
       <title>The javascript event loop</title>
-      <link>http://localhost:1313/posts/the_javascript_event_loop/</link>
+      <link>http://vaneyckt.io/posts/the_javascript_event_loop/</link>
       <pubDate>Sun, 10 Nov 2013 20:50:04 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/the_javascript_event_loop/</guid>
+      <guid>http://vaneyckt.io/posts/the_javascript_event_loop/</guid>
       <description>&lt;p&gt;Sometimes you come across an article that is so well written you can&amp;rsquo;t do anything but link to it. So if you&amp;rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give &lt;a href=&#34;http://blog.carbonfive.com/2013/10/27/the-javascript-event-loop-explained/&#34;&gt;this article&lt;/a&gt; a read.&lt;/p&gt;
 
 &lt;p&gt;Some snippets:&lt;/p&gt;
@@ -241,10 +241,10 @@ end
     
     <item>
       <title>Bug hunting with git bisect</title>
-      <link>http://localhost:1313/posts/bug_hunting_with_git_bisect/</link>
+      <link>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</link>
       <pubDate>Mon, 04 Nov 2013 20:02:14 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/bug_hunting_with_git_bisect/</guid>
+      <guid>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</guid>
       <description>&lt;p&gt;Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.&lt;/p&gt;
 
 &lt;p&gt;It was at this point that I remembered &lt;code&gt;git bisect&lt;/code&gt;. This git command asks you to specify two commits: one where things are working, and another one where things are broken. It then does a binary search across the range of commits in between these two. Each search step asks you whether the current commit contains broken code or not, after which it automatically selects the next commit for you. There&amp;rsquo;s a great tutorial over &lt;a href=&#34;http://webchick.net/node/99&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
@@ -260,10 +260,10 @@ $ git bisect bad 2q7f529
     
     <item>
       <title>Why is MySQL converting my NULLs to blanks?</title>
-      <link>http://localhost:1313/posts/why_is_mysql_converting_my_nulls_to_blanks/</link>
+      <link>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</link>
       <pubDate>Fri, 01 Nov 2013 19:17:56 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/why_is_mysql_converting_my_nulls_to_blanks/</guid>
+      <guid>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</guid>
       <description>&lt;p&gt;A while ago I ran into an issue where some records were showing a blank value in a given column. This was a bit weird as a blank value had never been written to that column. After a bit of searching we found that we had a bug that had inadvertently been writing the occasional NULL value to that particular column though. So how did those NULLs get turned into blanks?&lt;/p&gt;
 
 &lt;p&gt;It turns out that MySQL can operate in different &lt;a href=&#34;https://dev.mysql.com/doc/refman/5.0/en/sql-mode.html&#34;&gt;server modes&lt;/a&gt;. You can check your server mode by running one of the two commands below. Note that your server mode will be blank by default.&lt;/p&gt;
@@ -295,10 +295,10 @@ SHOW SESSION VARIABLES where Variable_name = &#39;sql_mode&#39;
     
     <item>
       <title>Using environment variables in migrations</title>
-      <link>http://localhost:1313/posts/using_environment_variables_in_migrations/</link>
+      <link>http://vaneyckt.io/posts/using_environment_variables_in_migrations/</link>
       <pubDate>Tue, 29 Oct 2013 17:42:28 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/using_environment_variables_in_migrations/</guid>
+      <guid>http://vaneyckt.io/posts/using_environment_variables_in_migrations/</guid>
       <description>&lt;p&gt;Recently we had to run a migration that was so slow we couldn&amp;rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&amp;rsquo;t perform any safety checks.&lt;/p&gt;
 
 &lt;p&gt;The first path would be run on a recent database dump, whereas the latter would be executed directly on the live database once the first had finished without error. This was a lot less crazy than it might sound as the particular table under modification had very infrequent changes.&lt;/p&gt;
@@ -325,10 +325,10 @@ end
     
     <item>
       <title>Getting connection information with lsof</title>
-      <link>http://localhost:1313/posts/getting_connection_information_with_lsof/</link>
+      <link>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</link>
       <pubDate>Mon, 21 Oct 2013 17:21:52 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/getting_connection_information_with_lsof/</guid>
+      <guid>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</guid>
       <description>
 
 &lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/8/lsof&#34;&gt;lsof command&lt;/a&gt; is one of those super useful commands for figuring out what connections are taking place on your machine. While the &lt;code&gt;lsof&lt;/code&gt; command technically just lists open files, just about everything in linux (even sockets) is a file!&lt;/p&gt;
@@ -394,10 +394,10 @@ Spotify 36908 vaneyckt   99r     REG                1,4    144580    28952 /Syst
     
     <item>
       <title>Carefully converting your MySQL database to utf8</title>
-      <link>http://localhost:1313/posts/carefully_converting_your_mysql_database_to_utf8/</link>
+      <link>http://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</link>
       <pubDate>Sun, 20 Oct 2013 17:19:31 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/carefully_converting_your_mysql_database_to_utf8/</guid>
+      <guid>http://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</guid>
       <description>&lt;p&gt;Converting all the data in your database can be a nail-biting experience. As you can see from the code below we are doing our best to be super careful. We convert each table separately and before each conversion we store the table&amp;rsquo;s column types and an MD5 hash of every row in the table (we were lucky enough to not have enormous tables). After converting the table we check that no column types or rows were changed. It goes without saying that we do a trial run on a database dump first.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;require &#39;set&#39;
@@ -502,10 +502,10 @@ end
     
     <item>
       <title>Character set vs collation</title>
-      <link>http://localhost:1313/posts/character_set_vs_collation/</link>
+      <link>http://vaneyckt.io/posts/character_set_vs_collation/</link>
       <pubDate>Sat, 19 Oct 2013 20:31:43 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/character_set_vs_collation/</guid>
+      <guid>http://vaneyckt.io/posts/character_set_vs_collation/</guid>
       <description>&lt;p&gt;There&amp;rsquo;s a surprising amount of confusion about the difference between these two terms. The best explanation I&amp;rsquo;ve found is &lt;a href=&#34;http://stackoverflow.com/questions/341273/what-does-character-set-and-collation-mean-exactly/341481#341481&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 &lt;blockquote&gt;
@@ -526,10 +526,10 @@ end
     
     <item>
       <title>MySQL write locks also prevent reads</title>
-      <link>http://localhost:1313/posts/mysql_write_locks_also_prevent_reads/</link>
+      <link>http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</link>
       <pubDate>Thu, 17 Oct 2013 17:20:45 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/mysql_write_locks_also_prevent_reads/</guid>
+      <guid>http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</guid>
       <description>&lt;p&gt;Locking a table with&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;table_name = &#39;widgets&#39;

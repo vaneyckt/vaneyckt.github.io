@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Git on vaneyckt.io</title>
-    <link>http://localhost:1313/topics/git/</link>
+    <link>http://vaneyckt.io/topics/git/</link>
     <description>Recent content in Git on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Mon, 04 Nov 2013 20:02:14 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/topics/git/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://vaneyckt.io/topics/git/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Bug hunting with git bisect</title>
-      <link>http://localhost:1313/posts/bug_hunting_with_git_bisect/</link>
+      <link>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</link>
       <pubDate>Mon, 04 Nov 2013 20:02:14 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/bug_hunting_with_git_bisect/</guid>
+      <guid>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</guid>
       <description>&lt;p&gt;Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.&lt;/p&gt;
 
 &lt;p&gt;It was at this point that I remembered &lt;code&gt;git bisect&lt;/code&gt;. This git command asks you to specify two commits: one where things are working, and another one where things are broken. It then does a binary search across the range of commits in between these two. Each search step asks you whether the current commit contains broken code or not, after which it automatically selects the next commit for you. There&amp;rsquo;s a great tutorial over &lt;a href=&#34;http://webchick.net/node/99&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
