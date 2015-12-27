@@ -231,12 +231,12 @@ ActiveRecord::Base.connection.execute(&amp;quot;LOCK TABLES #{table_name} WRITE&
     </item>
     
     <item>
-      <title>Rails migrations and the dangers of implicit commits</title>
+      <title>Migrations and the dangers of implicit commits</title>
       <link>http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</link>
       <pubDate>Wed, 16 Oct 2013 18:45:12 +0000</pubDate>
       
       <guid>http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</guid>
-      <description>&lt;p&gt;I recently came across the migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.&lt;/p&gt;
+      <description>&lt;p&gt;I recently came across the rails migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# migration to convert table to utf8
 class ConvertWidgetsTableToUtf8Unicode &amp;lt; ActiveRecord::Migration
