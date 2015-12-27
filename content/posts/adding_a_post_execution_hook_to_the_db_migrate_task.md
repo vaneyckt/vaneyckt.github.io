@@ -1,6 +1,6 @@
 +++
 date = "2014-10-09T16:31:22+00:00"
-title = "Adding a post-execution hook to the rails db:migrate task"
+title = "Adding a post-execution hook to the db:migrate task"
 type = "post"
 ogtype = "article"
 topics = [ "rails" ]

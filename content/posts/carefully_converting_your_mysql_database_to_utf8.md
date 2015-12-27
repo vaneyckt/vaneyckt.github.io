@@ -1,6 +1,6 @@
 +++
 date = "2013-10-20T17:19:31+00:00"
-title = "The paranoid approach to converting your MySQL database to utf8"
+title = "Carefully converting your MySQL database to utf8"
 type = "post"
 ogtype = "article"
 topics = [ "rails", "mysql" ]

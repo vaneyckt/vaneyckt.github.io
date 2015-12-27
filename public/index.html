@@ -143,8 +143,8 @@ $ sudo apt-get install google-chrome-stable
   
   <div class="post">
     <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_rails_db_migrate_task/">
-        Adding a post-execution hook to the rails db:migrate task
+      <a href="http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/">
+        Adding a post-execution hook to the db:migrate task
       </a>
     </h1>
 
@@ -211,8 +211,8 @@ Rake::Task['db:migrate'].enhance(['db:attach_hook'])
   
   <div class="post">
     <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/programmatically_changing_android_screen_orientation/">
-        Programmatically changing Android screen orientation
+      <a href="http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/">
+        Programmatically rotating the Android screen
       </a>
     </h1>
 
@@ -321,8 +321,8 @@ adb shell sendevent /dev/input/event7: 0 0 0
   
   <div class="post">
     <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/ensure_your_rescue_from_handlers_are_in_the_right_order/">
-        Ensure your rescue_from handlers are in the right order
+      <a href="http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/">
+        Check the order of your rescue_from handlers!
       </a>
     </h1>
 
@@ -495,8 +495,8 @@ end
   
   <div class="post">
     <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/getting_connection_information_with_the_lsof_command/">
-        Getting connection information with the lsof command
+      <a href="http://vaneyckt.io/posts/getting_connection_information_with_lsof/">
+        Getting connection information with lsof
       </a>
     </h1>
 
@@ -511,7 +511,7 @@ end
 
 <p>Some useful commands:</p>
 
-<h3 id="list-all-network-connections:0bc120d9cb212921894b68382ac7bd44">List all network connections</h3>
+<h3 id="list-all-network-connections:af3807b2c0cfda8f5c0a92778b96cb1b">List all network connections</h3>
 
 <pre><code class="language-bash">$ lsof -i
 
@@ -525,7 +525,7 @@ Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168
 Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
 </code></pre>
 
-<h3 id="list-all-network-connections-on-port-4381:0bc120d9cb212921894b68382ac7bd44">List all network connections on port 4381</h3>
+<h3 id="list-all-network-connections-on-port-4381:af3807b2c0cfda8f5c0a92778b96cb1b">List all network connections on port 4381</h3>
 
 <pre><code class="language-bash">$ lsof -i :4381
 
@@ -533,7 +533,7 @@ COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 Spotify 36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
 </code></pre>
 
-<h3 id="find-ports-listening-for-connections:0bc120d9cb212921894b68382ac7bd44">Find ports listening for connections</h3>
+<h3 id="find-ports-listening-for-connections:af3807b2c0cfda8f5c0a92778b96cb1b">Find ports listening for connections</h3>
 
 <pre><code class="language-bash">$ lsof -i | grep -i LISTEN
 
@@ -542,14 +542,14 @@ Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:
 Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cd      0t0  TCP *:57621 (LISTEN)
 </code></pre>
 
-<h3 id="find-established-connections:0bc120d9cb212921894b68382ac7bd44">Find established connections</h3>
+<h3 id="find-established-connections:af3807b2c0cfda8f5c0a92778b96cb1b">Find established connections</h3>
 
 <pre><code class="language-bash">$ lsof -i | grep -i ESTABLISHED
 
 Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
 </code></pre>
 
-<h3 id="show-all-files-opened-by-a-given-process:0bc120d9cb212921894b68382ac7bd44">Show all files opened by a given process</h3>
+<h3 id="show-all-files-opened-by-a-given-process:af3807b2c0cfda8f5c0a92778b96cb1b">Show all files opened by a given process</h3>
 
 <pre><code class="language-bash">$ lsof -p 36908
 
@@ -572,8 +572,8 @@ Spotify 36908 vaneyckt   99r     REG                1,4    144580    28952 /Syst
   
   <div class="post">
     <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/the_paranoid_approach_to_converting_your_mysql_database_to_utf8/">
-        The paranoid approach to converting your MySQL database to utf8
+      <a href="http://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/">
+        Carefully converting your MySQL database to utf8
       </a>
     </h1>
 

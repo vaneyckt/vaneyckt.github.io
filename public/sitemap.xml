@@ -13,7 +13,7 @@
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_rails_db_migrate_task/</loc>
+    <loc>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</loc>
     <lastmod>2014-10-09T16:31:22+00:00</lastmod>
   </url>
   
@@ -23,7 +23,7 @@
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/programmatically_changing_android_screen_orientation/</loc>
+    <loc>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</loc>
     <lastmod>2014-03-20T20:08:17+00:00</lastmod>
   </url>
   
@@ -38,7 +38,7 @@
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/ensure_your_rescue_from_handlers_are_in_the_right_order/</loc>
+    <loc>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</loc>
     <lastmod>2013-11-11T21:34:16+00:00</lastmod>
   </url>
   
@@ -63,12 +63,12 @@
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/getting_connection_information_with_the_lsof_command/</loc>
+    <loc>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</loc>
     <lastmod>2013-10-21T17:21:52+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/the_paranoid_approach_to_converting_your_mysql_database_to_utf8/</loc>
+    <loc>http://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</loc>
     <lastmod>2013-10-20T17:19:31+00:00</lastmod>
   </url>
   

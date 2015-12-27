@@ -13,7 +13,7 @@
 <meta property="og:type" content="article" />
 
 <meta property="og:locale" content="en_US" />
-<meta property="og:url" content="http://localhost:62724/posts/getting_connection_information_with_the_lsof_command/" />
+<meta property="og:url" content="http://vaneyckt.io/posts/getting_connection_information_with_lsof/" />
 
 
   <title> Getting connection information with lsof  &middot; vaneyckt.io </title>
@@ -26,9 +26,9 @@
   <script>hljs.initHighlightingOnLoad();</script>
 
   
-  <link rel="stylesheet" href="http://localhost:62724//css/poole.css">
-  <link rel="stylesheet" href="http://localhost:62724//css/syntax.css">
-  <link rel="stylesheet" href="http://localhost:62724//css/hyde.css">
+  <link rel="stylesheet" href="http://vaneyckt.io/css/poole.css">
+  <link rel="stylesheet" href="http://vaneyckt.io/css/syntax.css">
+  <link rel="stylesheet" href="http://vaneyckt.io/css/hyde.css">
   <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
 
   
@@ -57,16 +57,16 @@
 <div class="sidebar">
   <div class="container sidebar-sticky">
     <div class="sidebar-about">
-      <h1 class="brand"><a style="text-decoration:none" href="http://localhost:62724/">vaneyckt</a></h1>
+      <h1 class="brand"><a style="text-decoration:none" href="http://vaneyckt.io">vaneyckt</a></h1>
       <p class="lead">
          notes to my future self 
       </p>
     </div>
 
     <ul class="sidebar-nav">
-      <li><a href="http://localhost:62724/">Home</a></li>
-      <li><a href="http://localhost:62724//posts">Posts</a></li>
-      <li><a href="http://localhost:62724//topics">Topics</a></li>
+      <li><a href="http://vaneyckt.io">Home</a></li>
+      <li><a href="http://vaneyckt.io/posts">Posts</a></li>
+      <li><a href="http://vaneyckt.io/topics">Topics</a></li>
       
       <br/>
       
@@ -94,7 +94,7 @@
 
 <p>Some useful commands:</p>
 
-<h3 id="list-all-network-connections:0bc120d9cb212921894b68382ac7bd44">List all network connections</h3>
+<h3 id="list-all-network-connections:af3807b2c0cfda8f5c0a92778b96cb1b">List all network connections</h3>
 
 <pre><code class="language-bash">$ lsof -i
 
@@ -108,7 +108,7 @@ Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168
 Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
 </code></pre>
 
-<h3 id="list-all-network-connections-on-port-4381:0bc120d9cb212921894b68382ac7bd44">List all network connections on port 4381</h3>
+<h3 id="list-all-network-connections-on-port-4381:af3807b2c0cfda8f5c0a92778b96cb1b">List all network connections on port 4381</h3>
 
 <pre><code class="language-bash">$ lsof -i :4381
 
@@ -116,7 +116,7 @@ COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 Spotify 36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
 </code></pre>
 
-<h3 id="find-ports-listening-for-connections:0bc120d9cb212921894b68382ac7bd44">Find ports listening for connections</h3>
+<h3 id="find-ports-listening-for-connections:af3807b2c0cfda8f5c0a92778b96cb1b">Find ports listening for connections</h3>
 
 <pre><code class="language-bash">$ lsof -i | grep -i LISTEN
 
@@ -125,14 +125,14 @@ Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:
 Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cd      0t0  TCP *:57621 (LISTEN)
 </code></pre>
 
-<h3 id="find-established-connections:0bc120d9cb212921894b68382ac7bd44">Find established connections</h3>
+<h3 id="find-established-connections:af3807b2c0cfda8f5c0a92778b96cb1b">Find established connections</h3>
 
 <pre><code class="language-bash">$ lsof -i | grep -i ESTABLISHED
 
 Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
 </code></pre>
 
-<h3 id="show-all-files-opened-by-a-given-process:0bc120d9cb212921894b68382ac7bd44">Show all files opened by a given process</h3>
+<h3 id="show-all-files-opened-by-a-given-process:af3807b2c0cfda8f5c0a92778b96cb1b">Show all files opened by a given process</h3>
 
 <pre><code class="language-bash">$ lsof -p 36908
 

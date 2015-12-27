@@ -52,11 +52,11 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
-      <title>Adding a post-execution hook to the rails db:migrate task</title>
-      <link>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_rails_db_migrate_task/</link>
+      <title>Adding a post-execution hook to the db:migrate task</title>
+      <link>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
       <pubDate>Thu, 09 Oct 2014 16:31:22 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_rails_db_migrate_task/</guid>
+      <guid>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
       <description>&lt;p&gt;A few days ago we discovered that our MySQL database&amp;rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&amp;rsquo;t happen again, we looked into adding a post-execution hook to the rails &lt;code&gt;db:migrate&lt;/code&gt; task.&lt;/p&gt;
 
 &lt;p&gt;Our first attempt is shown below. Here, we append a post-execution hook to the existing &lt;code&gt;db:migrate&lt;/code&gt; task by creating a new &lt;code&gt;db:migrate&lt;/code&gt; task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails &lt;code&gt;db:migrate&lt;/code&gt; task, we are actually just appending a call to the &lt;code&gt;post_execution_hook&lt;/code&gt; method to it.&lt;/p&gt;
@@ -104,11 +104,11 @@ Rake::Task[&#39;db:migrate&#39;].enhance([&#39;db:attach_hook&#39;])
     </item>
     
     <item>
-      <title>Programmatically changing Android screen orientation</title>
-      <link>http://vaneyckt.io/posts/programmatically_changing_android_screen_orientation/</link>
+      <title>Programmatically rotating the Android screen</title>
+      <link>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</link>
       <pubDate>Thu, 20 Mar 2014 20:08:17 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/programmatically_changing_android_screen_orientation/</guid>
+      <guid>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</guid>
       <description>&lt;p&gt;A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the &lt;code&gt;dumpsys&lt;/code&gt; output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# get current orientation
@@ -190,11 +190,11 @@ adb shell sendevent /dev/input/event7: 0 0 0
     </item>
     
     <item>
-      <title>Ensure your rescue_from handlers are in the right order</title>
-      <link>http://vaneyckt.io/posts/ensure_your_rescue_from_handlers_are_in_the_right_order/</link>
+      <title>Check the order of your rescue_from handlers!</title>
+      <link>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</link>
       <pubDate>Mon, 11 Nov 2013 21:34:16 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/ensure_your_rescue_from_handlers_are_in_the_right_order/</guid>
+      <guid>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</guid>
       <description>&lt;p&gt;Our &lt;code&gt;rescue_from&lt;/code&gt; handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;class WidgetsController &amp;lt; ActionController::Base
@@ -324,18 +324,18 @@ end
     </item>
     
     <item>
-      <title>Getting connection information with the lsof command</title>
-      <link>http://vaneyckt.io/posts/getting_connection_information_with_the_lsof_command/</link>
+      <title>Getting connection information with lsof</title>
+      <link>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</link>
       <pubDate>Mon, 21 Oct 2013 17:21:52 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/getting_connection_information_with_the_lsof_command/</guid>
+      <guid>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</guid>
       <description>
 
 &lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/8/lsof&#34;&gt;lsof command&lt;/a&gt; is one of those super useful commands for figuring out what connections are taking place on your machine. While the &lt;code&gt;lsof&lt;/code&gt; command technically just lists open files, just about everything in linux (even sockets) is a file!&lt;/p&gt;
 
 &lt;p&gt;Some useful commands:&lt;/p&gt;
 
-&lt;h3 id=&#34;list-all-network-connections:0bc120d9cb212921894b68382ac7bd44&#34;&gt;List all network connections&lt;/h3&gt;
+&lt;h3 id=&#34;list-all-network-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;List all network connections&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i
 
@@ -349,7 +349,7 @@ Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168
 Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;list-all-network-connections-on-port-4381:0bc120d9cb212921894b68382ac7bd44&#34;&gt;List all network connections on port 4381&lt;/h3&gt;
+&lt;h3 id=&#34;list-all-network-connections-on-port-4381:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;List all network connections on port 4381&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i :4381
 
@@ -357,7 +357,7 @@ COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 Spotify 36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;find-ports-listening-for-connections:0bc120d9cb212921894b68382ac7bd44&#34;&gt;Find ports listening for connections&lt;/h3&gt;
+&lt;h3 id=&#34;find-ports-listening-for-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Find ports listening for connections&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i | grep -i LISTEN
 
@@ -366,14 +366,14 @@ Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:
 Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cd      0t0  TCP *:57621 (LISTEN)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;find-established-connections:0bc120d9cb212921894b68382ac7bd44&#34;&gt;Find established connections&lt;/h3&gt;
+&lt;h3 id=&#34;find-established-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Find established connections&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i | grep -i ESTABLISHED
 
 Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&amp;gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;show-all-files-opened-by-a-given-process:0bc120d9cb212921894b68382ac7bd44&#34;&gt;Show all files opened by a given process&lt;/h3&gt;
+&lt;h3 id=&#34;show-all-files-opened-by-a-given-process:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Show all files opened by a given process&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -p 36908
 
@@ -393,11 +393,11 @@ Spotify 36908 vaneyckt   99r     REG                1,4    144580    28952 /Syst
     </item>
     
     <item>
-      <title>The paranoid approach to converting your MySQL database to utf8</title>
-      <link>http://vaneyckt.io/posts/the_paranoid_approach_to_converting_your_mysql_database_to_utf8/</link>
+      <title>Carefully converting your MySQL database to utf8</title>
+      <link>http://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</link>
       <pubDate>Sun, 20 Oct 2013 17:19:31 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_paranoid_approach_to_converting_your_mysql_database_to_utf8/</guid>
+      <guid>http://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</guid>
       <description>&lt;p&gt;Converting all the data in your database can be a nail-biting experience. As you can see from the code below we are doing our best to be super careful. We convert each table separately and before each conversion we store the table&amp;rsquo;s column types and an MD5 hash of every row in the table (we were lucky enough to not have enormous tables). After converting the table we check that no column types or rows were changed. It goes without saying that we do a trial run on a database dump first.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;require &#39;set&#39;

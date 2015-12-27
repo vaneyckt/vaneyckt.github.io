@@ -1,6 +1,6 @@
 +++
 date = "2013-11-11T21:34:16+00:00"
-title = "Ensure your rescue_from handlers are in the right order"
+title = "Check the order of your rescue_from handlers!"
 type = "post"
 ogtype = "article"
 topics = [ "rails" ]

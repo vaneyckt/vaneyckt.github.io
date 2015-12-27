@@ -1,6 +1,6 @@
 +++
 date = "2014-03-20T20:08:17+00:00"
-title = "Programmatically changing Android screen orientation"
+title = "Programmatically rotating the Android screen"
 type = "post"
 ogtype = "article"
 topics = [ "android" ]
