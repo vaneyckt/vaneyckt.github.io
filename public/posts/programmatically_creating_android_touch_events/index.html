@@ -87,7 +87,7 @@
   <div class="content container">
     <div class="post">
       <h1 class="post-title">Programmatically creating Android touch events</h1>
-      <span class="post-date">Tue, Mar 4, 2014</span>
+      <span class="post-date">Mar 4, 2014</span>
       <p>Recent versions of Android have the <code>adb shell input touch</code> functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running <code>adb shell getevent</code> to capture events as they are being generated. These events can then later be replayed using the <code>adb shell sendevent</code> command.</p>
 
 <p>Running <code>adb shell getevent</code> when touching the screen might get you something like shown below. Notice how the output is in hexadecimal.</p>

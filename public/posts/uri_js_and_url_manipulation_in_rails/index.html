@@ -87,7 +87,7 @@
   <div class="content container">
     <div class="post">
       <h1 class="post-title">URI.js and URL manipulation in rails</h1>
-      <span class="post-date">Sun, Oct 13, 2013</span>
+      <span class="post-date">Oct 13, 2013</span>
       <p>Manipulating urls in javascript often ends up being an exercise in string interpolation. This rarely produces good looking code. Recently we&rsquo;ve started enforcing the use of the <a href="https://medialize.github.io/URI.js/">URI.js library</a> to combat this.</p>
 
 <p>Our new approach has us embed any necessary urls in hidden input fields on the web page in question. Rather than hardcoding these urls, we use the named route functionality offered by rails as this provides more flexibility. When the page gets rendered, these named routes are converted to actual urls through ERB templating. The embedded urls can then be fetched by javascript code and manipulated with URI.js.</p>

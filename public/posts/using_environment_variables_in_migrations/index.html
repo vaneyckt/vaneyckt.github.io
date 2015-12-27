@@ -87,7 +87,7 @@
   <div class="content container">
     <div class="post">
       <h1 class="post-title">Using environment variables in migrations</h1>
-      <span class="post-date">Tue, Oct 29, 2013</span>
+      <span class="post-date">Oct 29, 2013</span>
       <p>Recently we had to run a migration that was so slow we couldn&rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&rsquo;t perform any safety checks.</p>
 
 <p>The first path would be run on a recent database dump, whereas the latter would be executed directly on the live database once the first had finished without error. This was a lot less crazy than it might sound as the particular table under modification had very infrequent changes.</p>

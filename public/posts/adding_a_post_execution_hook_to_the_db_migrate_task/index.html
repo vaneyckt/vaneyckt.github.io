@@ -87,7 +87,7 @@
   <div class="content container">
     <div class="post">
       <h1 class="post-title">Adding a post-execution hook to the db:migrate task</h1>
-      <span class="post-date">Thu, Oct 9, 2014</span>
+      <span class="post-date">Oct 9, 2014</span>
       <p>A few days ago we discovered that our MySQL database&rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&rsquo;t happen again, we looked into adding a post-execution hook to the rails <code>db:migrate</code> task.</p>
 
 <p>Our first attempt is shown below. Here, we append a post-execution hook to the existing <code>db:migrate</code> task by creating a new <code>db:migrate</code> task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails <code>db:migrate</code> task, we are actually just appending a call to the <code>post_execution_hook</code> method to it.</p>

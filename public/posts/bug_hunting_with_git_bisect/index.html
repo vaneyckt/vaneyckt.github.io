@@ -87,7 +87,7 @@
   <div class="content container">
     <div class="post">
       <h1 class="post-title">Bug hunting with git bisect</h1>
-      <span class="post-date">Mon, Nov 4, 2013</span>
+      <span class="post-date">Nov 4, 2013</span>
       <p>Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.</p>
 
 <p>It was at this point that I remembered <code>git bisect</code>. This git command asks you to specify two commits: one where things are working, and another one where things are broken. It then does a binary search across the range of commits in between these two. Each search step asks you whether the current commit contains broken code or not, after which it automatically selects the next commit for you. There&rsquo;s a great tutorial over <a href="http://webchick.net/node/99">here</a>.</p>

@@ -87,7 +87,7 @@
   <div class="content container">
     <div class="post">
       <h1 class="post-title">Why is MySQL converting my NULLs to blanks?</h1>
-      <span class="post-date">Fri, Nov 1, 2013</span>
+      <span class="post-date">Nov 1, 2013</span>
       <p>A while ago I ran into an issue where some records were showing a blank value in a given column. This was a bit weird as a blank value had never been written to that column. After a bit of searching we found that we had a bug that had inadvertently been writing the occasional NULL value to that particular column though. So how did those NULLs get turned into blanks?</p>
 
 <p>It turns out that MySQL can operate in different <a href="https://dev.mysql.com/doc/refman/5.0/en/sql-mode.html">server modes</a>. You can check your server mode by running one of the two commands below. Note that your server mode will be blank by default.</p>

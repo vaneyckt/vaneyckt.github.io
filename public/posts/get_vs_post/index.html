@@ -87,7 +87,7 @@
   <div class="content container">
     <div class="post">
       <h1 class="post-title">GET vs POST</h1>
-      <span class="post-date">Wed, Oct 9, 2013</span>
+      <span class="post-date">Oct 9, 2013</span>
       
 
 <p>Today I was looking into why a particular GET request was failing on IE. As it turned out this was due to IE not appreciating long query strings. While going through our nginx logs, we also found nginx had a default query string limit that was being hit sporadically by some other customers as well. The solution in both cases was to move the affected calls from GET to POST.</p>

@@ -87,7 +87,7 @@
   <div class="content container">
     <div class="post">
       <h1 class="post-title">Profiling rails assets precompilation</h1>
-      <span class="post-date">Sun, Sep 1, 2013</span>
+      <span class="post-date">Sep 1, 2013</span>
       <p>Assets precompilation on rails can take a fair bit of time. This is especially annoying in scenarios where you want to deploy your app multiple times a day. Let&rsquo;s see if we can come up with a way to actually figure out where all this time is being spent. Also, while I will be focusing on rails 3.2 in this post, the general principle should be easy enough to apply to other rails versions.</p>
 
 <p>Our first call of action is finding the assets precompilation logic. A bit of digging will turn up the <a href="https://github.com/rails/rails/blob/3-2-stable/actionpack/lib/sprockets/assets.rake">assets.rake file</a> for rails 3.2. The relevant code starts on lines 59-67 and from there on out invokes methods throughout the entire file.</p>
