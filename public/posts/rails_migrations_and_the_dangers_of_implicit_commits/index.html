@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
-  <meta property="og:title" content="Migrations and the dangers of implicit commits" />
+  <meta property="og:title" content="Rails migrations and the dangers of implicit commits" />
 <meta property="og:description" content="" />
 
 <meta property="og:type" content="article" />
@@ -16,7 +16,7 @@
 <meta property="og:url" content="http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/" />
 
 
-  <title> Migrations and the dangers of implicit commits  &middot; vaneyckt.io </title>
+  <title> Rails migrations and the dangers of implicit commits  &middot; vaneyckt.io </title>
 
   
 
@@ -86,9 +86,9 @@
 
   <div class="content container">
     <div class="post">
-      <h1 class="post-title">Migrations and the dangers of implicit commits</h1>
+      <h1 class="post-title">Rails migrations and the dangers of implicit commits</h1>
       <span class="post-date">Wed, Oct 16, 2013</span>
-      <p>I recently came across the rails migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.</p>
+      <p>I recently came across the migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.</p>
 
 <pre><code class="language-ruby"># migration to convert table to utf8
 class ConvertWidgetsTableToUtf8Unicode &lt; ActiveRecord::Migration
