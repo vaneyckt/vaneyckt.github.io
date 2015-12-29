@@ -16,7 +16,7 @@
       <pubDate>Sun, 16 Aug 2015 19:43:34 +0000</pubDate>
       
       <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
-      <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open &lt;a href=&#34;https://stackoverflow.com/&#34;&gt;StackOverflow&lt;/a&gt; questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
+      <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
 
 &lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
 
