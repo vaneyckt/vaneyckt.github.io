@@ -15,5 +15,6 @@ copyright = "Tom Van Eyck"
 
 [params]
 	description = "notes to my future self"
+	mail = "mailto:tomvaneyck@gmail.com"
 	github = "https://github.com/vaneyckt"
 	rss = "http://vaneyckt.io/index.xml"

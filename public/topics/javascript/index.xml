@@ -46,101 +46,151 @@ foo(30); // returns 40
 
 &lt;p&gt;This is really all you need to know about closures: they refer to variables declared outside the scope of the function and by doing so keep these variables alive. Closure behavior can be entirely explained just by keeping these two things in mind.&lt;/p&gt;
 
-&lt;h3 id=&#34;behavior-of-primitive-data-types:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Behavior of primitive data types&lt;/h3&gt;
+&lt;h3 id=&#34;closures-and-primitive-data-types:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Closures and primitive data types&lt;/h3&gt;
 
-&lt;p&gt;The rest of this post will go over some code examples to illustrate the behavior of closures and non-closures for both primitive and object params. In this section we&amp;rsquo;ll have a look at the behavior of a function with a primitive data type param.&lt;/p&gt;
+&lt;p&gt;The rest of this post will go over some code examples to illustrate the behavior of closures for both primitive and object params. In this section we&amp;rsquo;ll have a look at the behavior of a closure with a primitive data type param.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;// no closure
-var primitive = 1;
+&lt;h4 id=&#34;example-1:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 1&lt;/h4&gt;
+
+&lt;p&gt;This code here will be our starting point for studying closures. Be sure to take a good look at it, as all our examples will be a variation of this code. We will try to understand closures by keeping an eye on the values returned by the &lt;code&gt;foo()&lt;/code&gt; function.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var prim = 1;
 
 var foo = function(p) {
-  return function() {
+  var f = function() {
     return p;
   }
-}(primitive);
+  return f;
+}(prim);
 
-foo();         // returns 1
-primitive = 2;
-foo();         // returns 1
+foo();    // returns 1
+prim = 3;
+foo();    // returns 1
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;In the above code, the value that gets returned is the value of the variable that gets passed to the function as a param. Or to put it somewhat differently, when the javascript runtime wants to resolve the value returned by &lt;code&gt;return p&lt;/code&gt;, it finds that this p variable is the same as the p variable from &lt;code&gt;var foo = function(p)&lt;/code&gt;. Or in other words, there is no direct link between the p from &lt;code&gt;return p&lt;/code&gt; and the primitive variable from &lt;code&gt;var primitive = 3&lt;/code&gt;. We see that this is true because assigning a new value to the primitive variable does not cause the value returned by &lt;code&gt;foo()&lt;/code&gt; to change.&lt;/p&gt;
+&lt;p&gt;When the javascript runtime wants to resolve the value returned by &lt;code&gt;return p;&lt;/code&gt;, it finds that this p variable is the same as the p variable from &lt;code&gt;var foo = function(p) {&lt;/code&gt;. In other words, there is no direct link between the p from &lt;code&gt;return p;&lt;/code&gt; and the variable prim from &lt;code&gt;var prim = 1;&lt;/code&gt;. We see this is true because assigning a new value to prim does not cause the value returned by &lt;code&gt;foo();&lt;/code&gt; to change.&lt;/p&gt;
 
-&lt;p&gt;The sample below shows similar code, but this time using closures. How do we know it&amp;rsquo;s a closure? Well, it&amp;rsquo;s easy. Remember that a closure is a function that refers to variables declared outside its scope. Here we have a function that refers to a primitive variable that was not declared inside the scope of this function. This is the very definition of a closure!&lt;/p&gt;
+&lt;h4 id=&#34;example-2:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 2&lt;/h4&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;// closure
-var primitive = 1;
+&lt;p&gt;Let&amp;rsquo;s now have a look at what happens when we make a small change to the previous code sample by adding the line &lt;code&gt;p = 2;&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var prim = 1;
+
+var foo = function(p) {
+  var f = function() {
+    return p;
+  }
+  p = 2;
+  return f;
+}(prim);
+
+foo();    // returns 2
+prim = 3;
+foo();    // returns 2
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The code above is interesting in that it shows that the p variable from &lt;code&gt;return p;&lt;/code&gt; is indeed the same as the p variable from &lt;code&gt;var foo = function(p) {&lt;/code&gt;. Even though the variable f gets created at a time when p is set to 1, the act of setting p to 2 does indeed cause the value returned by &lt;code&gt;foo();&lt;/code&gt; to change. This is a great example of a closure keeping a closed variable alive.&lt;/p&gt;
+
+&lt;h4 id=&#34;example-3:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 3&lt;/h4&gt;
+
+&lt;p&gt;The last sample below shows code similar to the first sample, but this time we made the closure close over the prim variable.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var prim = 1;
 
 var foo = function() {
-  return primitive;
+  return prim;
 }
 
-foo();         // returns 1
-primitive = 2;
-foo();         // returns 2
+foo();    // returns 1
+prim = 3;
+foo();    // returns 3
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Here too we can make a similar deduction as we did for the previous code sample. When the javascript runtime wants to resolve the value returned by &lt;code&gt;return primitive&lt;/code&gt;, it finds that the primitive variable is the same as the primitive variable from &lt;code&gt;var primitive = 3&lt;/code&gt;. This explains why modifying the primitive variable changes the value returned by &lt;code&gt;foo()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Here too we can make a similar deduction as we did for the previous samples. When the javascript runtime wants to resolve the value returned by &lt;code&gt;return prim;&lt;/code&gt;, it finds that this prim variable is the same as the prim variable from &lt;code&gt;var prim = 1;&lt;/code&gt;. This explains why setting prim to 3 causes the value returned by &lt;code&gt;foo();&lt;/code&gt; to change.&lt;/p&gt;
 
-&lt;h3 id=&#34;behavior-of-objects-when-assigning:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Behavior of objects (when assigning)&lt;/h3&gt;
+&lt;h3 id=&#34;closures-and-objects:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Closures and objects&lt;/h3&gt;
 
-&lt;p&gt;In this section we&amp;rsquo;ll see what happens when we take the code we looked at earlier and change the param from a primitive data type to an object. Spoiler warning: they behave in exactly the same way. The real reason this section is here is so we can refer back to it in the next section where we will have a look at the effect of modifying object params.&lt;/p&gt;
+&lt;p&gt;In this section we&amp;rsquo;ll see what happens when we take the code we looked at earlier and change the param from a primitive data type to an object.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;// no closure
-var object = [&amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;];
+&lt;h4 id=&#34;example-1-a:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 1.a&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var obj = [&amp;quot;a&amp;quot;];
 
 var foo = function(o) {
-  return function() {
+  var f = function() {
     return o.length;
   }
-}(object);
+  return f;
+}(obj);
 
-foo();                    // returns 2
-object = [&amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;, &amp;quot;c&amp;quot;]; // assigning new object to object var
-foo();                    // returns 2
+foo();        // returns 1
+obj[1] = &amp;quot;b&amp;quot;; // modifies the object pointed to by the obj var
+obj[2] = &amp;quot;c&amp;quot;; // modifies the object pointed to by the obj var
+foo();        // returns 3
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;// closure
-var object = [&amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;];
+&lt;p&gt;The above code is interesting because in the previous section we saw that a similar example using a primitive param had both calls to &lt;code&gt;foo()&lt;/code&gt; return the same value. So what&amp;rsquo;s different here? Let&amp;rsquo;s do what we usually do and go over how the runtime resolves the variables involved.&lt;/p&gt;
+
+&lt;p&gt;When the runtime tries to resolve the variable o from &lt;code&gt;return o.length;&lt;/code&gt;, it finds that this variable o is the same as the variable o from &lt;code&gt;var foo = function(o) {&lt;/code&gt;. We saw this exact same thing in the previous section. Unlike the previous section however, the variable o now contains a reference to an array object. This causes our closure to have a direct link to this underlying array object. Any changes to it will get reflected in the output of &lt;code&gt;foo()&lt;/code&gt;. This explains why the second call to &lt;code&gt;foo()&lt;/code&gt; gives a different output than the first.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;A good rule of thumb goes like this:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;if a closed variable contains a value, then the closure binds to that variable&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;if a closed variable contains a reference to an object, then the closure binds to that object, and will pick up on any changes made to it&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;example-1-b:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 1.b&lt;/h4&gt;
+
+&lt;p&gt;Note that the closure will only pick up on changes made to the particular object that was present when the closure was created. Assigning a new object to the obj variable after the closure was created will have no effect. The code below illustrates this.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var obj = [&amp;quot;a&amp;quot;];
+
+var foo = function(o) {
+  var f = function() {
+    return o.length;
+  }
+  return f;
+}(obj);
+
+foo();                 // returns 1
+obj = [&amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;, &amp;quot;c&amp;quot;]; // assign a new array object to the obj variable
+foo();                 // returns 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;example-2-1:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 2&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var obj = [&amp;quot;a&amp;quot;];
+
+var foo = function(o) {
+  var f = function() {
+    return o.length;
+  }
+  o[1] = &amp;quot;b&amp;quot;;
+  return f;
+}(obj);
+
+foo();        // returns 2
+obj[1] = &amp;quot;b&amp;quot;;
+obj[2] = &amp;quot;c&amp;quot;;
+foo();        // returns 3
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;example-3-1:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 3&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var obj = [&amp;quot;a&amp;quot;];
 
 var foo = function() {
-  return object.length;
+  return obj.length;
 }
 
-foo();                    // returns 2
-object = [&amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;, &amp;quot;c&amp;quot;]; // assigning new object to object var
-foo();                    // returns 3
+foo();        // returns 1
+obj[1] = &amp;quot;b&amp;quot;;
+obj[2] = &amp;quot;c&amp;quot;;
+foo();        // returns 3
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Unsurprisingly we get the exact same behavior as we did with primitive data types. Let&amp;rsquo;s move on to the last section where we will contrast the behavior of assigning a new object to the object var with the behavior of modifying the object assigned to the object var.&lt;/p&gt;
-
-&lt;h3 id=&#34;behavior-of-objects-when-modifying:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Behavior of objects (when modifying)&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;// no closure
-var object = [&amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;];
-
-var foo = function(o) {
-  return function() {
-    return o.length;
-  }
-}(object);
-
-foo();           // returns 2
-object[2] = &amp;quot;c&amp;quot;; // modifying object assigned to object var
-foo();           // returns 3
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;// closure
-var object = [&amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;];
-
-var foo = function() {
-  return object.length;
-}
-
-foo();           // returns 2
-object[2] = &amp;quot;c&amp;quot;; // modifying object assigned to object var
-foo();           // returns 3
-&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;gets passed the variable p as a param and then returns something (another function) that makes use of this variable p. Therefore the variable p is not outside the scope of the function, and thus the function isn&amp;rsquo;t a closure.
 Our next example shows similar code&lt;/p&gt;

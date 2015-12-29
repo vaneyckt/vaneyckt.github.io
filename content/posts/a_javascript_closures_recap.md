@@ -33,107 +33,162 @@ foo(30); // returns 40
 
 This is really all you need to know about closures: they refer to variables declared outside the scope of the function and by doing so keep these variables alive. Closure behavior can be entirely explained just by keeping these two things in mind.
 
-### Behavior of primitive data types
+### Closures and primitive data types
 
-The rest of this post will go over some code examples to illustrate the behavior of closures and non-closures for both primitive and object params. In this section we'll have a look at the behavior of a function with a primitive data type param.
+The rest of this post will go over some code examples to illustrate the behavior of closures for both primitive and object params. In this section we'll have a look at the behavior of a closure with a primitive data type param.
+
+#### Example 1
+
+This code here will be our starting point for studying closures. Be sure to take a good look at it, as all our examples will be a variation of this code. We will try to understand closures by keeping an eye on the values returned by the `foo()` function.
 
 ```javascript
-// no closure
-var primitive = 1;
+var prim = 1;
 
 var foo = function(p) {
-  return function() {
+  var f = function() {
     return p;
   }
-}(primitive);
+  return f;
+}(prim);
 
-foo();         // returns 1
-primitive = 2;
-foo();         // returns 1
+foo();    // returns 1
+prim = 3;
+foo();    // returns 1
 ```
 
-In the above code, the value that gets returned is the value of the variable that gets passed to the function as a param. Or to put it somewhat differently, when the javascript runtime wants to resolve the value returned by `return p`, it finds that this p variable is the same as the p variable from `var foo = function(p)`. Or in other words, there is no direct link between the p from `return p` and the primitive variable from `var primitive = 3`. We see that this is true because assigning a new value to the primitive variable does not cause the value returned by `foo()` to change.
+When the javascript runtime wants to resolve the value returned by `return p;`, it finds that this p variable is the same as the p variable from `var foo = function(p) {`. In other words, there is no direct link between the p from `return p;` and the variable prim from `var prim = 1;`. We see this is true because assigning a new value to prim does not cause the value returned by `foo();` to change.
 
-The sample below shows similar code, but this time using closures. How do we know it's a closure? Well, it's easy. Remember that a closure is a function that refers to variables declared outside its scope. Here we have a function that refers to a primitive variable that was not declared inside the scope of this function. This is the very definition of a closure!
+#### Example 2
+
+Let's now have a look at what happens when we make a small change to the previous code sample by adding the line `p = 2;`.
 
 ```javascript
-// closure
-var primitive = 1;
+var prim = 1;
+
+var foo = function(p) {
+  var f = function() {
+    return p;
+  }
+  p = 2;
+  return f;
+}(prim);
+
+foo();    // returns 2
+prim = 3;
+foo();    // returns 2
+```
+
+The code above is interesting in that it shows that the p variable from `return p;` is indeed the same as the p variable from `var foo = function(p) {`. Even though the variable f gets created at a time when p is set to 1, the act of setting p to 2 does indeed cause the value returned by `foo();` to change. This is a great example of a closure keeping a closed variable alive.
+
+#### Example 3
+
+The last sample below shows code similar to the first sample, but this time we made the closure close over the prim variable.
+
+```javascript
+var prim = 1;
 
 var foo = function() {
-  return primitive;
+  return prim;
 }
 
-foo();         // returns 1
-primitive = 2;
-foo();         // returns 2
+foo();    // returns 1
+prim = 3;
+foo();    // returns 3
 ```
 
-Here too we can make a similar deduction as we did for the previous code sample. When the javascript runtime wants to resolve the value returned by `return primitive`, it finds that the primitive variable is the same as the primitive variable from `var primitive = 3`. This explains why modifying the primitive variable changes the value returned by `foo()`.
+Here too we can make a similar deduction as we did for the previous samples. When the javascript runtime wants to resolve the value returned by `return prim;`, it finds that this prim variable is the same as the prim variable from `var prim = 1;`. This explains why setting prim to 3 causes the value returned by `foo();` to change.
 
-### Behavior of objects (when assigning)
+### Closures and objects
 
-In this section we'll see what happens when we take the code we looked at earlier and change the param from a primitive data type to an object. Spoiler warning: they behave in exactly the same way. The real reason this section is here is so we can refer back to it in the next section where we will have a look at the effect of modifying object params.
+In this section we'll see what happens when we take the code we looked at earlier and change the param from a primitive data type to an object.
+
+#### Example 1.a
 
 ```javascript
-// no closure
-var object = ["a", "b"];
+var obj = ["a"];
 
 var foo = function(o) {
-  return function() {
+  var f = function() {
     return o.length;
   }
-}(object);
+  return f;
+}(obj);
 
-foo();                    // returns 2
-object = ["a", "b", "c"]; // assigning new object to object var
-foo();                    // returns 2
+foo();        // returns 1
+obj[1] = "b"; // modifies the object pointed to by the obj var
+obj[2] = "c"; // modifies the object pointed to by the obj var
+foo();        // returns 3
 ```
+
+The above code is interesting because in the previous section we saw that a similar example using a primitive param had both calls to `foo()` return the same value. So what's different here? Let's do what we usually do and go over how the runtime resolves the variables involved.
+
+When the runtime tries to resolve the variable o from `return o.length;`, it finds that this variable o is the same as the variable o from `var foo = function(o) {`. We saw this exact same thing in the previous section. Unlike the previous section however, the variable o now contains a reference to an array object. This causes our closure to have a direct link to this underlying array object. Any changes to it will get reflected in the output of `foo()`. This explains why the second call to `foo()` gives a different output than the first.
+
+**A good rule of thumb goes like this:**
+
+* **if a closed variable contains a value, then the closure binds to that variable**
+* **if a closed variable contains a reference to an object, then the closure binds to that object, and will pick up on any changes made to it**
+
+#### Example 1.b
+
+Note that the closure will only pick up on changes made to the particular object that was present when the closure was created. Assigning a new object to the obj variable after the closure was created will have no effect. The code below illustrates this.
 
 ```javascript
-// closure
-var object = ["a", "b"];
+var obj = ["a"];
+
+var foo = function(o) {
+  var f = function() {
+    return o.length;
+  }
+  return f;
+}(obj);
+
+foo();                 // returns 1
+obj = ["a", "b", "c"]; // assign a new array object to the obj variable
+foo();                 // returns 1
+```
+
+#### Example 2
+
+```javascript
+var obj = ["a"];
+
+var foo = function(o) {
+  var f = function() {
+    return o.length;
+  }
+  o[1] = "b";
+  return f;
+}(obj);
+
+foo();        // returns 2
+obj[1] = "b";
+obj[2] = "c";
+foo();        // returns 3
+```
+
+#### Example 3
+
+```javascript
+var obj = ["a"];
 
 var foo = function() {
-  return object.length;
+  return obj.length;
 }
 
-foo();                    // returns 2
-object = ["a", "b", "c"]; // assigning new object to object var
-foo();                    // returns 3
+foo();        // returns 1
+obj[1] = "b";
+obj[2] = "c";
+foo();        // returns 3
 ```
+
+
+
+
+
 
 Unsurprisingly we get the exact same behavior as we did with primitive data types. Let's move on to the last section where we will contrast the behavior of assigning a new object to the object var with the behavior of modifying the object assigned to the object var.
 
-### Behavior of objects (when modifying)
-
-```javascript
-// no closure
-var object = ["a", "b"];
-
-var foo = function(o) {
-  return function() {
-    return o.length;
-  }
-}(object);
-
-foo();           // returns 2
-object[2] = "c"; // modifying object assigned to object var
-foo();           // returns 3
-```
-
-```javascript
-// closure
-var object = ["a", "b"];
-
-var foo = function() {
-  return object.length;
-}
-
-foo();           // returns 2
-object[2] = "c"; // modifying object assigned to object var
-foo();           // returns 3
-```
 
 gets passed the variable p as a param and then returns something (another function) that makes use of this variable p. Therefore the variable p is not outside the scope of the function, and thus the function isn't a closure.
 Our next example shows similar code
