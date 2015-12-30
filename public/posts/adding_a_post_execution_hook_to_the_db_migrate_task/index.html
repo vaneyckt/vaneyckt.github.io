@@ -89,9 +89,9 @@
     <div class="post">
       <h1 class="post-title">Adding a post-execution hook to the db:migrate task</h1>
       <span class="post-date">Oct 9, 2014</span>
-      <p>A few days ago we discovered that our MySQL database&rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&rsquo;t happen again, we looked into adding a post-execution hook to the rails <code>db:migrate</code> task.</p>
+      <p>A few days ago we discovered that our MySQL database&rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&rsquo;t happen again, we looked into adding a post-execution hook to the rails db:migrate task.</p>
 
-<p>Our first attempt is shown below. Here, we append a post-execution hook to the existing <code>db:migrate</code> task by creating a new <code>db:migrate</code> task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails <code>db:migrate</code> task, we are actually just appending a call to the <code>post_execution_hook</code> method to it.</p>
+<p>Our first attempt is shown below. Here, we append a post-execution hook to the existing db:migrate task by creating a new db:migrate task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails db:migrate task, we are actually just appending a call to the <code>post_execution_hook</code> method to it.</p>
 
 <pre><code class="language-ruby">namespace :db do
   def post_execution_hook
@@ -105,7 +105,7 @@
 end
 </code></pre>
 
-<p>However, the above example only runs the appended code if the original <code>db:migrate</code> task does not throw any exceptions. Luckily we can do better than that by taking a slightly different approach. Rather than appending code, we are going to have a go at prepending it instead.</p>
+<p>However, the above example only runs the appended code if the original db:migrate task does not throw any exceptions. Luckily we can do better than that by taking a slightly different approach. Rather than appending code, we are going to have a go at prepending it instead.</p>
 
 <pre><code class="language-ruby">namespace :db do
   def post_execution_hook
@@ -121,7 +121,7 @@ end
 Rake::Task['db:migrate'].enhance(['db:attach_hook'])
 </code></pre>
 
-<p>Here we make use of the <a href="http://ruby-doc.org/stdlib-2.0.0/libdoc/rake/rdoc/Rake/Task.html#method-i-enhance">enhance method</a> to add <code>db:attach_hook</code> as a prerequisite task to <code>db:migrate</code>. This means that calling <code>db:migrate</code> will now cause the <code>db:attach_hook</code> task to get executed before <code>db:migrate</code> gets run. The <code>db:attach_hook</code> task creates an <code>at_exit</code> hook that will trigger our post-execution code upon exit of the <code>db:migrate</code> task. This means that our post-execution hook will now get called even when <code>db:migrate</code> raises an exception!</p>
+<p>Here we make use of the <a href="http://ruby-doc.org/stdlib-2.0.0/libdoc/rake/rdoc/Rake/Task.html#method-i-enhance">enhance method</a> to add db:attach_hook as a prerequisite task to db:migrate. This means that calling db:migrate will now cause the db:attach_hook task to get executed before db:migrate gets run. The db:attach_hook task creates an <code>at_exit</code> hook that will trigger our post-execution code upon exit of the db:migrate task. This means that our post-execution hook will now get called even when db:migrate raises an exception!</p>
 
     </div>
   </div>

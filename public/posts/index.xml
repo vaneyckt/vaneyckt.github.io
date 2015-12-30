@@ -114,6 +114,8 @@ foo();    // returns 3
 
 &lt;h4 id=&#34;example-1-a:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 1.a&lt;/h4&gt;
 
+&lt;p&gt;The code below is interesting because in the previous section we saw that a similar example using a primitive param had both calls to &lt;code&gt;foo()&lt;/code&gt; return the same value. So what&amp;rsquo;s different here? Let&amp;rsquo;s inspect how the runtime resolves the variables involved.&lt;/p&gt;
+
 &lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var obj = [&amp;quot;a&amp;quot;];
 
 var foo = function(o) {
@@ -128,8 +130,6 @@ obj[1] = &amp;quot;b&amp;quot;; // modifies the object pointed to by the obj var
 obj[2] = &amp;quot;c&amp;quot;; // modifies the object pointed to by the obj var
 foo();        // returns 3
 &lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;The above code is interesting because in the previous section we saw that a similar example using a primitive param had both calls to &lt;code&gt;foo()&lt;/code&gt; return the same value. So what&amp;rsquo;s different here? Let&amp;rsquo;s do what we usually do and go over how the runtime resolves the variables involved.&lt;/p&gt;
 
 &lt;p&gt;When the runtime tries to resolve the variable o from &lt;code&gt;return o.length;&lt;/code&gt;, it finds that this variable o is the same as the variable o from &lt;code&gt;var foo = function(o) {&lt;/code&gt;. We saw this exact same thing in the previous section. Unlike the previous section however, the variable o now contains a reference to an array object. This causes our closure to have a direct link to this underlying array object. Any changes to it will get reflected in the output of &lt;code&gt;foo()&lt;/code&gt;. This explains why the second call to &lt;code&gt;foo()&lt;/code&gt; gives a different output than the first.&lt;/p&gt;
 
@@ -160,6 +160,8 @@ foo();                 // returns 1
 
 &lt;h4 id=&#34;example-2-1:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 2&lt;/h4&gt;
 
+&lt;p&gt;Just like before we&amp;rsquo;ll now modify the previous code sample a bit. This time we&amp;rsquo;ll take a look at what happens when we add the line &lt;code&gt;o[1] = &amp;quot;b&amp;quot;;&lt;/code&gt;.&lt;/p&gt;
+
 &lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var obj = [&amp;quot;a&amp;quot;];
 
 var foo = function(o) {
@@ -176,7 +178,11 @@ obj[2] = &amp;quot;c&amp;quot;;
 foo();        // returns 3
 &lt;/code&gt;&lt;/pre&gt;
 
+&lt;p&gt;Once again, we can start by reasoning about how the runtime resolves the variable o from &lt;code&gt;return o.length;&lt;/code&gt;. As you probably know by now, this variable o is the same as the variable o from &lt;code&gt;var foo = function(o) {&lt;/code&gt;. And since it contains a reference to an object, any changes to this object will get reflected in the output of &lt;code&gt;foo()&lt;/code&gt;. This explains why the first call to &lt;code&gt;foo()&lt;/code&gt; now returns 2, whereas previously it was returning 1.&lt;/p&gt;
+
 &lt;h4 id=&#34;example-3-1:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 3&lt;/h4&gt;
+
+&lt;p&gt;I&amp;rsquo;m not even going to go over it. If you managed to make it this far, this last bit of code should hold no surprises for you.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var obj = [&amp;quot;a&amp;quot;];
 
@@ -190,32 +196,18 @@ obj[2] = &amp;quot;c&amp;quot;;
 foo();        // returns 3
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Unsurprisingly we get the exact same behavior as we did with primitive data types. Let&amp;rsquo;s move on to the last section where we will contrast the behavior of assigning a new object to the object var with the behavior of modifying the object assigned to the object var.&lt;/p&gt;
+&lt;p&gt;The runtime will resolve the variable obj from &lt;code&gt;return obj.length;&lt;/code&gt; to be the same as the variable obj from &lt;code&gt;var obj = [&amp;quot;a&amp;quot;];&lt;/code&gt;. As a result, any changes to the obj variable will have an effect on the output of &lt;code&gt;foo()&lt;/code&gt;.&lt;/p&gt;
 
-&lt;p&gt;gets passed the variable p as a param and then returns something (another function) that makes use of this variable p. Therefore the variable p is not outside the scope of the function, and thus the function isn&amp;rsquo;t a closure.
-Our next example shows similar code&lt;/p&gt;
+&lt;h3 id=&#34;conclusion:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Conclusion&lt;/h3&gt;
 
-&lt;p&gt;Because the function isn&amp;rsquo;t a closure, it has its own internal copy of p. This means that modifying the value of the primitive variable has no effect on the value returned by the function.&lt;/p&gt;
-
-&lt;p&gt;The function would not have its own copy of i because i is not declared within the scope of the function. It is this what is causing closures in the first place!! So there should be no closure if the variable is passed as a param to your function.&lt;/p&gt;
+&lt;p&gt;Hopefully this article has demystified closures a bit. Time and time again we&amp;rsquo;ve shown how following a few simple steps will lead you to understanding their behavior. Just keep in mind these rules of thumb and you should be good to go:&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;only time we see the no closure approach output different values. The o variable is a reference to the original object variable (mention this in prev examples as well). This here is the only time we modify the previously passed reference, instead of pointing the variable to a new refrence.&lt;/li&gt;
-&lt;li&gt;closure behaves similiarly. Since the var is not defined in the function scope, it will resolve to the outside var, which is just a reference to an array.&lt;/li&gt;
+&lt;li&gt;if a closed variable contains a value, then the closure binds to that variable&lt;/li&gt;
+&lt;li&gt;if a closed variable contains a reference to an object, then the closure binds to that object, and will pick up on any changes made to it&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;no closure - before assigning new value - value: 3
-(index):54 no closure - after assigning new value - value: 3
-(index):61 closure - before assigning new value - value: 3
-(index):63 closure - after assigning new value - value: 5
-(index):72 no closure - before assigning new object - value: 2
-(index):74 no closure - after assigning new object - value: 2
-(index):81 closure - before assigning new object - value: 2
-(index):83 closure - after assigning new object - value: 3
-(index):92 no closure - before modifying object - value: 2
-(index):94 no closure - after modifying object - value: 3
-(index):101 closure - before modifying object - value: 2
-(index):103 closure - after modifying object - value: 3&lt;/p&gt;
+&lt;p&gt;Ideally, this is going to become my go-to post for providing an introduction to closures. So please let me know any suggestions you might have to further improve this post.&lt;/p&gt;
 </description>
     </item>
     
@@ -266,9 +258,9 @@ $ sudo apt-get install google-chrome-stable
       <pubDate>Thu, 09 Oct 2014 16:31:22 +0000</pubDate>
       
       <guid>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
-      <description>&lt;p&gt;A few days ago we discovered that our MySQL database&amp;rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&amp;rsquo;t happen again, we looked into adding a post-execution hook to the rails &lt;code&gt;db:migrate&lt;/code&gt; task.&lt;/p&gt;
+      <description>&lt;p&gt;A few days ago we discovered that our MySQL database&amp;rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&amp;rsquo;t happen again, we looked into adding a post-execution hook to the rails db:migrate task.&lt;/p&gt;
 
-&lt;p&gt;Our first attempt is shown below. Here, we append a post-execution hook to the existing &lt;code&gt;db:migrate&lt;/code&gt; task by creating a new &lt;code&gt;db:migrate&lt;/code&gt; task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails &lt;code&gt;db:migrate&lt;/code&gt; task, we are actually just appending a call to the &lt;code&gt;post_execution_hook&lt;/code&gt; method to it.&lt;/p&gt;
+&lt;p&gt;Our first attempt is shown below. Here, we append a post-execution hook to the existing db:migrate task by creating a new db:migrate task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails db:migrate task, we are actually just appending a call to the &lt;code&gt;post_execution_hook&lt;/code&gt; method to it.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;namespace :db do
   def post_execution_hook
@@ -282,7 +274,7 @@ $ sudo apt-get install google-chrome-stable
 end
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;However, the above example only runs the appended code if the original &lt;code&gt;db:migrate&lt;/code&gt; task does not throw any exceptions. Luckily we can do better than that by taking a slightly different approach. Rather than appending code, we are going to have a go at prepending it instead.&lt;/p&gt;
+&lt;p&gt;However, the above example only runs the appended code if the original db:migrate task does not throw any exceptions. Luckily we can do better than that by taking a slightly different approach. Rather than appending code, we are going to have a go at prepending it instead.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;namespace :db do
   def post_execution_hook
@@ -298,7 +290,7 @@ end
 Rake::Task[&#39;db:migrate&#39;].enhance([&#39;db:attach_hook&#39;])
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Here we make use of the &lt;a href=&#34;http://ruby-doc.org/stdlib-2.0.0/libdoc/rake/rdoc/Rake/Task.html#method-i-enhance&#34;&gt;enhance method&lt;/a&gt; to add &lt;code&gt;db:attach_hook&lt;/code&gt; as a prerequisite task to &lt;code&gt;db:migrate&lt;/code&gt;. This means that calling &lt;code&gt;db:migrate&lt;/code&gt; will now cause the &lt;code&gt;db:attach_hook&lt;/code&gt; task to get executed before &lt;code&gt;db:migrate&lt;/code&gt; gets run. The &lt;code&gt;db:attach_hook&lt;/code&gt; task creates an &lt;code&gt;at_exit&lt;/code&gt; hook that will trigger our post-execution code upon exit of the &lt;code&gt;db:migrate&lt;/code&gt; task. This means that our post-execution hook will now get called even when &lt;code&gt;db:migrate&lt;/code&gt; raises an exception!&lt;/p&gt;
+&lt;p&gt;Here we make use of the &lt;a href=&#34;http://ruby-doc.org/stdlib-2.0.0/libdoc/rake/rdoc/Rake/Task.html#method-i-enhance&#34;&gt;enhance method&lt;/a&gt; to add db:attach_hook as a prerequisite task to db:migrate. This means that calling db:migrate will now cause the db:attach_hook task to get executed before db:migrate gets run. The db:attach_hook task creates an &lt;code&gt;at_exit&lt;/code&gt; hook that will trigger our post-execution code upon exit of the db:migrate task. This means that our post-execution hook will now get called even when db:migrate raises an exception!&lt;/p&gt;
 </description>
     </item>
     

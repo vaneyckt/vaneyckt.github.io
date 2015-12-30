@@ -104,6 +104,8 @@ In this section we'll see what happens when we take the code we looked at earlie
 
 #### Example 1.a
 
+The code below is interesting because in the previous section we saw that a similar example using a primitive param had both calls to `foo()` return the same value. So what's different here? Let's inspect how the runtime resolves the variables involved.
+
 ```javascript
 var obj = ["a"];
 
@@ -119,8 +121,6 @@ obj[1] = "b"; // modifies the object pointed to by the obj var
 obj[2] = "c"; // modifies the object pointed to by the obj var
 foo();        // returns 3
 ```
-
-The above code is interesting because in the previous section we saw that a similar example using a primitive param had both calls to `foo()` return the same value. So what's different here? Let's do what we usually do and go over how the runtime resolves the variables involved.
 
 When the runtime tries to resolve the variable o from `return o.length;`, it finds that this variable o is the same as the variable o from `var foo = function(o) {`. We saw this exact same thing in the previous section. Unlike the previous section however, the variable o now contains a reference to an array object. This causes our closure to have a direct link to this underlying array object. Any changes to it will get reflected in the output of `foo()`. This explains why the second call to `foo()` gives a different output than the first.
 
@@ -150,6 +150,8 @@ foo();                 // returns 1
 
 #### Example 2
 
+Just like before we'll now modify the previous code sample a bit. This time we'll take a look at what happens when we add the line `o[1] = "b";`.
+
 ```javascript
 var obj = ["a"];
 
@@ -167,7 +169,11 @@ obj[2] = "c";
 foo();        // returns 3
 ```
 
+Once again, we can start by reasoning about how the runtime resolves the variable o from `return o.length;`. As you probably know by now, this variable o is the same as the variable o from `var foo = function(o) {`. And since it contains a reference to an object, any changes to this object will get reflected in the output of `foo()`. This explains why the first call to `foo()` now returns 2, whereas previously it was returning 1.
+
 #### Example 3
+
+I'm not even going to go over it. If you managed to make it this far, this last bit of code should hold no surprises for you.
 
 ```javascript
 var obj = ["a"];
@@ -182,33 +188,13 @@ obj[2] = "c";
 foo();        // returns 3
 ```
 
+The runtime will resolve the variable obj from `return obj.length;` to be the same as the variable obj from `var obj = ["a"];`. As a result, any changes to the obj variable will have an effect on the output of `foo()`.
 
+### Conclusion
 
+Hopefully this article has demystified closures a bit. Time and time again we've shown how following a few simple steps will lead you to understanding their behavior. Just keep in mind these rules of thumb and you should be good to go:
 
+* if a closed variable contains a value, then the closure binds to that variable
+* if a closed variable contains a reference to an object, then the closure binds to that object, and will pick up on any changes made to it
 
-
-Unsurprisingly we get the exact same behavior as we did with primitive data types. Let's move on to the last section where we will contrast the behavior of assigning a new object to the object var with the behavior of modifying the object assigned to the object var.
-
-
-gets passed the variable p as a param and then returns something (another function) that makes use of this variable p. Therefore the variable p is not outside the scope of the function, and thus the function isn't a closure.
-Our next example shows similar code
-
-Because the function isn't a closure, it has its own internal copy of p. This means that modifying the value of the primitive variable has no effect on the value returned by the function.
-
-The function would not have its own copy of i because i is not declared within the scope of the function. It is this what is causing closures in the first place!! So there should be no closure if the variable is passed as a param to your function.
-
-- only time we see the no closure approach output different values. The o variable is a reference to the original object variable (mention this in prev examples as well). This here is the only time we modify the previously passed reference, instead of pointing the variable to a new refrence.
-- closure behaves similiarly. Since the var is not defined in the function scope, it will resolve to the outside var, which is just a reference to an array.
-
-no closure - before assigning new value - value: 3
-(index):54 no closure - after assigning new value - value: 3
-(index):61 closure - before assigning new value - value: 3
-(index):63 closure - after assigning new value - value: 5
-(index):72 no closure - before assigning new object - value: 2
-(index):74 no closure - after assigning new object - value: 2
-(index):81 closure - before assigning new object - value: 2
-(index):83 closure - after assigning new object - value: 3
-(index):92 no closure - before modifying object - value: 2
-(index):94 no closure - after modifying object - value: 3
-(index):101 closure - before modifying object - value: 2
-(index):103 closure - after modifying object - value: 3
+Ideally, this is going to become my go-to post for providing an introduction to closures. So please let me know any suggestions you might have to further improve this post.

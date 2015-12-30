@@ -187,6 +187,8 @@ foo();    // returns 3
 
 <h4 id="example-1-a:fd3eb7d414a05af8a77db8210b1ff256">Example 1.a</h4>
 
+<p>The code below is interesting because in the previous section we saw that a similar example using a primitive param had both calls to <code>foo()</code> return the same value. So what&rsquo;s different here? Let&rsquo;s inspect how the runtime resolves the variables involved.</p>
+
 <pre><code class="language-javascript">var obj = [&quot;a&quot;];
 
 var foo = function(o) {
@@ -201,8 +203,6 @@ obj[1] = &quot;b&quot;; // modifies the object pointed to by the obj var
 obj[2] = &quot;c&quot;; // modifies the object pointed to by the obj var
 foo();        // returns 3
 </code></pre>
-
-<p>The above code is interesting because in the previous section we saw that a similar example using a primitive param had both calls to <code>foo()</code> return the same value. So what&rsquo;s different here? Let&rsquo;s do what we usually do and go over how the runtime resolves the variables involved.</p>
 
 <p>When the runtime tries to resolve the variable o from <code>return o.length;</code>, it finds that this variable o is the same as the variable o from <code>var foo = function(o) {</code>. We saw this exact same thing in the previous section. Unlike the previous section however, the variable o now contains a reference to an array object. This causes our closure to have a direct link to this underlying array object. Any changes to it will get reflected in the output of <code>foo()</code>. This explains why the second call to <code>foo()</code> gives a different output than the first.</p>
 
@@ -233,6 +233,8 @@ foo();                 // returns 1
 
 <h4 id="example-2-1:fd3eb7d414a05af8a77db8210b1ff256">Example 2</h4>
 
+<p>Just like before we&rsquo;ll now modify the previous code sample a bit. This time we&rsquo;ll take a look at what happens when we add the line <code>o[1] = &quot;b&quot;;</code>.</p>
+
 <pre><code class="language-javascript">var obj = [&quot;a&quot;];
 
 var foo = function(o) {
@@ -249,7 +251,11 @@ obj[2] = &quot;c&quot;;
 foo();        // returns 3
 </code></pre>
 
+<p>Once again, we can start by reasoning about how the runtime resolves the variable o from <code>return o.length;</code>. As you probably know by now, this variable o is the same as the variable o from <code>var foo = function(o) {</code>. And since it contains a reference to an object, any changes to this object will get reflected in the output of <code>foo()</code>. This explains why the first call to <code>foo()</code> now returns 2, whereas previously it was returning 1.</p>
+
 <h4 id="example-3-1:fd3eb7d414a05af8a77db8210b1ff256">Example 3</h4>
+
+<p>I&rsquo;m not even going to go over it. If you managed to make it this far, this last bit of code should hold no surprises for you.</p>
 
 <pre><code class="language-javascript">var obj = [&quot;a&quot;];
 
@@ -263,32 +269,18 @@ obj[2] = &quot;c&quot;;
 foo();        // returns 3
 </code></pre>
 
-<p>Unsurprisingly we get the exact same behavior as we did with primitive data types. Let&rsquo;s move on to the last section where we will contrast the behavior of assigning a new object to the object var with the behavior of modifying the object assigned to the object var.</p>
+<p>The runtime will resolve the variable obj from <code>return obj.length;</code> to be the same as the variable obj from <code>var obj = [&quot;a&quot;];</code>. As a result, any changes to the obj variable will have an effect on the output of <code>foo()</code>.</p>
 
-<p>gets passed the variable p as a param and then returns something (another function) that makes use of this variable p. Therefore the variable p is not outside the scope of the function, and thus the function isn&rsquo;t a closure.
-Our next example shows similar code</p>
+<h3 id="conclusion:fd3eb7d414a05af8a77db8210b1ff256">Conclusion</h3>
 
-<p>Because the function isn&rsquo;t a closure, it has its own internal copy of p. This means that modifying the value of the primitive variable has no effect on the value returned by the function.</p>
-
-<p>The function would not have its own copy of i because i is not declared within the scope of the function. It is this what is causing closures in the first place!! So there should be no closure if the variable is passed as a param to your function.</p>
+<p>Hopefully this article has demystified closures a bit. Time and time again we&rsquo;ve shown how following a few simple steps will lead you to understanding their behavior. Just keep in mind these rules of thumb and you should be good to go:</p>
 
 <ul>
-<li>only time we see the no closure approach output different values. The o variable is a reference to the original object variable (mention this in prev examples as well). This here is the only time we modify the previously passed reference, instead of pointing the variable to a new refrence.</li>
-<li>closure behaves similiarly. Since the var is not defined in the function scope, it will resolve to the outside var, which is just a reference to an array.</li>
+<li>if a closed variable contains a value, then the closure binds to that variable</li>
+<li>if a closed variable contains a reference to an object, then the closure binds to that object, and will pick up on any changes made to it</li>
 </ul>
 
-<p>no closure - before assigning new value - value: 3
-(index):54 no closure - after assigning new value - value: 3
-(index):61 closure - before assigning new value - value: 3
-(index):63 closure - after assigning new value - value: 5
-(index):72 no closure - before assigning new object - value: 2
-(index):74 no closure - after assigning new object - value: 2
-(index):81 closure - before assigning new object - value: 2
-(index):83 closure - after assigning new object - value: 3
-(index):92 no closure - before modifying object - value: 2
-(index):94 no closure - after modifying object - value: 3
-(index):101 closure - before modifying object - value: 2
-(index):103 closure - after modifying object - value: 3</p>
+<p>Ideally, this is going to become my go-to post for providing an introduction to closures. So please let me know any suggestions you might have to further improve this post.</p>
 
     </div>
   </div>
