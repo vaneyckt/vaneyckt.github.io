@@ -56,7 +56,7 @@ prim = 3;
 foo();    // returns 1
 ```
 
-When the javascript runtime wants to resolve the value returned by `return p;`, it finds that this p variable is the same as the p variable from `var foo = function(p) {`. In other words, there is no direct link between the p from `return p;` and the variable prim from `var prim = 1;`. We see this is true because assigning a new value to prim does not cause the value returned by `foo();` to change.
+When the javascript runtime wants to resolve the value returned by `return p;`, it finds that this p variable is the same as the p variable from `var foo = function(p) {`. In other words, there is no direct link between the p from `return p;` and the variable prim from `var prim = 1;`. We see this is true because assigning a new value to prim does not cause the value returned by `foo()` to change.
 
 #### Example 2
 
@@ -78,7 +78,7 @@ prim = 3;
 foo();    // returns 2
 ```
 
-The code above is interesting in that it shows that the p variable from `return p;` is indeed the same as the p variable from `var foo = function(p) {`. Even though the variable f gets created at a time when p is set to 1, the act of setting p to 2 does indeed cause the value returned by `foo();` to change. This is a great example of a closure keeping a closed variable alive.
+The code above is interesting in that it shows that the p variable from `return p;` is indeed the same as the p variable from `var foo = function(p) {`. Even though the variable f gets created at a time when p is set to 1, the act of setting p to 2 does indeed cause the value returned by `foo()` to change. This is a great example of a closure keeping a closed variable alive.
 
 #### Example 3
 
@@ -96,7 +96,7 @@ prim = 3;
 foo();    // returns 3
 ```
 
-Here too we can make a similar deduction as we did for the previous samples. When the javascript runtime wants to resolve the value returned by `return prim;`, it finds that this prim variable is the same as the prim variable from `var prim = 1;`. This explains why setting prim to 3 causes the value returned by `foo();` to change.
+Here too we can make a similar deduction as we did for the previous samples. When the javascript runtime wants to resolve the value returned by `return prim;`, it finds that this prim variable is the same as the prim variable from `var prim = 1;`. This explains why setting prim to 3 causes the value returned by `foo()` to change.
 
 ### Closures and objects
 

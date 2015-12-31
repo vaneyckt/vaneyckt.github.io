@@ -68,7 +68,7 @@ prim = 3;
 foo();    // returns 1
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;When the javascript runtime wants to resolve the value returned by &lt;code&gt;return p;&lt;/code&gt;, it finds that this p variable is the same as the p variable from &lt;code&gt;var foo = function(p) {&lt;/code&gt;. In other words, there is no direct link between the p from &lt;code&gt;return p;&lt;/code&gt; and the variable prim from &lt;code&gt;var prim = 1;&lt;/code&gt;. We see this is true because assigning a new value to prim does not cause the value returned by &lt;code&gt;foo();&lt;/code&gt; to change.&lt;/p&gt;
+&lt;p&gt;When the javascript runtime wants to resolve the value returned by &lt;code&gt;return p;&lt;/code&gt;, it finds that this p variable is the same as the p variable from &lt;code&gt;var foo = function(p) {&lt;/code&gt;. In other words, there is no direct link between the p from &lt;code&gt;return p;&lt;/code&gt; and the variable prim from &lt;code&gt;var prim = 1;&lt;/code&gt;. We see this is true because assigning a new value to prim does not cause the value returned by &lt;code&gt;foo()&lt;/code&gt; to change.&lt;/p&gt;
 
 &lt;h4 id=&#34;example-2:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 2&lt;/h4&gt;
 
@@ -89,7 +89,7 @@ prim = 3;
 foo();    // returns 2
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;The code above is interesting in that it shows that the p variable from &lt;code&gt;return p;&lt;/code&gt; is indeed the same as the p variable from &lt;code&gt;var foo = function(p) {&lt;/code&gt;. Even though the variable f gets created at a time when p is set to 1, the act of setting p to 2 does indeed cause the value returned by &lt;code&gt;foo();&lt;/code&gt; to change. This is a great example of a closure keeping a closed variable alive.&lt;/p&gt;
+&lt;p&gt;The code above is interesting in that it shows that the p variable from &lt;code&gt;return p;&lt;/code&gt; is indeed the same as the p variable from &lt;code&gt;var foo = function(p) {&lt;/code&gt;. Even though the variable f gets created at a time when p is set to 1, the act of setting p to 2 does indeed cause the value returned by &lt;code&gt;foo()&lt;/code&gt; to change. This is a great example of a closure keeping a closed variable alive.&lt;/p&gt;
 
 &lt;h4 id=&#34;example-3:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 3&lt;/h4&gt;
 
@@ -106,7 +106,7 @@ prim = 3;
 foo();    // returns 3
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Here too we can make a similar deduction as we did for the previous samples. When the javascript runtime wants to resolve the value returned by &lt;code&gt;return prim;&lt;/code&gt;, it finds that this prim variable is the same as the prim variable from &lt;code&gt;var prim = 1;&lt;/code&gt;. This explains why setting prim to 3 causes the value returned by &lt;code&gt;foo();&lt;/code&gt; to change.&lt;/p&gt;
+&lt;p&gt;Here too we can make a similar deduction as we did for the previous samples. When the javascript runtime wants to resolve the value returned by &lt;code&gt;return prim;&lt;/code&gt;, it finds that this prim variable is the same as the prim variable from &lt;code&gt;var prim = 1;&lt;/code&gt;. This explains why setting prim to 3 causes the value returned by &lt;code&gt;foo()&lt;/code&gt; to change.&lt;/p&gt;
 
 &lt;h3 id=&#34;closures-and-objects:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Closures and objects&lt;/h3&gt;
 

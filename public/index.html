@@ -167,7 +167,7 @@ prim = 3;
 foo();    // returns 1
 </code></pre>
 
-<p>When the javascript runtime wants to resolve the value returned by <code>return p;</code>, it finds that this p variable is the same as the p variable from <code>var foo = function(p) {</code>. In other words, there is no direct link between the p from <code>return p;</code> and the variable prim from <code>var prim = 1;</code>. We see this is true because assigning a new value to prim does not cause the value returned by <code>foo();</code> to change.</p>
+<p>When the javascript runtime wants to resolve the value returned by <code>return p;</code>, it finds that this p variable is the same as the p variable from <code>var foo = function(p) {</code>. In other words, there is no direct link between the p from <code>return p;</code> and the variable prim from <code>var prim = 1;</code>. We see this is true because assigning a new value to prim does not cause the value returned by <code>foo()</code> to change.</p>
 
 <h4 id="example-2:fd3eb7d414a05af8a77db8210b1ff256">Example 2</h4>
 
@@ -188,7 +188,7 @@ prim = 3;
 foo();    // returns 2
 </code></pre>
 
-<p>The code above is interesting in that it shows that the p variable from <code>return p;</code> is indeed the same as the p variable from <code>var foo = function(p) {</code>. Even though the variable f gets created at a time when p is set to 1, the act of setting p to 2 does indeed cause the value returned by <code>foo();</code> to change. This is a great example of a closure keeping a closed variable alive.</p>
+<p>The code above is interesting in that it shows that the p variable from <code>return p;</code> is indeed the same as the p variable from <code>var foo = function(p) {</code>. Even though the variable f gets created at a time when p is set to 1, the act of setting p to 2 does indeed cause the value returned by <code>foo()</code> to change. This is a great example of a closure keeping a closed variable alive.</p>
 
 <h4 id="example-3:fd3eb7d414a05af8a77db8210b1ff256">Example 3</h4>
 
@@ -205,7 +205,7 @@ prim = 3;
 foo();    // returns 3
 </code></pre>
 
-<p>Here too we can make a similar deduction as we did for the previous samples. When the javascript runtime wants to resolve the value returned by <code>return prim;</code>, it finds that this prim variable is the same as the prim variable from <code>var prim = 1;</code>. This explains why setting prim to 3 causes the value returned by <code>foo();</code> to change.</p>
+<p>Here too we can make a similar deduction as we did for the previous samples. When the javascript runtime wants to resolve the value returned by <code>return prim;</code>, it finds that this prim variable is the same as the prim variable from <code>var prim = 1;</code>. This explains why setting prim to 3 causes the value returned by <code>foo()</code> to change.</p>
 
 <h3 id="closures-and-objects:fd3eb7d414a05af8a77db8210b1ff256">Closures and objects</h3>
 
