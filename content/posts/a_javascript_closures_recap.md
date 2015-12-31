@@ -8,7 +8,7 @@ topics = [ "javascript" ]
 
 Javascript closures have always been one those things that I used to navigate by intuition. Recently however, upon stumbling across some code that I did not quite grok, it became clear I should try and obtain a more formal understanding. This post is mainly intended as a quick recap for my future self. It won't go into all the details about closures; instead it will focus on the bits that I found most helpful.
 
-There seem to be very few step-by-step overviews of all things related to javascript closures. As a matter of fact, I only found two. Luckily they are both absolute gems. You can find them [here](http://openhome.cc/eGossip/JavaScript/Closures.html) and [here](https://web.archive.org/web/20080209105120/http://blog.morrisjohns.com/javascript_closures_for_dummies). I heartily recommend reading both these articles to anyone wanting to gain a more complete understanding of closures.
+There seem to be very few step-by-step overviews of javascript closures. As a matter of fact, I only found two. Luckily they are both absolute gems. You can find them [here](http://openhome.cc/eGossip/JavaScript/Closures.html) and [here](https://web.archive.org/web/20080209105120/http://blog.morrisjohns.com/javascript_closures_for_dummies). I heartily recommend both these articles to anyone wanting to gain a more complete understanding of closures.
 
 ### Closure basics
 
@@ -35,11 +35,11 @@ This is really all you need to know about closures: they refer to variables decl
 
 ### Closures and primitive data types
 
-The rest of this post will go over some code examples to illustrate the behavior of closures for both primitive and object params. In this section we'll have a look at the behavior of a closure with a primitive data type param.
+The rest of this post will go over some code examples to illustrate the behavior of closures for both primitive and object params. In this section, we'll have a look at the behavior of a closure with a primitive data type param.
 
 #### Example 1
 
-This code here will be our starting point for studying closures. Be sure to take a good look at it, as all our examples will be a variation of this code. We will try to understand closures by keeping an eye on the values returned by the `foo()` function.
+The code below will be our starting point for studying closures. Be sure to take a good look at it, as all our examples will be a variation of this code. Throughout this post, we are going to try and understand closures by examining the values returned by the `foo()` function.
 
 ```javascript
 var prim = 1;
@@ -60,7 +60,7 @@ When the javascript runtime wants to resolve the value returned by `return p;`, 
 
 #### Example 2
 
-Let's now have a look at what happens when we make a small change to the previous code sample by adding the line `p = 2;`.
+Now let's have a look at what happens when we make a small change to the previous code sample by adding the line `p = 2;` to it.
 
 ```javascript
 var prim = 1;
@@ -82,7 +82,7 @@ The code above is interesting in that it shows that the p variable from `return 
 
 #### Example 3
 
-The last sample below shows code similar to the first sample, but this time we made the closure close over the prim variable.
+This sample shows code similar to the first, but this time we made the closure close over the prim variable.
 
 ```javascript
 var prim = 1;
@@ -100,7 +100,7 @@ Here too we can make a similar deduction as we did for the previous samples. Whe
 
 ### Closures and objects
 
-In this section we'll see what happens when we take the code we looked at earlier and change the param from a primitive data type to an object.
+In this section we'll see what happens when we take our code samples and change the param from a primitive data type to an object.
 
 #### Example 1.a
 
@@ -122,12 +122,12 @@ obj[2] = "c"; // modifies the object pointed to by the obj var
 foo();        // returns 3
 ```
 
-When the runtime tries to resolve the variable o from `return o.length;`, it finds that this variable o is the same as the variable o from `var foo = function(o) {`. We saw this exact same thing in the previous section. Unlike the previous section however, the variable o now contains a reference to an array object. This causes our closure to have a direct link to this underlying array object. Any changes to it will get reflected in the output of `foo()`. This explains why the second call to `foo()` gives a different output than the first.
+When the runtime tries to resolve the variable o from `return o.length;`, it finds that this variable o is the same as the variable o from `var foo = function(o) {`. We saw this exact same thing in the previous section. Unlike the previous section, the variable o now contains a reference to an array object. This causes our closure to have a direct link to this array object, and thus any changes to it will get reflected in the output of `foo()`. This explains why the second call to `foo()` gives a different output than the first.
 
 **A good rule of thumb goes like this:**
 
-* **if a closed variable contains a value, then the closure binds to that variable**
-* **if a closed variable contains a reference to an object, then the closure binds to that object, and will pick up on any changes made to it**
+* **if a closed variable contains a value, then the closure links to that variable**
+* **if a closed variable contains a reference to an object, then the closure links to that object, and will pick up on any changes made to it**
 
 #### Example 1.b
 
@@ -148,9 +148,11 @@ obj = ["a", "b", "c"]; // assign a new array object to the obj variable
 foo();                 // returns 1
 ```
 
+In fact, this code is practically identical to the code from Example 1 of the previous section.
+
 #### Example 2
 
-Just like before we'll now modify the previous code sample a bit. This time we'll take a look at what happens when we add the line `o[1] = "b";`.
+We'll now modify the previous code sample a bit. This time we'll take a look at what happens when we add the line `o[1] = "b";`.
 
 ```javascript
 var obj = ["a"];
@@ -173,7 +175,7 @@ Once again, we can start by reasoning about how the runtime resolves the variabl
 
 #### Example 3
 
-I'm not even going to go over it. If you managed to make it this far, this last bit of code should hold no surprises for you.
+If you managed to make it this far, this last bit of code should hold no surprises for you.
 
 ```javascript
 var obj = ["a"];
@@ -192,9 +194,9 @@ The runtime will resolve the variable obj from `return obj.length;` to be the sa
 
 ### Conclusion
 
-Hopefully this article has demystified closures a bit. Time and time again we've shown how following a few simple steps will lead you to understanding their behavior. Just keep in mind these rules of thumb and you should be good to go:
+Hopefully this post has demystified closures a bit. Time and time again, we've shown how following a few simple steps will lead you to understand their behavior. Just keep in mind these rules of thumb and you should be good to go:
 
-* if a closed variable contains a value, then the closure binds to that variable
-* if a closed variable contains a reference to an object, then the closure binds to that object, and will pick up on any changes made to it
+* if a closed variable contains a value, then the closure links to that variable
+* if a closed variable contains a reference to an object, then the closure links to that object, and will pick up on any changes made to it
 
-Ideally, this is going to become my go-to post for providing an introduction to closures. So please let me know any suggestions you might have to further improve this post.
+Ideally, this is going to become my go-to post for providing an introduction to closures. So please let me know any suggestions you might have to improve this post.

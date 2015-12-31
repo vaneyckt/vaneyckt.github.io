@@ -20,7 +20,7 @@
 
 &lt;p&gt;Javascript closures have always been one those things that I used to navigate by intuition. Recently however, upon stumbling across some code that I did not quite grok, it became clear I should try and obtain a more formal understanding. This post is mainly intended as a quick recap for my future self. It won&amp;rsquo;t go into all the details about closures; instead it will focus on the bits that I found most helpful.&lt;/p&gt;
 
-&lt;p&gt;There seem to be very few step-by-step overviews of all things related to javascript closures. As a matter of fact, I only found two. Luckily they are both absolute gems. You can find them &lt;a href=&#34;http://openhome.cc/eGossip/JavaScript/Closures.html&#34;&gt;here&lt;/a&gt; and &lt;a href=&#34;https://web.archive.org/web/20080209105120/http://blog.morrisjohns.com/javascript_closures_for_dummies&#34;&gt;here&lt;/a&gt;. I heartily recommend reading both these articles to anyone wanting to gain a more complete understanding of closures.&lt;/p&gt;
+&lt;p&gt;There seem to be very few step-by-step overviews of javascript closures. As a matter of fact, I only found two. Luckily they are both absolute gems. You can find them &lt;a href=&#34;http://openhome.cc/eGossip/JavaScript/Closures.html&#34;&gt;here&lt;/a&gt; and &lt;a href=&#34;https://web.archive.org/web/20080209105120/http://blog.morrisjohns.com/javascript_closures_for_dummies&#34;&gt;here&lt;/a&gt;. I heartily recommend both these articles to anyone wanting to gain a more complete understanding of closures.&lt;/p&gt;
 
 &lt;h3 id=&#34;closure-basics:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Closure basics&lt;/h3&gt;
 
@@ -48,11 +48,11 @@ foo(30); // returns 40
 
 &lt;h3 id=&#34;closures-and-primitive-data-types:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Closures and primitive data types&lt;/h3&gt;
 
-&lt;p&gt;The rest of this post will go over some code examples to illustrate the behavior of closures for both primitive and object params. In this section we&amp;rsquo;ll have a look at the behavior of a closure with a primitive data type param.&lt;/p&gt;
+&lt;p&gt;The rest of this post will go over some code examples to illustrate the behavior of closures for both primitive and object params. In this section, we&amp;rsquo;ll have a look at the behavior of a closure with a primitive data type param.&lt;/p&gt;
 
 &lt;h4 id=&#34;example-1:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 1&lt;/h4&gt;
 
-&lt;p&gt;This code here will be our starting point for studying closures. Be sure to take a good look at it, as all our examples will be a variation of this code. We will try to understand closures by keeping an eye on the values returned by the &lt;code&gt;foo()&lt;/code&gt; function.&lt;/p&gt;
+&lt;p&gt;The code below will be our starting point for studying closures. Be sure to take a good look at it, as all our examples will be a variation of this code. Throughout this post, we are going to try and understand closures by examining the values returned by the &lt;code&gt;foo()&lt;/code&gt; function.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var prim = 1;
 
@@ -72,7 +72,7 @@ foo();    // returns 1
 
 &lt;h4 id=&#34;example-2:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 2&lt;/h4&gt;
 
-&lt;p&gt;Let&amp;rsquo;s now have a look at what happens when we make a small change to the previous code sample by adding the line &lt;code&gt;p = 2;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Now let&amp;rsquo;s have a look at what happens when we make a small change to the previous code sample by adding the line &lt;code&gt;p = 2;&lt;/code&gt; to it.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var prim = 1;
 
@@ -93,7 +93,7 @@ foo();    // returns 2
 
 &lt;h4 id=&#34;example-3:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 3&lt;/h4&gt;
 
-&lt;p&gt;The last sample below shows code similar to the first sample, but this time we made the closure close over the prim variable.&lt;/p&gt;
+&lt;p&gt;This sample shows code similar to the first, but this time we made the closure close over the prim variable.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var prim = 1;
 
@@ -110,7 +110,7 @@ foo();    // returns 3
 
 &lt;h3 id=&#34;closures-and-objects:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Closures and objects&lt;/h3&gt;
 
-&lt;p&gt;In this section we&amp;rsquo;ll see what happens when we take the code we looked at earlier and change the param from a primitive data type to an object.&lt;/p&gt;
+&lt;p&gt;In this section we&amp;rsquo;ll see what happens when we take our code samples and change the param from a primitive data type to an object.&lt;/p&gt;
 
 &lt;h4 id=&#34;example-1-a:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 1.a&lt;/h4&gt;
 
@@ -131,13 +131,13 @@ obj[2] = &amp;quot;c&amp;quot;; // modifies the object pointed to by the obj var
 foo();        // returns 3
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;When the runtime tries to resolve the variable o from &lt;code&gt;return o.length;&lt;/code&gt;, it finds that this variable o is the same as the variable o from &lt;code&gt;var foo = function(o) {&lt;/code&gt;. We saw this exact same thing in the previous section. Unlike the previous section however, the variable o now contains a reference to an array object. This causes our closure to have a direct link to this underlying array object. Any changes to it will get reflected in the output of &lt;code&gt;foo()&lt;/code&gt;. This explains why the second call to &lt;code&gt;foo()&lt;/code&gt; gives a different output than the first.&lt;/p&gt;
+&lt;p&gt;When the runtime tries to resolve the variable o from &lt;code&gt;return o.length;&lt;/code&gt;, it finds that this variable o is the same as the variable o from &lt;code&gt;var foo = function(o) {&lt;/code&gt;. We saw this exact same thing in the previous section. Unlike the previous section, the variable o now contains a reference to an array object. This causes our closure to have a direct link to this array object, and thus any changes to it will get reflected in the output of &lt;code&gt;foo()&lt;/code&gt;. This explains why the second call to &lt;code&gt;foo()&lt;/code&gt; gives a different output than the first.&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;A good rule of thumb goes like this:&lt;/strong&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;if a closed variable contains a value, then the closure binds to that variable&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;if a closed variable contains a reference to an object, then the closure binds to that object, and will pick up on any changes made to it&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;if a closed variable contains a value, then the closure links to that variable&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;if a closed variable contains a reference to an object, then the closure links to that object, and will pick up on any changes made to it&lt;/strong&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h4 id=&#34;example-1-b:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 1.b&lt;/h4&gt;
@@ -158,9 +158,11 @@ obj = [&amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;, &amp;quot;c&amp;quot;]; // 
 foo();                 // returns 1
 &lt;/code&gt;&lt;/pre&gt;
 
+&lt;p&gt;In fact, this code is practically identical to the code from Example 1 of the previous section.&lt;/p&gt;
+
 &lt;h4 id=&#34;example-2-1:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 2&lt;/h4&gt;
 
-&lt;p&gt;Just like before we&amp;rsquo;ll now modify the previous code sample a bit. This time we&amp;rsquo;ll take a look at what happens when we add the line &lt;code&gt;o[1] = &amp;quot;b&amp;quot;;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;We&amp;rsquo;ll now modify the previous code sample a bit. This time we&amp;rsquo;ll take a look at what happens when we add the line &lt;code&gt;o[1] = &amp;quot;b&amp;quot;;&lt;/code&gt;.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var obj = [&amp;quot;a&amp;quot;];
 
@@ -182,7 +184,7 @@ foo();        // returns 3
 
 &lt;h4 id=&#34;example-3-1:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Example 3&lt;/h4&gt;
 
-&lt;p&gt;I&amp;rsquo;m not even going to go over it. If you managed to make it this far, this last bit of code should hold no surprises for you.&lt;/p&gt;
+&lt;p&gt;If you managed to make it this far, this last bit of code should hold no surprises for you.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var obj = [&amp;quot;a&amp;quot;];
 
@@ -200,14 +202,14 @@ foo();        // returns 3
 
 &lt;h3 id=&#34;conclusion:fd3eb7d414a05af8a77db8210b1ff256&#34;&gt;Conclusion&lt;/h3&gt;
 
-&lt;p&gt;Hopefully this article has demystified closures a bit. Time and time again we&amp;rsquo;ve shown how following a few simple steps will lead you to understanding their behavior. Just keep in mind these rules of thumb and you should be good to go:&lt;/p&gt;
+&lt;p&gt;Hopefully this post has demystified closures a bit. Time and time again, we&amp;rsquo;ve shown how following a few simple steps will lead you to understand their behavior. Just keep in mind these rules of thumb and you should be good to go:&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;if a closed variable contains a value, then the closure binds to that variable&lt;/li&gt;
-&lt;li&gt;if a closed variable contains a reference to an object, then the closure binds to that object, and will pick up on any changes made to it&lt;/li&gt;
+&lt;li&gt;if a closed variable contains a value, then the closure links to that variable&lt;/li&gt;
+&lt;li&gt;if a closed variable contains a reference to an object, then the closure links to that object, and will pick up on any changes made to it&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;Ideally, this is going to become my go-to post for providing an introduction to closures. So please let me know any suggestions you might have to further improve this post.&lt;/p&gt;
+&lt;p&gt;Ideally, this is going to become my go-to post for providing an introduction to closures. So please let me know any suggestions you might have to improve this post.&lt;/p&gt;
 </description>
     </item>
     
