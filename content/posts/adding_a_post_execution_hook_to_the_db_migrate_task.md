@@ -40,4 +40,4 @@ end
 Rake::Task['db:migrate'].enhance(['db:attach_hook'])
 ```
 
-Here we make use of the [enhance method](http://ruby-doc.org/stdlib-2.0.0/libdoc/rake/rdoc/Rake/Task.html#method-i-enhance) to add db:attach_hook as a prerequisite task to db:migrate. This means that calling db:migrate will now cause the db:attach_hook task to get executed before db:migrate gets run. The db:attach_hook task creates an `at_exit` hook that will trigger our post-execution code upon exit of the db:migrate task. This means that our post-execution hook will now get called even when db:migrate raises an exception!
+Here we make use of the [enhance method](http://ruby-doc.org/stdlib-2.0.0/libdoc/rake/rdoc/Rake/Task.html#method-i-enhance) to add db:attach_hook as a prerequisite task to db:migrate. This means that calling db:migrate will now cause the db:attach_hook task to get executed before db:migrate gets run. The db:attach_hook task creates an `at_exit` hook that will trigger our post-execution code upon exit of the db:migrate task. Hence, our post-execution hook will now get called even when db:migrate raises an exception!
