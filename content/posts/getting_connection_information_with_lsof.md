@@ -18,7 +18,7 @@ COMMAND     PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 Spotify   36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
 Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:4371 (LISTEN)
 Spotify   36908 vaneyckt   71u  IPv4 0x2097c8deba747c1d      0t0  UDP *:57621
-Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cd      0t0  TCP *:57621 (LISTEN)
+Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cf      0t0  TCP *:57621 (LISTEN)
 Spotify   36908 vaneyckt   77u  IPv4 0x2097c8deb993b255      0t0  UDP ip-192-168-0-101.ec2.internal:61009
 Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432->lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
 Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
@@ -38,7 +38,7 @@ $ lsof -i | grep -i LISTEN
 
 Spotify   36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
 Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:4371 (LISTEN)
-Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cd      0t0  TCP *:57621 (LISTEN)
+Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cf      0t0  TCP *:57621 (LISTEN)
 ```
 
 #### Find established connections
