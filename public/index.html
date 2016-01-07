@@ -526,12 +526,108 @@ adb shell sendevent /dev/input/event7: 0 0 0
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/">
+        The amazing bitwise XOR operator
+      </a>
+    </h1>
+
+    <span class="post-date">Jan 12, 2014</span>
+
+    
+
+
+    
+
+<p>One of my colleagues recently mentioned this interview question to me.</p>
+
+<blockquote>
+<p>Imagine there is an array which contains 2n+1 elements, n of which have exactly one duplicate. Can you find the one unique element in this array?</p>
+</blockquote>
+
+<p>This seemed simple enough and I quickly came up with the Ruby solution below.</p>
+
+<pre><code class="language-ruby">&gt; array = [3, 5, 4, 5, 3]
+# =&gt; [3, 5, 4, 5, 3]
+&gt; count = array.each_with_object(Hash.new(0)) { |number, hash| hash[number] += 1 }
+# =&gt; {3=&gt;2, 5=&gt;2, 4=&gt;1}
+&gt; count.key(1)
+# =&gt; 4
+</code></pre>
+
+<p>I thought that would be the end of it, but instead I was asked if I could see a way to solve the problem in a significantly more performant way using the XOR operator.</p>
+
+<h3 id="xor-characteristics:3b1479834de8b2716c6d36848e7cf887">XOR characteristics</h3>
+
+<p>In order to solve this problem with the XOR operator, we first need to understand some of its characteristics. This operator obeys the following rules:</p>
+
+<ul>
+<li>commutativity: <code>A^B=B^A</code></li>
+<li>associativity: <code>(A^B)^C=A^(B^C)</code></li>
+<li>the identity element is 0: <code>A^0=A</code></li>
+<li>each element is its own inverse: <code>A^A=0</code></li>
+</ul>
+
+<p>Now imagine an array with the elements <code>[3, 5, 4, 5, 3]</code>. Using the above rules, we can show that XORing all these elements will leave us with the array&rsquo;s unique element.</p>
+
+<pre><code class="language-ruby">accum = 3 ^ 5 ^ 4 ^ 5 ^ 3
+accum = 0 ^ 3 ^ 5 ^ 4 ^ 5 ^ 3    # 0 is the identity element
+accum = 0 ^ 3 ^ 3 ^ 4 ^ 5 ^ 5    # commutativity and associativity rules
+accum = 0 ^ 0 ^ 4 ^ 0            # A^A = 0
+accum = 4                        # 0 is the identity element
+</code></pre>
+
+<p>Putting this approach in code would give us something like this.</p>
+
+<pre><code class="language-ruby">&gt; array = [3, 5, 4, 5, 3]
+# =&gt; [3, 5, 4, 5, 3]
+&gt; accum = 0
+# =&gt; 0
+&gt; array.each { |number| accum = accum ^ number }
+# =&gt; [3, 5, 4, 5, 3]
+&gt; accum
+# =&gt; 4
+</code></pre>
+
+<h3 id="benchmarks:3b1479834de8b2716c6d36848e7cf887">Benchmarks</h3>
+
+<p>Let&rsquo;s use Ruby&rsquo;s <code>Benchmark</code> module to do a comparison of both approaches.</p>
+
+<pre><code class="language-ruby">require 'benchmark'
+
+array = [-1]
+1000000.times do |t|
+  array &lt;&lt; t
+  array &lt;&lt; t
+end
+
+Benchmark.measure do
+  count = array.each_with_object(Hash.new(0)) { |number, hash| hash[number] += 1 }
+  count.key(1)
+end
+# =&gt; #&lt;Benchmark::Tms:0x007f83fa0279e0 @label=&quot;&quot;, @real=0.83534, @cstime=0.0, @cutime=0.0, @stime=0.010000000000000009, @utime=0.8300000000000005, @total=0.8400000000000005&gt;
+
+Benchmark.measure do
+  accum = 0
+  array.each { |number| accum = accum ^ number }
+  accum
+end
+# =&gt; #&lt;Benchmark::Tms:0x007f83fa240ba0 @label=&quot;&quot;, @real=0.136726, @cstime=0.0, @cutime=0.0, @stime=0.0, @utime=0.13999999999999968, @total=0.13999999999999968&gt;
+</code></pre>
+
+<p>So there you have it. Given an array that contains two million elements, the XOR operator approach turns out to be more than 6 times faster than utilizing a hashmap. That&rsquo;s quite a big performance improvement!</p>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/">
         A visual explanation of SQL joins
       </a>
     </h1>
 
-    <span class="post-date">Feb 20, 2014</span>
+    <span class="post-date">Nov 17, 2013</span>
 
     
 

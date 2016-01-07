@@ -1,5 +1,5 @@
 +++
-date = "2014-02-20T20:22:17+00:00"
+date = "2013-11-17T20:22:17+00:00"
 title = "A visual explanation of SQL joins"
 type = "post"
 ogtype = "article"
