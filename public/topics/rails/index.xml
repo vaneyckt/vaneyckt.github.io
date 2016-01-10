@@ -7,13 +7,13 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
-    <lastBuildDate>Thu, 09 Oct 2014 16:31:22 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 09 Jun 2014 16:31:22 +0000</lastBuildDate>
     <atom:link href="http://vaneyckt.io/topics/rails/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Adding a post-execution hook to the db:migrate task</title>
       <link>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
-      <pubDate>Thu, 09 Oct 2014 16:31:22 +0000</pubDate>
+      <pubDate>Mon, 09 Jun 2014 16:31:22 +0000</pubDate>
       
       <guid>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
       <description>&lt;p&gt;A few days ago we discovered that our MySQL database&amp;rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&amp;rsquo;t happen again, we looked into adding a post-execution hook to the rails db:migrate task.&lt;/p&gt;

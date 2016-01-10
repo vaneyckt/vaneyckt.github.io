@@ -371,7 +371,7 @@ $ sudo apt-get install google-chrome-stable
       </a>
     </h1>
 
-    <span class="post-date">Oct 9, 2014</span>
+    <span class="post-date">Jun 9, 2014</span>
 
     
 
@@ -526,6 +526,73 @@ adb shell sendevent /dev/input/event7: 0 0 0
   
   <div class="post">
     <h1 class="post-title">
+      <a href="http://vaneyckt.io/posts/some_lesser_known_github_api_functionality/">
+        Some lesser known Github API functionality
+      </a>
+    </h1>
+
+    <span class="post-date">Feb 8, 2014</span>
+
+    
+
+
+    
+
+<p>One of our automation tools occasionally needs to interact with our Github repositories. Unfortunately, the current implementation of this tool leaves something to be desired as it requires cloning these repositories to local disk. Changes against these local repositories are then made on local branches, after which these branches get pushed to Github.</p>
+
+<p>However, in order to save on disk space this tool will only ever create a single local copy of each repository. This makes it unsafe to run multiple instances of this tool as multiple instances simultaneously executing sequences of git commands against the same local repositories might lead to these commands inadvertently getting interpolated, thereby leaving the local repositories in an undefined state.</p>
+
+<p>The solution to this complexity was to completely remove the need for local repositories and instead aim to have everything done through the wonderful Github API. This article is a reminder to myself about some API functionality that I found while looking into this.</p>
+
+<h3 id="checking-if-a-branch-contains-a-commit:ebeddf967e2b970d374ec29d22d794b8">Checking if a branch contains a commit</h3>
+
+<p>While the Github API does not have an explicit call to check whether a given commit is included in a branch, we can nevertheless use the <a href="https://developer.github.com/v3/repos/commits/#compare-two-commits">compare call</a> for just this purpose. This call takes two commits as input and returns a large JSON response of comparison data. We can use the <code>status</code> field of the response to ascertain if a given commit is behind or identical to the HEAD commit of a branch. If so, then the branch contains that commit.</p>
+
+<pre><code class="language-ruby">require 'octokit'
+
+class GithubClient &lt; Octokit::Client
+  def branch_contains_sha?(repo, branch, sha)
+    ['behind', 'identical'].include?(compare(repo, branch, sha).status)
+  end
+end
+</code></pre>
+
+<h3 id="creating-a-remote-branch-from-a-remote-commit:ebeddf967e2b970d374ec29d22d794b8">Creating a remote branch from a remote commit</h3>
+
+<p>Sometimes you&rsquo;ll want to create a remote branch by branching from a remote commit. We can use the <a href="https://developer.github.com/v3/git/refs/#create-a-reference">create_reference call</a> to accomplish this. Note that the <code>ref</code> parameter of this call needs to be set to <code>refs/heads/#{branch}</code> when creating a remote branch.</p>
+
+<pre><code class="language-ruby">require 'octokit'
+
+class GithubClient &lt; Octokit::Client
+  def create_branch_from_sha(repo, branch, sha)
+    # create_ref internally transforms &quot;heads/#{branch}&quot; into &quot;refs/heads/#{branch}&quot;
+    # as mentioned above, this is required by the Github API
+    create_ref(repo, &quot;heads/#{branch}&quot;, sha)
+  end
+end
+</code></pre>
+
+<h3 id="setting-the-head-of-a-remote-branch-to-a-specific-remote-commit:ebeddf967e2b970d374ec29d22d794b8">Setting the HEAD of a remote branch to a specific remote commit</h3>
+
+<p>You can even forcefully set the HEAD of a remote branch to a specific remote commit by using the <a href="https://developer.github.com/v3/git/refs/#update-a-reference">update_reference call</a>. As mentioned earlier, the <code>ref</code> parameter needs to be set to <code>refs/heads/#{branch}</code>. Be careful when using this functionality though as it essentially allows you to overwrite the history of a remote branch!</p>
+
+<pre><code class="language-ruby">require 'octokit'
+
+class GithubClient &lt; Octokit::Client
+  def update_branch_to_sha(repo, branch, sha, force = true)
+    # update_ref internally transforms &quot;heads/#{branch}&quot; into &quot;refs/heads/#{branch}&quot;
+    # as mentioned earlier, this is required by the Github API
+    update_ref(repo, &quot;heads/#{branch}&quot;, sha, force)
+  end
+end
+</code></pre>
+
+  </div>
+  
+  
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="http://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/">
         The amazing bitwise XOR operator
       </a>
@@ -614,7 +681,7 @@ end
 # =&gt; #&lt;Benchmark::Tms:0x007f83fa240ba0 @label=&quot;&quot;, @real=0.136726, @cstime=0.0, @cutime=0.0, @stime=0.0, @utime=0.13999999999999968, @total=0.13999999999999968&gt;
 </code></pre>
 
-<p>So there you have it. Given an array that contains two million elements, the XOR operator approach turns out to be more than 6 times faster than utilizing a hashmap. That&rsquo;s quite a big performance improvement!</p>
+<p>So there you have it. Given an array that contains two million elements, the XOR operator approach turns out to be more than 6 times faster than utilizing a hashmap. That&rsquo;s quite a nice performance improvement!</p>
 
   </div>
   
