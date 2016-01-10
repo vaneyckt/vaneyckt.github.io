@@ -401,6 +401,8 @@ adb shell sendevent /dev/input/event7: 0 0 0
 
 &lt;p&gt;While the Github API does not have an explicit call to check whether a given commit is included in a branch, we can nevertheless use the &lt;a href=&#34;https://developer.github.com/v3/repos/commits/#compare-two-commits&#34;&gt;compare call&lt;/a&gt; for just this purpose. This call takes two commits as input and returns a large JSON response of comparison data. We can use the &lt;code&gt;status&lt;/code&gt; field of the response to ascertain if a given commit is behind or identical to the HEAD commit of a branch. If so, then the branch contains that commit.&lt;/p&gt;
 
+&lt;p&gt;We can use the &lt;a href=&#34;https://github.com/octokit/octokit.rb&#34;&gt;Ruby octokit gem&lt;/a&gt; to implement this as follows.&lt;/p&gt;
+
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;require &#39;octokit&#39;
 
 class GithubClient &amp;lt; Octokit::Client

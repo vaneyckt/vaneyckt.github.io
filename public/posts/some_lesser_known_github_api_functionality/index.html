@@ -111,6 +111,8 @@
 
 <p>While the Github API does not have an explicit call to check whether a given commit is included in a branch, we can nevertheless use the <a href="https://developer.github.com/v3/repos/commits/#compare-two-commits">compare call</a> for just this purpose. This call takes two commits as input and returns a large JSON response of comparison data. We can use the <code>status</code> field of the response to ascertain if a given commit is behind or identical to the HEAD commit of a branch. If so, then the branch contains that commit.</p>
 
+<p>We can use the <a href="https://github.com/octokit/octokit.rb">Ruby octokit gem</a> to implement this as follows.</p>
+
 <pre><code class="language-ruby">require 'octokit'
 
 class GithubClient &lt; Octokit::Client
