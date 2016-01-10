@@ -1,5 +1,5 @@
 +++
-date = "2014-10-09T16:31:22+00:00"
+date = "2014-06-09T16:31:22+00:00"
 title = "Adding a post-execution hook to the db:migrate task"
 type = "post"
 ogtype = "article"

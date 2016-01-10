@@ -82,4 +82,4 @@ end
 # => #<Benchmark::Tms:0x007f83fa240ba0 @label="", @real=0.136726, @cstime=0.0, @cutime=0.0, @stime=0.0, @utime=0.13999999999999968, @total=0.13999999999999968>
 ```
 
-So there you have it. Given an array that contains two million elements, the XOR operator approach turns out to be more than 6 times faster than utilizing a hashmap. That's quite a big performance improvement!
+So there you have it. Given an array that contains two million elements, the XOR operator approach turns out to be more than 6 times faster than utilizing a hashmap. That's quite a nice performance improvement!
