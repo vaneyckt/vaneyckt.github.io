@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="Creating an EC2 Instance in a VPC with the AWS CLI" />
+<meta property="og:description" content="" />
+
+<meta property="og:type" content="article" />
+
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/" />
+
+
+  <title> Creating an EC2 Instance in a VPC with the AWS CLI  &middot; vaneyckt.io </title>
+
+  
+
+  <link rel="stylesheet" href="/css/monokai.css">
+  <script src="/js/highlight.pack.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  
+  <link rel="stylesheet" href="http://vaneyckt.io/css/poole.css">
+  <link rel="stylesheet" href="http://vaneyckt.io/css/syntax.css">
+  <link rel="stylesheet" href="http://vaneyckt.io/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt.io" />
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+  <link href='http://fonts.googleapis.com/css?family=Raleway:400,300' rel='stylesheet' type='text/css'>
+
+  <script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
+  <script>
+    WebFont.load({
+      google: {
+        families: ['Raleway']
+      }
+    });
+  </script>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-71853042-1', 'auto');
+    ga('send', 'pageview');
+  </script>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1 class="brand"><a style="text-decoration:none" href="http://vaneyckt.io">vaneyckt</a></h1>
+      <p class="lead">
+         notes to my future self 
+      </p>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li><a href="http://vaneyckt.io">Home</a></li>
+      <li><a href="http://vaneyckt.io/posts">Posts</a></li>
+      <li><a href="http://vaneyckt.io/topics">Topics</a></li>
+      
+      <br/>
+      
+    </ul>
+      
+      
+      
+      <a href="https://github.com/vaneyckt"><i class="fa fa-github-square"></i></a>&nbsp;&nbsp;
+      <a href="mailto:tomvaneyck@gmail.com"><i class="fa fa-envelope-square"></i></a>&nbsp;&nbsp;
+      <a href="http://vaneyckt.io/index.xml"><i class="fa fa-rss-square"></i></a>&nbsp;&nbsp;
+      
+
+    <p class="footnote">powered by <a href="http://hugo.spf13.com">Hugo</a> <br/>
+    &copy; 2015 Tom Van Eyck. All rights reserved.</p>
+  </div>
+</div>
+
+
+  <div class="content container">
+    <div class="post">
+      <h1 class="post-title">Creating an EC2 Instance in a VPC with the AWS CLI</h1>
+      <span class="post-date">Oct 29, 2014</span>
+      
+
+<p>Setting up an EC2 instance on AWS used to be as straightforward as provisioning a machine and SSHing into it. However, this process has become a bit more complicated now that Amazon VPC has become the standard for managing machines in the cloud.</p>
+
+<p>So what exactly is a Virtual Private Cloud? Amazon defines a VPC as &lsquo;a logically isolated section of the AWS Cloud&rsquo;. Instances inside a VPC can by default only communicate with other instances in the same VPC and are therefore invisible to the rest of the internet. This means they will not accept SSH connections coming from your computer, nor will they respond to any http requests. In this article we&rsquo;ll look into changing these default settings into something more befitting a general purpose server.</p>
+
+<h3 id="setting-up-your-vpc:ed16f33dbf5018a09918ad8ef3c5f741">Setting up your VPC</h3>
+
+<p>Start by installing the <a href="http://aws.amazon.com/cli">AWS Command Line Interface</a> on your machine if you haven&rsquo;t done so already. With this done, we can now create our VPC.</p>
+
+<pre><code class="language-bash">$ vpcId=`aws ec2 create-vpc --cidr-block 10.0.0.0/28 --query 'Vpc.VpcId' --output text`
+</code></pre>
+
+<p>There are several interesting things here:</p>
+
+<ul>
+<li>the <code>--cidr-block</code> parameter specifies a /28 netmask that allows for 16 IP addresses. This is the smallest supported netmask.</li>
+<li>the <code>create-vpc</code> command returns a JSON string. We can filter out specific fields from this string by using the <code>--query</code> and <code>--output</code> parameters.</li>
+</ul>
+
+<p>The next step is to overwrite the default VPC DNS settings. As mentioned earlier, instances launched inside a VPC are invisible to the rest of the internet by default. AWS therefore does not bother assigning them a public DNS name. Luckily this can be changed easily.</p>
+
+<pre><code class="language-bash">$ aws ec2 modify-vpc-attribute --vpc-id $vpcId --enable-dns-support &quot;{\&quot;Value\&quot;:true}&quot;
+$ aws ec2 modify-vpc-attribute --vpc-id $vpcId --enable-dns-hostnames &quot;{\&quot;Value\&quot;:true}&quot;
+</code></pre>
+
+<h3 id="adding-an-internet-gateway:ed16f33dbf5018a09918ad8ef3c5f741">Adding an Internet Gateway</h3>
+
+<p>Next we need to connect our VPC to the rest of the internet by attaching an internet gateway. Our VPC would be isolated from the internet without this.</p>
+
+<pre><code class="language-bash">$ internetGatewayId=`aws ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' --output text`
+$ aws ec2 attach-internet-gateway --internet-gateway-id $internetGatewayId --vpc-id $vpcId
+</code></pre>
+
+<h3 id="creating-a-subnet:ed16f33dbf5018a09918ad8ef3c5f741">Creating a Subnet</h3>
+
+<p>A VPC can have multiple subnets. Since our use case only requires one, we can reuse the cidr-block specified during VPC creation so as to get a single subnet that spans the entire VPC address space.</p>
+
+<pre><code class="language-bash">$ subnetId=`aws ec2 create-subnet --vpc-id $vpcId --cidr-block 10.0.0.0/28 --query 'Subnet.SubnetId' --output text`
+</code></pre>
+
+<p>While this <code>--cidr-block</code> parameter specifies a subnet that can contain 16 IP addresses (10.0.0.1 - 10.0.0.16), AWS will reserve 5 of those for private use. While this doesn&rsquo;t really have an impact on our use case, it is still good to be aware of such things.</p>
+
+<h3 id="configuring-the-route-table:ed16f33dbf5018a09918ad8ef3c5f741">Configuring the Route Table</h3>
+
+<p>Each subnet needs to have a route table associated with it to specify the routing of its outbound traffic. By default every subnet inherits the default VPC route table which allows for intra-VPC communication only.</p>
+
+<p>Here we add a route table to our subnet so as to allow traffic not meant for an instance inside the VPC to be routed to the internet through the internet gateway we created earlier.</p>
+
+<pre><code class="language-bash">$ routeTableId=`aws ec2 create-route-table --vpc-id $vpcId --query 'RouteTable.RouteTableId' --output text`
+$ aws ec2 associate-route-table --route-table-id $routeTableId --subnet-id $subnetId
+$ aws ec2 create-route --route-table-id $routeTableId --destination-cidr-block 0.0.0.0/0 --gateway-id $internetGatewayId
+</code></pre>
+
+<h3 id="adding-a-security-group:ed16f33dbf5018a09918ad8ef3c5f741">Adding a Security Group</h3>
+
+<p>Before we can launch an instance, we first need to create a security group that specifies which ports should allow traffic. For now we&rsquo;ll just allow anyone to try and make an SSH connection by opening port 22 to any IP address.</p>
+
+<pre><code class="language-bash">$ securityGroupId=`aws ec2 create-security-group --group-name my-security-group --description &quot;my-security-group&quot; --vpc-id $vpcId --query 'GroupId' --output text`
+$ aws ec2 authorize-security-group-ingress --group-id $securityGroupId --protocol tcp --port 22 --cidr 0.0.0.0/0
+</code></pre>
+
+<h3 id="launching-your-instance:ed16f33dbf5018a09918ad8ef3c5f741">Launching your Instance</h3>
+
+<p>All that&rsquo;s left to do is to create an SSH key pair and then launch an instance secured by this. Let&rsquo;s generate this key pair and store it locally with the correct permissions.</p>
+
+<pre><code class="language-bash">$ aws ec2 create-key-pair --key-name my-key --query 'KeyMaterial' --output text &gt; ~/.ssh/my-key.pem
+$ chmod 400 ~/.ssh/my-key.pem
+</code></pre>
+
+<p>We can now launch a single t2.micro instance based on the public AWS Ubuntu image.</p>
+
+<pre><code class="language-bash">$ instanceId=`aws ec2 run-instances --image-id ami-9eaa1cf6 --count 1 --instance-type t2.micro --key-name my-key --security-group-ids $securityGroupId --subnet-id $subnetId --associate-public-ip-address --query 'Instances[0].InstanceId' --output text`
+</code></pre>
+
+<p>After a few minutes your instance should be up and running. You should now be able to obtain the url of your active instance and SSH into it.</p>
+
+<pre><code class="language-bash">$ instanceUrl=`aws ec2 describe-instances --instance-ids $instanceId --query 'Reservations[0].Instances[0].PublicDnsName' --output text`
+$ ssh -i ~/.ssh/my-key.pem ubuntu@$instanceUrl
+</code></pre>
+
+<p>And that&rsquo;s it. It&rsquo;s really not all that hard. There&rsquo;s just an awful lot of concepts that you need to get your head around which can make it a bit daunting at first. Be sure to check out the free <a href="http://www.amazon.com/gp/product/B007S33NT2/ref=cm_cr_ryp_prd_ttl_sol_0">Amazon Virtual Private Cloud User Guide</a> if you want to learn more about VPCs.</p>
+
+    </div>
+  </div>
+
+</body>
+</html>

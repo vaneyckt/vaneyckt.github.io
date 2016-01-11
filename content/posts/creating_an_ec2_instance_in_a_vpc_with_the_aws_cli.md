@@ -8,7 +8,7 @@ topics = [ "aws" ]
 
 Setting up an EC2 instance on AWS used to be as straightforward as provisioning a machine and SSHing into it. However, this process has become a bit more complicated now that Amazon VPC has become the standard for managing machines in the cloud.
 
-So what exactly is a Virtual Private Cloud? Amazon defines a VPC as a 'a logically isolated section of the AWS Cloud'. Instances inside a VPC can by default only communicate with other instances in the same VPC and are therefore invisible to the rest of the internet. This means they will not accept SSH connections coming from your computer, nor will they respond to any http requests. In this article we'll look into changing these default settings into something more befitting a general purpose server.
+So what exactly is a Virtual Private Cloud? Amazon defines a VPC as 'a logically isolated section of the AWS Cloud'. Instances inside a VPC can by default only communicate with other instances in the same VPC and are therefore invisible to the rest of the internet. This means they will not accept SSH connections coming from your computer, nor will they respond to any http requests. In this article we'll look into changing these default settings into something more befitting a general purpose server.
 
 ### Setting up your VPC
 

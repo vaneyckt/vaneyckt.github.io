@@ -256,6 +256,97 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>Creating an EC2 Instance in a VPC with the AWS CLI</title>
+      <link>http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</link>
+      <pubDate>Wed, 29 Oct 2014 17:36:12 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</guid>
+      <description>
+
+&lt;p&gt;Setting up an EC2 instance on AWS used to be as straightforward as provisioning a machine and SSHing into it. However, this process has become a bit more complicated now that Amazon VPC has become the standard for managing machines in the cloud.&lt;/p&gt;
+
+&lt;p&gt;So what exactly is a Virtual Private Cloud? Amazon defines a VPC as &amp;lsquo;a logically isolated section of the AWS Cloud&amp;rsquo;. Instances inside a VPC can by default only communicate with other instances in the same VPC and are therefore invisible to the rest of the internet. This means they will not accept SSH connections coming from your computer, nor will they respond to any http requests. In this article we&amp;rsquo;ll look into changing these default settings into something more befitting a general purpose server.&lt;/p&gt;
+
+&lt;h3 id=&#34;setting-up-your-vpc:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Setting up your VPC&lt;/h3&gt;
+
+&lt;p&gt;Start by installing the &lt;a href=&#34;http://aws.amazon.com/cli&#34;&gt;AWS Command Line Interface&lt;/a&gt; on your machine if you haven&amp;rsquo;t done so already. With this done, we can now create our VPC.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ vpcId=`aws ec2 create-vpc --cidr-block 10.0.0.0/28 --query &#39;Vpc.VpcId&#39; --output text`
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There are several interesting things here:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;the &lt;code&gt;--cidr-block&lt;/code&gt; parameter specifies a /28 netmask that allows for 16 IP addresses. This is the smallest supported netmask.&lt;/li&gt;
+&lt;li&gt;the &lt;code&gt;create-vpc&lt;/code&gt; command returns a JSON string. We can filter out specific fields from this string by using the &lt;code&gt;--query&lt;/code&gt; and &lt;code&gt;--output&lt;/code&gt; parameters.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The next step is to overwrite the default VPC DNS settings. As mentioned earlier, instances launched inside a VPC are invisible to the rest of the internet by default. AWS therefore does not bother assigning them a public DNS name. Luckily this can be changed easily.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ aws ec2 modify-vpc-attribute --vpc-id $vpcId --enable-dns-support &amp;quot;{\&amp;quot;Value\&amp;quot;:true}&amp;quot;
+$ aws ec2 modify-vpc-attribute --vpc-id $vpcId --enable-dns-hostnames &amp;quot;{\&amp;quot;Value\&amp;quot;:true}&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;adding-an-internet-gateway:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Adding an Internet Gateway&lt;/h3&gt;
+
+&lt;p&gt;Next we need to connect our VPC to the rest of the internet by attaching an internet gateway. Our VPC would be isolated from the internet without this.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ internetGatewayId=`aws ec2 create-internet-gateway --query &#39;InternetGateway.InternetGatewayId&#39; --output text`
+$ aws ec2 attach-internet-gateway --internet-gateway-id $internetGatewayId --vpc-id $vpcId
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;creating-a-subnet:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Creating a Subnet&lt;/h3&gt;
+
+&lt;p&gt;A VPC can have multiple subnets. Since our use case only requires one, we can reuse the cidr-block specified during VPC creation so as to get a single subnet that spans the entire VPC address space.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ subnetId=`aws ec2 create-subnet --vpc-id $vpcId --cidr-block 10.0.0.0/28 --query &#39;Subnet.SubnetId&#39; --output text`
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;While this &lt;code&gt;--cidr-block&lt;/code&gt; parameter specifies a subnet that can contain 16 IP addresses (10.0.0.1 - 10.0.0.16), AWS will reserve 5 of those for private use. While this doesn&amp;rsquo;t really have an impact on our use case, it is still good to be aware of such things.&lt;/p&gt;
+
+&lt;h3 id=&#34;configuring-the-route-table:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Configuring the Route Table&lt;/h3&gt;
+
+&lt;p&gt;Each subnet needs to have a route table associated with it to specify the routing of its outbound traffic. By default every subnet inherits the default VPC route table which allows for intra-VPC communication only.&lt;/p&gt;
+
+&lt;p&gt;Here we add a route table to our subnet so as to allow traffic not meant for an instance inside the VPC to be routed to the internet through the internet gateway we created earlier.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ routeTableId=`aws ec2 create-route-table --vpc-id $vpcId --query &#39;RouteTable.RouteTableId&#39; --output text`
+$ aws ec2 associate-route-table --route-table-id $routeTableId --subnet-id $subnetId
+$ aws ec2 create-route --route-table-id $routeTableId --destination-cidr-block 0.0.0.0/0 --gateway-id $internetGatewayId
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;adding-a-security-group:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Adding a Security Group&lt;/h3&gt;
+
+&lt;p&gt;Before we can launch an instance, we first need to create a security group that specifies which ports should allow traffic. For now we&amp;rsquo;ll just allow anyone to try and make an SSH connection by opening port 22 to any IP address.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ securityGroupId=`aws ec2 create-security-group --group-name my-security-group --description &amp;quot;my-security-group&amp;quot; --vpc-id $vpcId --query &#39;GroupId&#39; --output text`
+$ aws ec2 authorize-security-group-ingress --group-id $securityGroupId --protocol tcp --port 22 --cidr 0.0.0.0/0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;launching-your-instance:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Launching your Instance&lt;/h3&gt;
+
+&lt;p&gt;All that&amp;rsquo;s left to do is to create an SSH key pair and then launch an instance secured by this. Let&amp;rsquo;s generate this key pair and store it locally with the correct permissions.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ aws ec2 create-key-pair --key-name my-key --query &#39;KeyMaterial&#39; --output text &amp;gt; ~/.ssh/my-key.pem
+$ chmod 400 ~/.ssh/my-key.pem
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We can now launch a single t2.micro instance based on the public AWS Ubuntu image.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ instanceId=`aws ec2 run-instances --image-id ami-9eaa1cf6 --count 1 --instance-type t2.micro --key-name my-key --security-group-ids $securityGroupId --subnet-id $subnetId --associate-public-ip-address --query &#39;Instances[0].InstanceId&#39; --output text`
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After a few minutes your instance should be up and running. You should now be able to obtain the url of your active instance and SSH into it.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ instanceUrl=`aws ec2 describe-instances --instance-ids $instanceId --query &#39;Reservations[0].Instances[0].PublicDnsName&#39; --output text`
+$ ssh -i ~/.ssh/my-key.pem ubuntu@$instanceUrl
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And that&amp;rsquo;s it. It&amp;rsquo;s really not all that hard. There&amp;rsquo;s just an awful lot of concepts that you need to get your head around which can make it a bit daunting at first. Be sure to check out the free &lt;a href=&#34;http://www.amazon.com/gp/product/B007S33NT2/ref=cm_cr_ryp_prd_ttl_sol_0&#34;&gt;Amazon Virtual Private Cloud User Guide&lt;/a&gt; if you want to learn more about VPCs.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Adding a post-execution hook to the db:migrate task</title>
       <link>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
       <pubDate>Mon, 09 Jun 2014 16:31:22 +0000</pubDate>
@@ -672,75 +763,6 @@ end
 &lt;p&gt;This could then be run like so.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;skip_checks=true bundle exec rake db:migrate
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Getting connection information with lsof</title>
-      <link>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</link>
-      <pubDate>Mon, 21 Oct 2013 17:21:52 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</guid>
-      <description>
-
-&lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/8/lsof&#34;&gt;lsof command&lt;/a&gt; is one of those super useful commands for figuring out what connections are taking place on your machine. While the &lt;code&gt;lsof&lt;/code&gt; command technically just lists open files, just about everything in linux (even sockets) is a file!&lt;/p&gt;
-
-&lt;p&gt;Some useful commands:&lt;/p&gt;
-
-&lt;h4 id=&#34;list-all-network-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;List all network connections&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i
-
-COMMAND     PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
-Spotify   36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
-Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:4371 (LISTEN)
-Spotify   36908 vaneyckt   71u  IPv4 0x2097c8deba747c1d      0t0  UDP *:57621
-Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cf      0t0  TCP *:57621 (LISTEN)
-Spotify   36908 vaneyckt   77u  IPv4 0x2097c8deb993b255      0t0  UDP ip-192-168-0-101.ec2.internal:61009
-Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&amp;gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
-Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;list-all-network-connections-on-port-4381:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;List all network connections on port 4381&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i :4381
-
-COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
-Spotify 36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;find-ports-listening-for-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Find ports listening for connections&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i | grep -i LISTEN
-
-Spotify   36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
-Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:4371 (LISTEN)
-Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cf      0t0  TCP *:57621 (LISTEN)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;find-established-connections:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Find established connections&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -i | grep -i ESTABLISHED
-
-Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&amp;gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;show-all-files-opened-by-a-given-process:af3807b2c0cfda8f5c0a92778b96cb1b&#34;&gt;Show all files opened by a given process&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lsof -p 36908
-
-COMMAND   PID     USER   FD     TYPE             DEVICE  SIZE/OFF     NODE NAME
-Spotify 36908 vaneyckt   90u    IPv4 0x2097c8dea8c4a66d       0t0      TCP ip-192-168-0-101.ec2.internal:62432-&amp;gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
-Spotify 36908 vaneyckt   91u    IPv4 0x2097c8de8d029f2d       0t0      UDP ip-192-168-0-101.ec2.internal:52706
-Spotify 36908 vaneyckt   92u     REG                1,4   9389456 59387889 /Users/vaneyckt/Library/Caches/com.spotify.client/Data/4a/4a5a23cf1e9dc4210b3c801d57a899098dc12418.file
-Spotify 36908 vaneyckt   93u     REG                1,4   8658944 58471210 /private/var/folders/xv/fjmwzr9x5mq_s7dchjq87hjm0000gn/T/.org.chromium.Chromium.6b0Vzp
-Spotify 36908 vaneyckt   94u     REG                1,4    524656 54784499 /Users/vaneyckt/Library/Caches/com.spotify.client/Browser/index
-Spotify 36908 vaneyckt   95u     REG                1,4     81920 54784500 /Users/vaneyckt/Library/Caches/com.spotify.client/Browser/data_0
-Spotify 36908 vaneyckt   96u     REG                1,4    532480 54784501 /Users/vaneyckt/Library/Caches/com.spotify.client/Browser/data_1
-Spotify 36908 vaneyckt   97u     REG                1,4   2105344 54784502 /Users/vaneyckt/Library/Caches/com.spotify.client/Browser/data_2
-Spotify 36908 vaneyckt   98u     REG                1,4  12591104 54784503 /Users/vaneyckt/Library/Caches/com.spotify.client/Browser/data_3
-Spotify 36908 vaneyckt   99r     REG                1,4    144580    28952 /System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/HIToolbox.framework/Versions/A/Resources/HIToolbox.rsrc
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>

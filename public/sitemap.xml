@@ -18,6 +18,11 @@
   </url>
   
   <url>
+    <loc>http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</loc>
+    <lastmod>2014-10-29T17:36:12+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</loc>
     <lastmod>2014-06-09T16:31:22+00:00</lastmod>
   </url>
