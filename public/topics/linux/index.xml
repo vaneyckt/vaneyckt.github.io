@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Linux on vaneyckt.io</title>
-    <link>http://vaneyckt.io/topics/linux/</link>
+    <link>http://localhost:1313/topics/linux/</link>
     <description>Recent content in Linux on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Sun, 16 Aug 2015 19:43:34 +0000</lastBuildDate>
-    <atom:link href="http://vaneyckt.io/topics/linux/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/topics/linux/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Installing Chromedriver</title>
-      <link>http://vaneyckt.io/posts/installing_chromedriver/</link>
+      <link>http://localhost:1313/posts/installing_chromedriver/</link>
       <pubDate>Sun, 16 Aug 2015 19:43:34 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
+      <guid>http://localhost:1313/posts/installing_chromedriver/</guid>
       <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
 
 &lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
@@ -53,11 +53,89 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>Safer bash scripts with &#39;set -euxo pipefail&#39;</title>
+      <link>http://localhost:1313/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
+      <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
+      
+      <guid>http://localhost:1313/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
+      <description>&lt;p&gt;the -e makes it fail if anything returns a non-zero value
+means you don&amp;rsquo;t have to explicitly check for it, cleaner code&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://sipb.mit.edu/doc/safe-shell/&#34;&gt;https://sipb.mit.edu/doc/safe-shell/&lt;/a&gt;
+&lt;a href=&#34;http://blog.kablamo.org/2015/11/08/bash-tricks-eux/&#34;&gt;http://blog.kablamo.org/2015/11/08/bash-tricks-eux/&lt;/a&gt;
+be sure to start code examples here with /bin/bash &lt;a href=&#34;https://gist.github.com/jistr/2575b78058fed8be36d9&#34;&gt;https://gist.github.com/jistr/2575b78058fed8be36d9&lt;/a&gt;
+&lt;a href=&#34;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&#34;&gt;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&lt;/a&gt;
+&lt;a href=&#34;https://stackoverflow.com/questions/821396/aborting-a-shell-script-if-any-command-returns-a-non-zero-value&#34;&gt;https://stackoverflow.com/questions/821396/aborting-a-shell-script-if-any-command-returns-a-non-zero-value&lt;/a&gt;
+&lt;a href=&#34;http://lists.openembedded.org/pipermail/openembedded-core/2015-August/108706.html&#34;&gt;http://lists.openembedded.org/pipermail/openembedded-core/2015-August/108706.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;tom [5:49 PM]
+@emil.varga: are you sure this is correct? &lt;a href=&#34;https://github.com/Swrve/swrve/blob/release-74/batch/test_emrlib.py#L147&#34;&gt;https://github.com/Swrve/swrve/blob/release-74/batch/test_emrlib.py#L147&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;emil.varga [5:51 PM]
+the last time I&amp;rsquo;ve looked it seemed ok, why?&lt;/p&gt;
+
+&lt;p&gt;​[5:52]
+it checks that the method returns the previous value&lt;/p&gt;
+
+&lt;p&gt;tom [5:54 PM]
+because it looks like deleting that env var, would cause the EmrLib to return /mnt/tmp(edited)&lt;/p&gt;
+
+&lt;p&gt;​[5:54]
+&lt;a href=&#34;https://github.com/Swrve/swrve/blob/release-74/batch/swrve/emr.py#L301&#34;&gt;https://github.com/Swrve/swrve/blob/release-74/batch/swrve/emr.py#L301&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;​[5:56]
+@emil.varga: ^&lt;/p&gt;
+
+&lt;p&gt;emil.varga [5:57 PM]
+ook.. yes that would have been the prev value&lt;/p&gt;
+
+&lt;p&gt;​[5:57]
+is that breaking the CI as the ENV variable is deleted?&lt;/p&gt;
+
+&lt;p&gt;tom [5:58 PM]
+it wasnt :simple_smile:&lt;/p&gt;
+
+&lt;p&gt;​[5:58]
+but now it will&lt;/p&gt;
+
+&lt;p&gt;emil.varga [5:58 PM]
+hahaha&lt;/p&gt;
+
+&lt;p&gt;​[5:59]
+why?&lt;/p&gt;
+
+&lt;p&gt;tom [5:59 PM]
+the script that ran those tests did not have &amp;ldquo;set -e&amp;rdquo; at the top&lt;/p&gt;
+
+&lt;p&gt;emil.varga [5:59 PM]
+ok&lt;/p&gt;
+
+&lt;p&gt;tom [5:59 PM]
+so the non-zero value being returned by the python test runner did not crash the test&lt;/p&gt;
+
+&lt;p&gt;emil.varga [5:59 PM]
+was it returning non-zero values?&lt;/p&gt;
+
+&lt;p&gt;​[5:59]
+so the tests were breaking??&lt;/p&gt;
+
+&lt;p&gt;tom [6:00 PM]
+it was throwing an exception, but some other code ran after that. So the final exit value of the script was still 0.&lt;/p&gt;
+
+&lt;p&gt;​[6:00]
+yes, the test was breaking&lt;/p&gt;
+
+&lt;p&gt;​[6:00]
+but the breakage did not fail the build&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Getting connection information with lsof</title>
-      <link>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</link>
+      <link>http://localhost:1313/posts/getting_connection_information_with_lsof/</link>
       <pubDate>Mon, 21 Oct 2013 17:21:52 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</guid>
+      <guid>http://localhost:1313/posts/getting_connection_information_with_lsof/</guid>
       <description>
 
 &lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/8/lsof&#34;&gt;lsof command&lt;/a&gt; is one of those super useful commands for figuring out what connections are taking place on your machine. While the &lt;code&gt;lsof&lt;/code&gt; command technically just lists open files, just about everything in linux (even sockets) is a file!&lt;/p&gt;
@@ -123,10 +201,10 @@ Spotify 36908 vaneyckt   99r     REG                1,4    144580    28952 /Syst
     
     <item>
       <title>The dig command</title>
-      <link>http://vaneyckt.io/posts/the_dig_command/</link>
+      <link>http://localhost:1313/posts/the_dig_command/</link>
       <pubDate>Tue, 08 Oct 2013 13:24:17 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_dig_command/</guid>
+      <guid>http://localhost:1313/posts/the_dig_command/</guid>
       <description>&lt;p&gt;Today I learned of the existence of the &lt;a href=&#34;http://linux.die.net/man/1/dig&#34;&gt;dig command&lt;/a&gt;. A very useful little tool for DNS lookups. Here&amp;rsquo;s an example of it in action.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ dig www.google.com

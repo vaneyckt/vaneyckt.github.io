@@ -7,16 +7,16 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
-  <meta property="og:title" content="Installing Chromedriver" />
+  <meta property="og:title" content="Safer bash scripts with &#39;set -euxo pipefail&#39;" />
 <meta property="og:description" content="" />
 
 <meta property="og:type" content="article" />
 
 <meta property="og:locale" content="en_US" />
-<meta property="og:url" content="http://localhost:1313/posts/installing_chromedriver/" />
+<meta property="og:url" content="http://localhost:1313/posts/safer_bash_scripts_with_set_euxo_pipefail/" />
 
 
-  <title> Installing Chromedriver  &middot; vaneyckt.io </title>
+  <title> Safer bash scripts with &#39;set -euxo pipefail&#39;  &middot; vaneyckt.io </title>
 
   
 
@@ -97,41 +97,77 @@
 
   <div class="content container">
     <div class="post">
-      <h1 class="post-title">Installing Chromedriver</h1>
-      <span class="post-date">Aug 16, 2015</span>
-      <p>Some time ago I needed to install <a href="https://sites.google.com/a/chromium.org/chromedriver/">chromedriver</a> on a ubuntu machine. While this wasn&rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.</p>
+      <h1 class="post-title">Safer bash scripts with &#39;set -euxo pipefail&#39;</h1>
+      <span class="post-date">May 14, 2014</span>
+      <p>the -e makes it fail if anything returns a non-zero value
+means you don&rsquo;t have to explicitly check for it, cleaner code</p>
 
-<p>First of all, let&rsquo;s install chromedriver.</p>
+<p><a href="https://sipb.mit.edu/doc/safe-shell/">https://sipb.mit.edu/doc/safe-shell/</a>
+<a href="http://blog.kablamo.org/2015/11/08/bash-tricks-eux/">http://blog.kablamo.org/2015/11/08/bash-tricks-eux/</a>
+be sure to start code examples here with /bin/bash <a href="https://gist.github.com/jistr/2575b78058fed8be36d9">https://gist.github.com/jistr/2575b78058fed8be36d9</a>
+<a href="https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html">https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html</a>
+<a href="https://stackoverflow.com/questions/821396/aborting-a-shell-script-if-any-command-returns-a-non-zero-value">https://stackoverflow.com/questions/821396/aborting-a-shell-script-if-any-command-returns-a-non-zero-value</a>
+<a href="http://lists.openembedded.org/pipermail/openembedded-core/2015-August/108706.html">http://lists.openembedded.org/pipermail/openembedded-core/2015-August/108706.html</a></p>
 
-<pre><code class="language-bash">$ LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-$ wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
-$ unzip chromedriver_linux64.zip
-$ rm chromedriver_linux64.zip
-$ sudo mv chromedriver /usr/local/bin
-</code></pre>
+<p>tom [5:49 PM]
+@emil.varga: are you sure this is correct? <a href="https://github.com/Swrve/swrve/blob/release-74/batch/test_emrlib.py#L147">https://github.com/Swrve/swrve/blob/release-74/batch/test_emrlib.py#L147</a></p>
 
-<p>Let&rsquo;s see what happens when we try and run it.</p>
+<p>emil.varga [5:51 PM]
+the last time I&rsquo;ve looked it seemed ok, why?</p>
 
-<pre><code class="language-bash">$ chromedriver
+<p>​[5:52]
+it checks that the method returns the previous value</p>
 
-chromedriver: error while loading shared libraries: libgconf-2.so.4:
-cannot open shared object file: No such file or directory
-</code></pre>
+<p>tom [5:54 PM]
+because it looks like deleting that env var, would cause the EmrLib to return /mnt/tmp(edited)</p>
 
-<p>That&rsquo;s a bit unexpected. Luckily we can easily fix this.</p>
+<p>​[5:54]
+<a href="https://github.com/Swrve/swrve/blob/release-74/batch/swrve/emr.py#L301">https://github.com/Swrve/swrve/blob/release-74/batch/swrve/emr.py#L301</a></p>
 
-<pre><code class="language-bash">$ sudo apt-get install libgconf-2-4
-</code></pre>
+<p>​[5:56]
+@emil.varga: ^</p>
 
-<p>Now that we have a functioning chromedriver, the only thing left to do is to install Chrome. After all, chromedriver can&rsquo;t function without Chrome.</p>
+<p>emil.varga [5:57 PM]
+ook.. yes that would have been the prev value</p>
 
-<pre><code class="language-bash">$ wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-$ sudo sh -c 'echo &quot;deb http://dl.google.com/linux/chrome/deb/ stable main&quot; &gt;&gt; /etc/apt/sources.list.d/google.list'
-$ sudo apt-get update
-$ sudo apt-get install google-chrome-stable
-</code></pre>
+<p>​[5:57]
+is that breaking the CI as the ENV variable is deleted?</p>
 
-<p>And that&rsquo;s it. You should be good to go now.</p>
+<p>tom [5:58 PM]
+it wasnt :simple_smile:</p>
+
+<p>​[5:58]
+but now it will</p>
+
+<p>emil.varga [5:58 PM]
+hahaha</p>
+
+<p>​[5:59]
+why?</p>
+
+<p>tom [5:59 PM]
+the script that ran those tests did not have &ldquo;set -e&rdquo; at the top</p>
+
+<p>emil.varga [5:59 PM]
+ok</p>
+
+<p>tom [5:59 PM]
+so the non-zero value being returned by the python test runner did not crash the test</p>
+
+<p>emil.varga [5:59 PM]
+was it returning non-zero values?</p>
+
+<p>​[5:59]
+so the tests were breaking??</p>
+
+<p>tom [6:00 PM]
+it was throwing an exception, but some other code ran after that. So the final exit value of the script was still 0.</p>
+
+<p>​[6:00]
+yes, the test was breaking</p>
+
+<p>​[6:00]
+but the breakage did not fail the build</p>
 
     </div>
   </div>

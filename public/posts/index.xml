@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on vaneyckt.io</title>
-    <link>http://vaneyckt.io/posts/</link>
+    <link>http://localhost:1313/posts/</link>
     <description>Recent content in Posts on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Sat, 26 Sep 2015 17:54:23 +0000</lastBuildDate>
-    <atom:link href="http://vaneyckt.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>A javascript closures recap</title>
-      <link>http://vaneyckt.io/posts/a_javascript_closures_recap/</link>
+      <link>http://localhost:1313/posts/a_javascript_closures_recap/</link>
       <pubDate>Sat, 26 Sep 2015 17:54:23 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/a_javascript_closures_recap/</guid>
+      <guid>http://localhost:1313/posts/a_javascript_closures_recap/</guid>
       <description>
 
 &lt;p&gt;Javascript closures have always been one those things that I used to navigate by intuition. Recently however, upon stumbling across some code that I did not quite grok, it became clear I should try and obtain a more formal understanding. This post is mainly intended as a quick recap for my future self. It won&amp;rsquo;t go into all the details about closures; instead it will focus on the bits that I found most helpful.&lt;/p&gt;
@@ -215,10 +215,10 @@ foo();        // returns 3
     
     <item>
       <title>Installing Chromedriver</title>
-      <link>http://vaneyckt.io/posts/installing_chromedriver/</link>
+      <link>http://localhost:1313/posts/installing_chromedriver/</link>
       <pubDate>Sun, 16 Aug 2015 19:43:34 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
+      <guid>http://localhost:1313/posts/installing_chromedriver/</guid>
       <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
 
 &lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
@@ -257,10 +257,10 @@ $ sudo apt-get install google-chrome-stable
     
     <item>
       <title>Creating an EC2 Instance in a VPC with the AWS CLI</title>
-      <link>http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</link>
+      <link>http://localhost:1313/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</link>
       <pubDate>Wed, 29 Oct 2014 17:36:12 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</guid>
+      <guid>http://localhost:1313/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</guid>
       <description>
 
 &lt;p&gt;Setting up an EC2 instance on AWS used to be as straightforward as provisioning a machine and SSHing into it. However, this process has become a bit more complicated now that Amazon VPC has become the standard for managing machines in the cloud.&lt;/p&gt;
@@ -348,10 +348,10 @@ $ ssh -i ~/.ssh/my-key.pem ubuntu@$instanceUrl
     
     <item>
       <title>Adding a post-execution hook to the db:migrate task</title>
-      <link>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
+      <link>http://localhost:1313/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
       <pubDate>Mon, 09 Jun 2014 16:31:22 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
+      <guid>http://localhost:1313/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
       <description>&lt;p&gt;A few days ago we discovered that our MySQL database&amp;rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&amp;rsquo;t happen again, we looked into adding a post-execution hook to the rails db:migrate task.&lt;/p&gt;
 
 &lt;p&gt;Our first attempt is shown below. Here, we append a post-execution hook to the existing db:migrate task by creating a new db:migrate task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails db:migrate task, we are actually just appending a call to the &lt;code&gt;post_execution_hook&lt;/code&gt; method to it.&lt;/p&gt;
@@ -389,21 +389,99 @@ Rake::Task[&#39;db:migrate&#39;].enhance([&#39;db:attach_hook&#39;])
     </item>
     
     <item>
-      <title>String.isEmpty() is not available before Android 2.3</title>
-      <link>http://vaneyckt.io/posts/string_isEmpty_is_not_available_before_android_2_3/</link>
+      <title>Safer bash scripts with &#39;set -euxo pipefail&#39;</title>
+      <link>http://localhost:1313/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
       <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/string_isEmpty_is_not_available_before_android_2_3/</guid>
+      <guid>http://localhost:1313/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
+      <description>&lt;p&gt;the -e makes it fail if anything returns a non-zero value
+means you don&amp;rsquo;t have to explicitly check for it, cleaner code&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://sipb.mit.edu/doc/safe-shell/&#34;&gt;https://sipb.mit.edu/doc/safe-shell/&lt;/a&gt;
+&lt;a href=&#34;http://blog.kablamo.org/2015/11/08/bash-tricks-eux/&#34;&gt;http://blog.kablamo.org/2015/11/08/bash-tricks-eux/&lt;/a&gt;
+be sure to start code examples here with /bin/bash &lt;a href=&#34;https://gist.github.com/jistr/2575b78058fed8be36d9&#34;&gt;https://gist.github.com/jistr/2575b78058fed8be36d9&lt;/a&gt;
+&lt;a href=&#34;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&#34;&gt;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&lt;/a&gt;
+&lt;a href=&#34;https://stackoverflow.com/questions/821396/aborting-a-shell-script-if-any-command-returns-a-non-zero-value&#34;&gt;https://stackoverflow.com/questions/821396/aborting-a-shell-script-if-any-command-returns-a-non-zero-value&lt;/a&gt;
+&lt;a href=&#34;http://lists.openembedded.org/pipermail/openembedded-core/2015-August/108706.html&#34;&gt;http://lists.openembedded.org/pipermail/openembedded-core/2015-August/108706.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;tom [5:49 PM]
+@emil.varga: are you sure this is correct? &lt;a href=&#34;https://github.com/Swrve/swrve/blob/release-74/batch/test_emrlib.py#L147&#34;&gt;https://github.com/Swrve/swrve/blob/release-74/batch/test_emrlib.py#L147&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;emil.varga [5:51 PM]
+the last time I&amp;rsquo;ve looked it seemed ok, why?&lt;/p&gt;
+
+&lt;p&gt;​[5:52]
+it checks that the method returns the previous value&lt;/p&gt;
+
+&lt;p&gt;tom [5:54 PM]
+because it looks like deleting that env var, would cause the EmrLib to return /mnt/tmp(edited)&lt;/p&gt;
+
+&lt;p&gt;​[5:54]
+&lt;a href=&#34;https://github.com/Swrve/swrve/blob/release-74/batch/swrve/emr.py#L301&#34;&gt;https://github.com/Swrve/swrve/blob/release-74/batch/swrve/emr.py#L301&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;​[5:56]
+@emil.varga: ^&lt;/p&gt;
+
+&lt;p&gt;emil.varga [5:57 PM]
+ook.. yes that would have been the prev value&lt;/p&gt;
+
+&lt;p&gt;​[5:57]
+is that breaking the CI as the ENV variable is deleted?&lt;/p&gt;
+
+&lt;p&gt;tom [5:58 PM]
+it wasnt :simple_smile:&lt;/p&gt;
+
+&lt;p&gt;​[5:58]
+but now it will&lt;/p&gt;
+
+&lt;p&gt;emil.varga [5:58 PM]
+hahaha&lt;/p&gt;
+
+&lt;p&gt;​[5:59]
+why?&lt;/p&gt;
+
+&lt;p&gt;tom [5:59 PM]
+the script that ran those tests did not have &amp;ldquo;set -e&amp;rdquo; at the top&lt;/p&gt;
+
+&lt;p&gt;emil.varga [5:59 PM]
+ok&lt;/p&gt;
+
+&lt;p&gt;tom [5:59 PM]
+so the non-zero value being returned by the python test runner did not crash the test&lt;/p&gt;
+
+&lt;p&gt;emil.varga [5:59 PM]
+was it returning non-zero values?&lt;/p&gt;
+
+&lt;p&gt;​[5:59]
+so the tests were breaking??&lt;/p&gt;
+
+&lt;p&gt;tom [6:00 PM]
+it was throwing an exception, but some other code ran after that. So the final exit value of the script was still 0.&lt;/p&gt;
+
+&lt;p&gt;​[6:00]
+yes, the test was breaking&lt;/p&gt;
+
+&lt;p&gt;​[6:00]
+but the breakage did not fail the build&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>String.isEmpty() is not available before Android 2.3</title>
+      <link>http://localhost:1313/posts/string_isEmpty_is_not_available_before_android_2_3/</link>
+      <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
+      
+      <guid>http://localhost:1313/posts/string_isEmpty_is_not_available_before_android_2_3/</guid>
       <description>&lt;p&gt;Today I learned that Android API level 8 and lower does &lt;a href=&#34;http://stackoverflow.com/questions/5244927/cant-call-string-isempty-in-android&#34;&gt;not support String.isEmpty()&lt;/a&gt;. Keep this is mind when you’re working on an app that needs to be able to run on older phones and use &lt;code&gt;String.length() == 0&lt;/code&gt; instead.&lt;/p&gt;
 </description>
     </item>
     
     <item>
       <title>Programmatically rotating the Android screen</title>
-      <link>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</link>
+      <link>http://localhost:1313/posts/programmatically_rotating_the_android_screen/</link>
       <pubDate>Thu, 20 Mar 2014 20:08:17 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</guid>
+      <guid>http://localhost:1313/posts/programmatically_rotating_the_android_screen/</guid>
       <description>&lt;p&gt;A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the &lt;code&gt;dumpsys&lt;/code&gt; output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# get current orientation
@@ -434,10 +512,10 @@ myActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     
     <item>
       <title>Programmatically creating Android touch events</title>
-      <link>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</link>
+      <link>http://localhost:1313/posts/programmatically_creating_android_touch_events/</link>
       <pubDate>Tue, 04 Mar 2014 20:40:56 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</guid>
+      <guid>http://localhost:1313/posts/programmatically_creating_android_touch_events/</guid>
       <description>&lt;p&gt;Recent versions of Android have the &lt;code&gt;adb shell input touch&lt;/code&gt; functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running &lt;code&gt;adb shell getevent&lt;/code&gt; to capture events as they are being generated. These events can then later be replayed using the &lt;code&gt;adb shell sendevent&lt;/code&gt; command.&lt;/p&gt;
 
 &lt;p&gt;Running &lt;code&gt;adb shell getevent&lt;/code&gt; when touching the screen might get you something like shown below. Notice how the output is in hexadecimal.&lt;/p&gt;
@@ -476,10 +554,10 @@ adb shell sendevent /dev/input/event7: 0 0 0
     
     <item>
       <title>Some lesser known Github API functionality</title>
-      <link>http://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</link>
+      <link>http://localhost:1313/posts/some_lesser_known_github_api_functionality/</link>
       <pubDate>Sat, 08 Feb 2014 18:05:12 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</guid>
+      <guid>http://localhost:1313/posts/some_lesser_known_github_api_functionality/</guid>
       <description>
 
 &lt;p&gt;One of our automation tools occasionally needs to interact with our Github repositories. Unfortunately, the current implementation of this tool leaves something to be desired as it requires cloning these repositories to local disk. Changes against these local repositories are then made on local branches, after which these branches get pushed to Github.&lt;/p&gt;
@@ -537,10 +615,10 @@ end
     
     <item>
       <title>The amazing bitwise XOR operator</title>
-      <link>http://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</link>
+      <link>http://localhost:1313/posts/the_amazing_bitwise_xor_operator/</link>
       <pubDate>Sun, 12 Jan 2014 19:35:25 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</guid>
+      <guid>http://localhost:1313/posts/the_amazing_bitwise_xor_operator/</guid>
       <description>
 
 &lt;p&gt;One of my colleagues recently mentioned this interview question to me.&lt;/p&gt;
@@ -625,20 +703,20 @@ end
     
     <item>
       <title>A visual explanation of SQL joins</title>
-      <link>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</link>
+      <link>http://localhost:1313/posts/a_visual_explanation_of_sql_joins/</link>
       <pubDate>Sun, 17 Nov 2013 20:22:17 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</guid>
+      <guid>http://localhost:1313/posts/a_visual_explanation_of_sql_joins/</guid>
       <description>&lt;p&gt;I admit that I find myself going to &lt;a href=&#34;http://blog.codinghorror.com/a-visual-explanation-of-sql-joins/&#34;&gt;this article&lt;/a&gt; every time I need to write some joins. Hopefully putting it here will save me from always having to google it.&lt;/p&gt;
 </description>
     </item>
     
     <item>
       <title>Check the order of your rescue_from handlers!</title>
-      <link>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</link>
+      <link>http://localhost:1313/posts/check_the_order_of_your_rescue_from_handlers/</link>
       <pubDate>Mon, 11 Nov 2013 21:34:16 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</guid>
+      <guid>http://localhost:1313/posts/check_the_order_of_your_rescue_from_handlers/</guid>
       <description>&lt;p&gt;Our &lt;code&gt;rescue_from&lt;/code&gt; handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;class WidgetsController &amp;lt; ActionController::Base
@@ -659,10 +737,10 @@ end
     
     <item>
       <title>The javascript event loop</title>
-      <link>http://vaneyckt.io/posts/the_javascript_event_loop/</link>
+      <link>http://localhost:1313/posts/the_javascript_event_loop/</link>
       <pubDate>Sun, 10 Nov 2013 20:50:04 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_javascript_event_loop/</guid>
+      <guid>http://localhost:1313/posts/the_javascript_event_loop/</guid>
       <description>&lt;p&gt;Sometimes you come across an article that is so well written you can&amp;rsquo;t do anything but link to it. So if you&amp;rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give &lt;a href=&#34;http://blog.carbonfive.com/2013/10/27/the-javascript-event-loop-explained/&#34;&gt;this article&lt;/a&gt; a read.&lt;/p&gt;
 
 &lt;p&gt;Some snippets:&lt;/p&gt;
@@ -685,10 +763,10 @@ end
     
     <item>
       <title>Bug hunting with git bisect</title>
-      <link>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</link>
+      <link>http://localhost:1313/posts/bug_hunting_with_git_bisect/</link>
       <pubDate>Mon, 04 Nov 2013 20:02:14 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</guid>
+      <guid>http://localhost:1313/posts/bug_hunting_with_git_bisect/</guid>
       <description>&lt;p&gt;Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.&lt;/p&gt;
 
 &lt;p&gt;It was at this point that I remembered &lt;code&gt;git bisect&lt;/code&gt;. This git command asks you to specify two commits: one where things are working, and another one where things are broken. It then does a binary search across the range of commits in between these two. Each search step asks you whether the current commit contains broken code or not, after which it automatically selects the next commit for you. There&amp;rsquo;s a great tutorial over &lt;a href=&#34;http://webchick.net/node/99&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
@@ -704,10 +782,10 @@ $ git bisect bad 2q7f529
     
     <item>
       <title>Why is MySQL converting my NULLs to blanks?</title>
-      <link>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</link>
+      <link>http://localhost:1313/posts/why_is_mysql_converting_my_nulls_to_blanks/</link>
       <pubDate>Fri, 01 Nov 2013 19:17:56 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</guid>
+      <guid>http://localhost:1313/posts/why_is_mysql_converting_my_nulls_to_blanks/</guid>
       <description>&lt;p&gt;A while ago I ran into an issue where some records were showing a blank value in a given column. This was a bit weird as a blank value had never been written to that column. After a bit of searching we found that we had a bug that had inadvertently been writing the occasional NULL value to that particular column though. So how did those NULLs get turned into blanks?&lt;/p&gt;
 
 &lt;p&gt;It turns out that MySQL can operate in different &lt;a href=&#34;https://dev.mysql.com/doc/refman/5.0/en/sql-mode.html&#34;&gt;server modes&lt;/a&gt;. You can check your server mode by running one of the two commands below. Note that your server mode will be blank by default.&lt;/p&gt;
@@ -734,36 +812,6 @@ SHOW SESSION VARIABLES where Variable_name = &#39;sql_mode&#39;
 &lt;/blockquote&gt;
 
 &lt;p&gt;We found that our code was sometimes writing NULLs to a NOT NULL column on a server that was not running in strict mode. This in turn caused our NULLs to silently get changed to blanks as this was the column default value. Mystery solved.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Using environment variables in migrations</title>
-      <link>http://vaneyckt.io/posts/using_environment_variables_in_migrations/</link>
-      <pubDate>Tue, 29 Oct 2013 17:42:28 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/using_environment_variables_in_migrations/</guid>
-      <description>&lt;p&gt;Recently we had to run a migration that was so slow we couldn&amp;rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&amp;rsquo;t perform any safety checks.&lt;/p&gt;
-
-&lt;p&gt;The first path would be run on a recent database dump, whereas the latter would be executed directly on the live database once the first had finished without error. This was a lot less crazy than it might sound as the particular table under modification had very infrequent changes.&lt;/p&gt;
-
-&lt;p&gt;It was decided to use environment variables to allow for easy switching between code paths. This is what the code ended up looking like.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;class MyDangerousMigration &amp;lt; ActiveRecord::Migration
-  def change
-    if ENV[&#39;skip_checks&#39;] == &#39;true&#39;
-      # code without safety checks
-    else
-      # code with safety checks
-    end
-  end
-end
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;This could then be run like so.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;skip_checks=true bundle exec rake db:migrate
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     

@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Javascript on vaneyckt.io</title>
-    <link>http://vaneyckt.io/topics/javascript/</link>
+    <link>http://localhost:1313/topics/javascript/</link>
     <description>Recent content in Javascript on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Sat, 26 Sep 2015 17:54:23 +0000</lastBuildDate>
-    <atom:link href="http://vaneyckt.io/topics/javascript/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/topics/javascript/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>A javascript closures recap</title>
-      <link>http://vaneyckt.io/posts/a_javascript_closures_recap/</link>
+      <link>http://localhost:1313/posts/a_javascript_closures_recap/</link>
       <pubDate>Sat, 26 Sep 2015 17:54:23 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/a_javascript_closures_recap/</guid>
+      <guid>http://localhost:1313/posts/a_javascript_closures_recap/</guid>
       <description>
 
 &lt;p&gt;Javascript closures have always been one those things that I used to navigate by intuition. Recently however, upon stumbling across some code that I did not quite grok, it became clear I should try and obtain a more formal understanding. This post is mainly intended as a quick recap for my future self. It won&amp;rsquo;t go into all the details about closures; instead it will focus on the bits that I found most helpful.&lt;/p&gt;
@@ -215,10 +215,10 @@ foo();        // returns 3
     
     <item>
       <title>The javascript event loop</title>
-      <link>http://vaneyckt.io/posts/the_javascript_event_loop/</link>
+      <link>http://localhost:1313/posts/the_javascript_event_loop/</link>
       <pubDate>Sun, 10 Nov 2013 20:50:04 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_javascript_event_loop/</guid>
+      <guid>http://localhost:1313/posts/the_javascript_event_loop/</guid>
       <description>&lt;p&gt;Sometimes you come across an article that is so well written you can&amp;rsquo;t do anything but link to it. So if you&amp;rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give &lt;a href=&#34;http://blog.carbonfive.com/2013/10/27/the-javascript-event-loop-explained/&#34;&gt;this article&lt;/a&gt; a read.&lt;/p&gt;
 
 &lt;p&gt;Some snippets:&lt;/p&gt;

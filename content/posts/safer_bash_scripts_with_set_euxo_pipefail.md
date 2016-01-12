@@ -1,9 +1,20 @@
-set -eux
++++
+date = "2014-05-14T20:14:48+00:00"
+title = "Safer bash scripts with 'set -euxo pipefail'"
+type = "post"
+ogtype = "article"
+topics = [ "linux" ]
++++
 
 the -e makes it fail if anything returns a non-zero value
 means you don't have to explicitly check for it, cleaner code
 
+https://sipb.mit.edu/doc/safe-shell/
+http://blog.kablamo.org/2015/11/08/bash-tricks-eux/
+be sure to start code examples here with /bin/bash https://gist.github.com/jistr/2575b78058fed8be36d9
+https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
 https://stackoverflow.com/questions/821396/aborting-a-shell-script-if-any-command-returns-a-non-zero-value
+http://lists.openembedded.org/pipermail/openembedded-core/2015-August/108706.html
 
 tom [5:49 PM]
 @emil.varga: are you sure this is correct? https://github.com/Swrve/swrve/blob/release-74/batch/test_emrlib.py#L147
