@@ -6,72 +6,145 @@ ogtype = "article"
 topics = [ "linux" ]
 +++
 
-the -e makes it fail if anything returns a non-zero value
-means you don't have to explicitly check for it, cleaner code
+Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won't. In this article we'll look at how we can improve on this.
 
-https://sipb.mit.edu/doc/safe-shell/
-http://blog.kablamo.org/2015/11/08/bash-tricks-eux/
-be sure to start code examples here with /bin/bash https://gist.github.com/jistr/2575b78058fed8be36d9
-https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
-https://stackoverflow.com/questions/821396/aborting-a-shell-script-if-any-command-returns-a-non-zero-value
-http://lists.openembedded.org/pipermail/openembedded-core/2015-August/108706.html
+The bash shell comes with several builtin commands for modifying the behavior of the shell itself. We are particularly interested in the [set builtin](https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html), as this command has several options that will help us write safer scripts. I hope to convince you that it's a really good idea to add `set -euxo pipefail` to the start of all your future bash scripts.
 
-tom [5:49 PM]
-@emil.varga: are you sure this is correct? https://github.com/Swrve/swrve/blob/release-74/batch/test_emrlib.py#L147
+### set -e
 
-emil.varga [5:51 PM]
-the last time I've looked it seemed ok, why?
+The `-e` option will cause a bash script to exit immediately when a command fails. This is generally a vast improvement upon the default behavior where the script just ignores the failing command and continues with the next line. This option is also smart enough to not react on failing commands that are part of conditional statements. Moreover, you can append a command with `|| true` for those rare cases where you don't want a failing command to trigger an immediate exit.
 
-​[5:52]
-it checks that the method returns the previous value
+#### Before
+```bash
+#!/bin/bash
 
-tom [5:54 PM]
-because it looks like deleting that env var, would cause the EmrLib to return /mnt/tmp(edited)
+# 'foo' is a non-existing command
+foo
+echo "bar"
 
-​[5:54]
-https://github.com/Swrve/swrve/blob/release-74/batch/swrve/emr.py#L301
+# output
+# ------
+# line 4: foo: command not found
+# bar
+```
 
-​[5:56]
-@emil.varga: ^
+#### After
+```bash
+#!/bin/bash
+set -e
 
-emil.varga [5:57 PM]
-ook.. yes that would have been the prev value
+# 'foo' is a non-existing command
+foo
+echo "bar"
 
-​[5:57]
-is that breaking the CI as the ENV variable is deleted?
+# output
+# ------
+# line 5: foo: command not found
+```
 
-tom [5:58 PM]
-it wasnt :simple_smile:
+#### Prevent immediate exit
+```bash
+#!/bin/bash
+set -e
 
-​[5:58]
-but now it will
+# 'foo' is a non-existing command
+foo || true
+echo "bar"
 
-emil.varga [5:58 PM]
-hahaha
+# output
+# ------
+# line 5: foo: command not found
+# bar
+```
 
-​[5:59]
-why?
+### set -o pipefail
 
-tom [5:59 PM]
-the script that ran those tests did not have "set -e" at the top
+The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the `-e` option to only be able to act on the exit code of a pipeline's last command. This is where `-o pipefail` comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or zero if all commands in the pipeline exit successfully.
 
-emil.varga [5:59 PM]
-ok
+#### Before
+```bash
+#!/bin/bash
+set -e
 
-tom [5:59 PM]
-so the non-zero value being returned by the python test runner did not crash the test
+# 'foo' is a non-existing command
+foo | echo "a"
+echo "bar"
 
-emil.varga [5:59 PM]
-was it returning non-zero values?
+# output
+# ------
+# a
+# line 5: foo: command not found
+# bar
+```
 
-​[5:59]
-so the tests were breaking??
+#### After
+```bash
+#!/bin/bash
+set -eo pipefail
 
-tom [6:00 PM]
-it was throwing an exception, but some other code ran after that. So the final exit value of the script was still 0.
+# 'foo' is a non-existing command
+foo | echo "a"
+echo "bar"
 
-​[6:00]
-yes, the test was breaking
+# output
+# ------
+# a
+# line 5: foo: command not found
+```
 
-​[6:00]
-but the breakage did not fail the build
+### set -u
+
+This option causes the bash shell to treat unset variables as an error and exit immediately.
+
+#### Before
+```bash
+#!/bin/bash
+set -eo pipefail
+
+# 'foo' is a non-existing command
+echo $a
+echo "bar"
+
+# output
+# ------
+#
+# bar
+```
+
+#### After
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# 'foo' is a non-existing command
+echo $a
+echo "bar"
+
+# output
+# ------
+# line 5: a: unbound variable
+```
+
+### set -x
+
+The `-x` option causes bash to print each command before executing it. This can be of great help when you have to try and debug a bash script failure through its logs. Note that arguments get expanded before a command gets printed. This causes our logs to display the actual argument values at the time of execution!
+
+```bash
+#!/bin/bash
+set -euxo pipefail
+
+a=5
+echo $a
+echo "bar"
+
+# output
+# ------
+# + a=5
+# + echo 5
+# 5
+# + echo bar
+# bar
+
+```
+
+I hope this post showed you why using `set -euxo pipefail` is such a good idea. If you have any other options you want to suggest, then please get in touch.

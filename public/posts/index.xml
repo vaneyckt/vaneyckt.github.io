@@ -394,85 +394,149 @@ Rake::Task[&#39;db:migrate&#39;].enhance([&#39;db:attach_hook&#39;])
       <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
       
       <guid>http://localhost:1313/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
-      <description>&lt;p&gt;the -e makes it fail if anything returns a non-zero value
-means you don&amp;rsquo;t have to explicitly check for it, cleaner code&lt;/p&gt;
+      <description>
 
-&lt;p&gt;&lt;a href=&#34;https://sipb.mit.edu/doc/safe-shell/&#34;&gt;https://sipb.mit.edu/doc/safe-shell/&lt;/a&gt;
-&lt;a href=&#34;http://blog.kablamo.org/2015/11/08/bash-tricks-eux/&#34;&gt;http://blog.kablamo.org/2015/11/08/bash-tricks-eux/&lt;/a&gt;
-be sure to start code examples here with /bin/bash &lt;a href=&#34;https://gist.github.com/jistr/2575b78058fed8be36d9&#34;&gt;https://gist.github.com/jistr/2575b78058fed8be36d9&lt;/a&gt;
-&lt;a href=&#34;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&#34;&gt;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&lt;/a&gt;
-&lt;a href=&#34;https://stackoverflow.com/questions/821396/aborting-a-shell-script-if-any-command-returns-a-non-zero-value&#34;&gt;https://stackoverflow.com/questions/821396/aborting-a-shell-script-if-any-command-returns-a-non-zero-value&lt;/a&gt;
-&lt;a href=&#34;http://lists.openembedded.org/pipermail/openembedded-core/2015-August/108706.html&#34;&gt;http://lists.openembedded.org/pipermail/openembedded-core/2015-August/108706.html&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won&amp;rsquo;t. In this article we&amp;rsquo;ll look at how we can improve on this.&lt;/p&gt;
 
-&lt;p&gt;tom [5:49 PM]
-@emil.varga: are you sure this is correct? &lt;a href=&#34;https://github.com/Swrve/swrve/blob/release-74/batch/test_emrlib.py#L147&#34;&gt;https://github.com/Swrve/swrve/blob/release-74/batch/test_emrlib.py#L147&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The bash shell comes with several builtin commands for modifying the behavior of the shell itself. We are particularly interested in the &lt;a href=&#34;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&#34;&gt;set builtin&lt;/a&gt;, as this command has several options that will help us write safer scripts. I hope to convince you that it&amp;rsquo;s a really good idea to add &lt;code&gt;set -euxo pipefail&lt;/code&gt; to the start of all your future bash scripts.&lt;/p&gt;
 
-&lt;p&gt;emil.varga [5:51 PM]
-the last time I&amp;rsquo;ve looked it seemed ok, why?&lt;/p&gt;
+&lt;h3 id=&#34;set-e:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -e&lt;/h3&gt;
 
-&lt;p&gt;​[5:52]
-it checks that the method returns the previous value&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;-e&lt;/code&gt; option will cause a bash script to exit immediately when a command fails. This is generally a vast improvement upon the default behavior where the script just ignores the failing command and continues with the next line. This option is also smart enough to not react on failing commands that are part of conditional statements. Moreover, you can append a command with &lt;code&gt;|| true&lt;/code&gt; for those rare cases where you don&amp;rsquo;t want a failing command to trigger an immediate exit.&lt;/p&gt;
 
-&lt;p&gt;tom [5:54 PM]
-because it looks like deleting that env var, would cause the EmrLib to return /mnt/tmp(edited)&lt;/p&gt;
+&lt;h4 id=&#34;before:d0406b09675b080255aad6f1a20a9332&#34;&gt;Before&lt;/h4&gt;
 
-&lt;p&gt;​[5:54]
-&lt;a href=&#34;https://github.com/Swrve/swrve/blob/release-74/batch/swrve/emr.py#L301&#34;&gt;https://github.com/Swrve/swrve/blob/release-74/batch/swrve/emr.py#L301&lt;/a&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
 
-&lt;p&gt;​[5:56]
-@emil.varga: ^&lt;/p&gt;
+# &#39;foo&#39; is a non-existing command
+foo
+echo &amp;quot;bar&amp;quot;
 
-&lt;p&gt;emil.varga [5:57 PM]
-ook.. yes that would have been the prev value&lt;/p&gt;
+# output
+# ------
+# line 4: foo: command not found
+# bar
+&lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;​[5:57]
-is that breaking the CI as the ENV variable is deleted?&lt;/p&gt;
+&lt;h4 id=&#34;after:d0406b09675b080255aad6f1a20a9332&#34;&gt;After&lt;/h4&gt;
 
-&lt;p&gt;tom [5:58 PM]
-it wasnt :simple_smile:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -e
 
-&lt;p&gt;​[5:58]
-but now it will&lt;/p&gt;
+# &#39;foo&#39; is a non-existing command
+foo
+echo &amp;quot;bar&amp;quot;
 
-&lt;p&gt;emil.varga [5:58 PM]
-hahaha&lt;/p&gt;
+# output
+# ------
+# line 5: foo: command not found
+&lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;​[5:59]
-why?&lt;/p&gt;
+&lt;h4 id=&#34;prevent-immediate-exit:d0406b09675b080255aad6f1a20a9332&#34;&gt;Prevent immediate exit&lt;/h4&gt;
 
-&lt;p&gt;tom [5:59 PM]
-the script that ran those tests did not have &amp;ldquo;set -e&amp;rdquo; at the top&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -e
 
-&lt;p&gt;emil.varga [5:59 PM]
-ok&lt;/p&gt;
+# &#39;foo&#39; is a non-existing command
+foo || true
+echo &amp;quot;bar&amp;quot;
 
-&lt;p&gt;tom [5:59 PM]
-so the non-zero value being returned by the python test runner did not crash the test&lt;/p&gt;
+# output
+# ------
+# line 5: foo: command not found
+# bar
+&lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;emil.varga [5:59 PM]
-was it returning non-zero values?&lt;/p&gt;
+&lt;h3 id=&#34;set-o-pipefail:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -o pipefail&lt;/h3&gt;
 
-&lt;p&gt;​[5:59]
-so the tests were breaking??&lt;/p&gt;
+&lt;p&gt;The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the &lt;code&gt;-e&lt;/code&gt; option to only be able to act on the exit code of a pipeline&amp;rsquo;s last command. This is where &lt;code&gt;-o pipefail&lt;/code&gt; comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or zero if all commands in the pipeline exit successfully.&lt;/p&gt;
 
-&lt;p&gt;tom [6:00 PM]
-it was throwing an exception, but some other code ran after that. So the final exit value of the script was still 0.&lt;/p&gt;
+&lt;h4 id=&#34;before-1:d0406b09675b080255aad6f1a20a9332&#34;&gt;Before&lt;/h4&gt;
 
-&lt;p&gt;​[6:00]
-yes, the test was breaking&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -e
 
-&lt;p&gt;​[6:00]
-but the breakage did not fail the build&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>String.isEmpty() is not available before Android 2.3</title>
-      <link>http://localhost:1313/posts/string_isEmpty_is_not_available_before_android_2_3/</link>
-      <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
-      
-      <guid>http://localhost:1313/posts/string_isEmpty_is_not_available_before_android_2_3/</guid>
-      <description>&lt;p&gt;Today I learned that Android API level 8 and lower does &lt;a href=&#34;http://stackoverflow.com/questions/5244927/cant-call-string-isempty-in-android&#34;&gt;not support String.isEmpty()&lt;/a&gt;. Keep this is mind when you’re working on an app that needs to be able to run on older phones and use &lt;code&gt;String.length() == 0&lt;/code&gt; instead.&lt;/p&gt;
+# &#39;foo&#39; is a non-existing command
+foo | echo &amp;quot;a&amp;quot;
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+# a
+# line 5: foo: command not found
+# bar
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;after-1:d0406b09675b080255aad6f1a20a9332&#34;&gt;After&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -eo pipefail
+
+# &#39;foo&#39; is a non-existing command
+foo | echo &amp;quot;a&amp;quot;
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+# a
+# line 5: foo: command not found
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;set-u:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -u&lt;/h3&gt;
+
+&lt;p&gt;This option causes the bash shell to treat unset variables as an error and exit immediately.&lt;/p&gt;
+
+&lt;h4 id=&#34;before-2:d0406b09675b080255aad6f1a20a9332&#34;&gt;Before&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -eo pipefail
+
+# &#39;foo&#39; is a non-existing command
+echo $a
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+#
+# bar
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;after-2:d0406b09675b080255aad6f1a20a9332&#34;&gt;After&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -euo pipefail
+
+# &#39;foo&#39; is a non-existing command
+echo $a
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+# line 5: a: unbound variable
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;set-x:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -x&lt;/h3&gt;
+
+&lt;p&gt;The &lt;code&gt;-x&lt;/code&gt; option causes bash to print each command before executing it. This can be of great help when you have to try and debug a bash script failure through its logs. Note that arguments get expanded before a command gets printed. This causes our logs to display the actual argument values at the time of execution!&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -euxo pipefail
+
+a=5
+echo $a
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+# + a=5
+# + echo 5
+# 5
+# + echo bar
+# bar
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I hope this post showed you why using &lt;code&gt;set -euxo pipefail&lt;/code&gt; is such a good idea. If you have any other options you want to suggest, then please get in touch.&lt;/p&gt;
 </description>
     </item>
     
@@ -812,6 +876,36 @@ SHOW SESSION VARIABLES where Variable_name = &#39;sql_mode&#39;
 &lt;/blockquote&gt;
 
 &lt;p&gt;We found that our code was sometimes writing NULLs to a NOT NULL column on a server that was not running in strict mode. This in turn caused our NULLs to silently get changed to blanks as this was the column default value. Mystery solved.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Using environment variables in migrations</title>
+      <link>http://localhost:1313/posts/using_environment_variables_in_migrations/</link>
+      <pubDate>Tue, 29 Oct 2013 17:42:28 +0000</pubDate>
+      
+      <guid>http://localhost:1313/posts/using_environment_variables_in_migrations/</guid>
+      <description>&lt;p&gt;Recently we had to run a migration that was so slow we couldn&amp;rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&amp;rsquo;t perform any safety checks.&lt;/p&gt;
+
+&lt;p&gt;The first path would be run on a recent database dump, whereas the latter would be executed directly on the live database once the first had finished without error. This was a lot less crazy than it might sound as the particular table under modification had very infrequent changes.&lt;/p&gt;
+
+&lt;p&gt;It was decided to use environment variables to allow for easy switching between code paths. This is what the code ended up looking like.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;class MyDangerousMigration &amp;lt; ActiveRecord::Migration
+  def change
+    if ENV[&#39;skip_checks&#39;] == &#39;true&#39;
+      # code without safety checks
+    else
+      # code with safety checks
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This could then be run like so.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;skip_checks=true bundle exec rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
