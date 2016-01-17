@@ -195,7 +195,6 @@ echo &amp;quot;bar&amp;quot;
 # 5
 # + echo bar
 # bar
-
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;And that&amp;rsquo;s it. I hope this post showed you why using &lt;code&gt;set -euxo pipefail&lt;/code&gt; is such a good idea. If you have any other options you want to suggest, then please let me know and I&amp;rsquo;ll be happy to add them to this list.&lt;/p&gt;
