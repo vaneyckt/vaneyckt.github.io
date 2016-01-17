@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Android on vaneyckt.io</title>
-    <link>http://localhost:1313/topics/android/</link>
+    <link>http://vaneyckt.io/topics/android/</link>
     <description>Recent content in Android on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Thu, 20 Mar 2014 20:08:17 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/topics/android/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://vaneyckt.io/topics/android/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Programmatically rotating the Android screen</title>
-      <link>http://localhost:1313/posts/programmatically_rotating_the_android_screen/</link>
+      <link>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</link>
       <pubDate>Thu, 20 Mar 2014 20:08:17 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/programmatically_rotating_the_android_screen/</guid>
+      <guid>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</guid>
       <description>&lt;p&gt;A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the &lt;code&gt;dumpsys&lt;/code&gt; output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# get current orientation
@@ -46,10 +46,10 @@ myActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     
     <item>
       <title>Programmatically creating Android touch events</title>
-      <link>http://localhost:1313/posts/programmatically_creating_android_touch_events/</link>
+      <link>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</link>
       <pubDate>Tue, 04 Mar 2014 20:40:56 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/programmatically_creating_android_touch_events/</guid>
+      <guid>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</guid>
       <description>&lt;p&gt;Recent versions of Android have the &lt;code&gt;adb shell input touch&lt;/code&gt; functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running &lt;code&gt;adb shell getevent&lt;/code&gt; to capture events as they are being generated. These events can then later be replayed using the &lt;code&gt;adb shell sendevent&lt;/code&gt; command.&lt;/p&gt;
 
 &lt;p&gt;Running &lt;code&gt;adb shell getevent&lt;/code&gt; when touching the screen might get you something like shown below. Notice how the output is in hexadecimal.&lt;/p&gt;

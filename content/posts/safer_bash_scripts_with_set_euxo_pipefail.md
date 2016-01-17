@@ -6,9 +6,9 @@ ogtype = "article"
 topics = [ "linux" ]
 +++
 
-Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won't. In this article we'll look at how we can improve on this.
+Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won't. In this article, we'll look at how we can improve on this.
 
-The bash shell comes with several builtin commands for modifying the behavior of the shell itself. We are particularly interested in the [set builtin](https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html), as this command has several options that will help us write safer scripts. I hope to convince you that it's a really good idea to add `set -euxo pipefail` to the start of all your future bash scripts.
+The bash shell comes with several builtin commands for modifying the behavior of the shell itself. We are particularly interested in the [set builtin](https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html), as this command has several options that will help us write safer scripts. I hope to convince you that it's a really good idea to add `set -euxo pipefail` to the beginning of all your future bash scripts.
 
 ### set -e
 
@@ -59,7 +59,7 @@ echo "bar"
 
 ### set -o pipefail
 
-The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the `-e` option to only be able to act on the exit code of a pipeline's last command. This is where `-o pipefail` comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or zero if all commands in the pipeline exit successfully.
+The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the `-e` option to only be able to act on the exit code of a pipeline's last command. This is where `-o pipefail` comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or zero if all commands of the pipeline exit successfully.
 
 #### Before
 ```bash
@@ -94,14 +94,13 @@ echo "bar"
 
 ### set -u
 
-This option causes the bash shell to treat unset variables as an error and exit immediately.
+This option causes the bash shell to treat unset variables as an error and exit immediately. This brings us much closer to the behavior of higher-level languages.
 
 #### Before
 ```bash
 #!/bin/bash
 set -eo pipefail
 
-# 'foo' is a non-existing command
 echo $a
 echo "bar"
 
@@ -116,7 +115,6 @@ echo "bar"
 #!/bin/bash
 set -euo pipefail
 
-# 'foo' is a non-existing command
 echo $a
 echo "bar"
 
@@ -147,4 +145,4 @@ echo "bar"
 
 ```
 
-I hope this post showed you why using `set -euxo pipefail` is such a good idea. If you have any other options you want to suggest, then please get in touch.
+And that's it. I hope this post showed you why using `set -euxo pipefail` is such a good idea. If you have any other options you want to suggest, then please let me know and I'll be happy to add them to this list.

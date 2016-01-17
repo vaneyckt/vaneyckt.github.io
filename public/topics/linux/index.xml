@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Linux on vaneyckt.io</title>
-    <link>http://localhost:1313/topics/linux/</link>
+    <link>http://vaneyckt.io/topics/linux/</link>
     <description>Recent content in Linux on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Sun, 16 Aug 2015 19:43:34 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/topics/linux/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://vaneyckt.io/topics/linux/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Installing Chromedriver</title>
-      <link>http://localhost:1313/posts/installing_chromedriver/</link>
+      <link>http://vaneyckt.io/posts/installing_chromedriver/</link>
       <pubDate>Sun, 16 Aug 2015 19:43:34 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/installing_chromedriver/</guid>
+      <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
       <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
 
 &lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
@@ -54,15 +54,15 @@ $ sudo apt-get install google-chrome-stable
     
     <item>
       <title>Safer bash scripts with &#39;set -euxo pipefail&#39;</title>
-      <link>http://localhost:1313/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
+      <link>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
       <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
+      <guid>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
       <description>
 
-&lt;p&gt;Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won&amp;rsquo;t. In this article we&amp;rsquo;ll look at how we can improve on this.&lt;/p&gt;
+&lt;p&gt;Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won&amp;rsquo;t. In this article, we&amp;rsquo;ll look at how we can improve on this.&lt;/p&gt;
 
-&lt;p&gt;The bash shell comes with several builtin commands for modifying the behavior of the shell itself. We are particularly interested in the &lt;a href=&#34;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&#34;&gt;set builtin&lt;/a&gt;, as this command has several options that will help us write safer scripts. I hope to convince you that it&amp;rsquo;s a really good idea to add &lt;code&gt;set -euxo pipefail&lt;/code&gt; to the start of all your future bash scripts.&lt;/p&gt;
+&lt;p&gt;The bash shell comes with several builtin commands for modifying the behavior of the shell itself. We are particularly interested in the &lt;a href=&#34;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&#34;&gt;set builtin&lt;/a&gt;, as this command has several options that will help us write safer scripts. I hope to convince you that it&amp;rsquo;s a really good idea to add &lt;code&gt;set -euxo pipefail&lt;/code&gt; to the beginning of all your future bash scripts.&lt;/p&gt;
 
 &lt;h3 id=&#34;set-e:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -e&lt;/h3&gt;
 
@@ -113,7 +113,7 @@ echo &amp;quot;bar&amp;quot;
 
 &lt;h3 id=&#34;set-o-pipefail:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -o pipefail&lt;/h3&gt;
 
-&lt;p&gt;The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the &lt;code&gt;-e&lt;/code&gt; option to only be able to act on the exit code of a pipeline&amp;rsquo;s last command. This is where &lt;code&gt;-o pipefail&lt;/code&gt; comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or zero if all commands in the pipeline exit successfully.&lt;/p&gt;
+&lt;p&gt;The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the &lt;code&gt;-e&lt;/code&gt; option to only be able to act on the exit code of a pipeline&amp;rsquo;s last command. This is where &lt;code&gt;-o pipefail&lt;/code&gt; comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or zero if all commands of the pipeline exit successfully.&lt;/p&gt;
 
 &lt;h4 id=&#34;before-1:d0406b09675b080255aad6f1a20a9332&#34;&gt;Before&lt;/h4&gt;
 
@@ -148,14 +148,13 @@ echo &amp;quot;bar&amp;quot;
 
 &lt;h3 id=&#34;set-u:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -u&lt;/h3&gt;
 
-&lt;p&gt;This option causes the bash shell to treat unset variables as an error and exit immediately.&lt;/p&gt;
+&lt;p&gt;This option causes the bash shell to treat unset variables as an error and exit immediately. This brings us much closer to the behavior of higher-level languages.&lt;/p&gt;
 
 &lt;h4 id=&#34;before-2:d0406b09675b080255aad6f1a20a9332&#34;&gt;Before&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
 set -eo pipefail
 
-# &#39;foo&#39; is a non-existing command
 echo $a
 echo &amp;quot;bar&amp;quot;
 
@@ -170,7 +169,6 @@ echo &amp;quot;bar&amp;quot;
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
 set -euo pipefail
 
-# &#39;foo&#39; is a non-existing command
 echo $a
 echo &amp;quot;bar&amp;quot;
 
@@ -200,16 +198,16 @@ echo &amp;quot;bar&amp;quot;
 
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;I hope this post showed you why using &lt;code&gt;set -euxo pipefail&lt;/code&gt; is such a good idea. If you have any other options you want to suggest, then please get in touch.&lt;/p&gt;
+&lt;p&gt;And that&amp;rsquo;s it. I hope this post showed you why using &lt;code&gt;set -euxo pipefail&lt;/code&gt; is such a good idea. If you have any other options you want to suggest, then please let me know and I&amp;rsquo;ll be happy to add them to this list.&lt;/p&gt;
 </description>
     </item>
     
     <item>
       <title>Getting connection information with lsof</title>
-      <link>http://localhost:1313/posts/getting_connection_information_with_lsof/</link>
+      <link>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</link>
       <pubDate>Mon, 21 Oct 2013 17:21:52 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/getting_connection_information_with_lsof/</guid>
+      <guid>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</guid>
       <description>
 
 &lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/8/lsof&#34;&gt;lsof command&lt;/a&gt; is one of those super useful commands for figuring out what connections are taking place on your machine. While the &lt;code&gt;lsof&lt;/code&gt; command technically just lists open files, just about everything in linux (even sockets) is a file!&lt;/p&gt;
@@ -275,10 +273,10 @@ Spotify 36908 vaneyckt   99r     REG                1,4    144580    28952 /Syst
     
     <item>
       <title>The dig command</title>
-      <link>http://localhost:1313/posts/the_dig_command/</link>
+      <link>http://vaneyckt.io/posts/the_dig_command/</link>
       <pubDate>Tue, 08 Oct 2013 13:24:17 +0000</pubDate>
       
-      <guid>http://localhost:1313/posts/the_dig_command/</guid>
+      <guid>http://vaneyckt.io/posts/the_dig_command/</guid>
       <description>&lt;p&gt;Today I learned of the existence of the &lt;a href=&#34;http://linux.die.net/man/1/dig&#34;&gt;dig command&lt;/a&gt;. A very useful little tool for DNS lookups. Here&amp;rsquo;s an example of it in action.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ dig www.google.com
