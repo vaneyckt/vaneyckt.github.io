@@ -142,7 +142,6 @@ echo "bar"
 # 5
 # + echo bar
 # bar
-
 ```
 
 And that's it. I hope this post showed you why using `set -euxo pipefail` is such a good idea. If you have any other options you want to suggest, then please let me know and I'll be happy to add them to this list.
