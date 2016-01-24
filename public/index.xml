@@ -31,7 +31,7 @@ end
 
 &lt;h3 id=&#34;exceptions-absolutely-anywhere:9337c8a75f66f40fb43aecac823e1f80&#34;&gt;Exceptions absolutely anywhere&lt;/h3&gt;
 
-&lt;p&gt;The problem with &lt;code&gt;timeout&lt;/code&gt; is that it relies upon Ruby&amp;rsquo;s questionable ability to have one thread raise an exception &lt;em&gt;absolutely anywhere&lt;/em&gt; in an entirely different thread. The idea is that when you place code inside a &lt;code&gt;timeout&lt;/code&gt; block, this code gets wrapped inside a new thread that executes in the background while the main thread goes to sleep for 5 seconds. Upon waking, the main thread grabs the background thread and forcefully stops it by raising an exception on it (&lt;a href=&#34;https://github.com/ruby/ruby/blob/trunk/lib/timeout.rb#L72-L110&#34;&gt;actual implementation&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;The problem with &lt;code&gt;timeout&lt;/code&gt; is that it relies upon Ruby&amp;rsquo;s questionable ability to have one thread raise an exception &lt;em&gt;absolutely anywhere&lt;/em&gt; in an entirely different thread. The idea is that when you place code inside a &lt;code&gt;timeout&lt;/code&gt; block, this code gets wrapped inside a new thread that executes in the background while the main thread goes to sleep for 5 seconds. Upon waking, the main thread grabs the background thread and forcefully stops it by raising a &lt;code&gt;Timeout::Error&lt;/code&gt; exception on it (&lt;a href=&#34;https://github.com/ruby/ruby/blob/trunk/lib/timeout.rb#L72-L110&#34;&gt;actual implementation&lt;/a&gt;).&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# raising_exceptions.rb
 # threads can raise exceptions in other threads

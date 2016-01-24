@@ -105,7 +105,7 @@ end
 
 <h3 id="exceptions-absolutely-anywhere:9337c8a75f66f40fb43aecac823e1f80">Exceptions absolutely anywhere</h3>
 
-<p>The problem with <code>timeout</code> is that it relies upon Ruby&rsquo;s questionable ability to have one thread raise an exception <em>absolutely anywhere</em> in an entirely different thread. The idea is that when you place code inside a <code>timeout</code> block, this code gets wrapped inside a new thread that executes in the background while the main thread goes to sleep for 5 seconds. Upon waking, the main thread grabs the background thread and forcefully stops it by raising an exception on it (<a href="https://github.com/ruby/ruby/blob/trunk/lib/timeout.rb#L72-L110">actual implementation</a>).</p>
+<p>The problem with <code>timeout</code> is that it relies upon Ruby&rsquo;s questionable ability to have one thread raise an exception <em>absolutely anywhere</em> in an entirely different thread. The idea is that when you place code inside a <code>timeout</code> block, this code gets wrapped inside a new thread that executes in the background while the main thread goes to sleep for 5 seconds. Upon waking, the main thread grabs the background thread and forcefully stops it by raising a <code>Timeout::Error</code> exception on it (<a href="https://github.com/ruby/ruby/blob/trunk/lib/timeout.rb#L72-L110">actual implementation</a>).</p>
 
 <pre><code class="language-ruby"># raising_exceptions.rb
 # threads can raise exceptions in other threads

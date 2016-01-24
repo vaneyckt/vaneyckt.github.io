@@ -20,7 +20,7 @@ There's one thing the documentation doesn't tell you though. If any of the lines
 
 ### Exceptions absolutely anywhere
 
-The problem with `timeout` is that it relies upon Ruby's questionable ability to have one thread raise an exception *absolutely anywhere* in an entirely different thread. The idea is that when you place code inside a `timeout` block, this code gets wrapped inside a new thread that executes in the background while the main thread goes to sleep for 5 seconds. Upon waking, the main thread grabs the background thread and forcefully stops it by raising an exception on it ([actual implementation](https://github.com/ruby/ruby/blob/trunk/lib/timeout.rb#L72-L110)).
+The problem with `timeout` is that it relies upon Ruby's questionable ability to have one thread raise an exception *absolutely anywhere* in an entirely different thread. The idea is that when you place code inside a `timeout` block, this code gets wrapped inside a new thread that executes in the background while the main thread goes to sleep for 5 seconds. Upon waking, the main thread grabs the background thread and forcefully stops it by raising a `Timeout::Error` exception on it ([actual implementation](https://github.com/ruby/ruby/blob/trunk/lib/timeout.rb#L72-L110)).
 
 ```ruby
 # raising_exceptions.rb
