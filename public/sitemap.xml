@@ -3,8 +3,13 @@
   
   <url>
     <loc>http://vaneyckt.io/</loc>
-    <lastmod>2015-09-26T17:54:23+00:00</lastmod>
+    <lastmod>2015-12-19T19:20:03+00:00</lastmod>
     <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/</loc>
+    <lastmod>2015-12-19T19:20:03+00:00</lastmod>
   </url>
   
   <url>
@@ -15,6 +20,11 @@
   <url>
     <loc>http://vaneyckt.io/posts/installing_chromedriver/</loc>
     <lastmod>2015-08-16T19:43:34+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</loc>
+    <lastmod>2015-01-24T19:17:53+00:00</lastmod>
   </url>
   
   <url>

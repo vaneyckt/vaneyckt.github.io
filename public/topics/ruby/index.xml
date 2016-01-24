@@ -7,8 +7,162 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
-    <lastBuildDate>Tue, 15 Oct 2013 16:46:02 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 19 Dec 2015 19:20:03 +0000</lastBuildDate>
     <atom:link href="http://vaneyckt.io/topics/ruby/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>The disaster that is Ruby&#39;s timeout method</title>
+      <link>http://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/</link>
+      <pubDate>Sat, 19 Dec 2015 19:20:03 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/</guid>
+      <description>
+
+&lt;p&gt;On paper, &lt;a href=&#34;http://ruby-doc.org/stdlib-2.1.1/libdoc/timeout/rdoc/Timeout.html#method-c-timeout&#34;&gt;Ruby&amp;rsquo;s timeout method&lt;/a&gt; looks like an incredibly useful piece of code. Ever had a network request occasionally slow down your entire program because it just wouldn&amp;rsquo;t finish? That&amp;rsquo;s where &lt;code&gt;timeout&lt;/code&gt; comes in. It provides a hard guarantee that a block of code will be finished within a specified amount of time.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;require &#39;timeout&#39;
+
+timeout(5) do
+  # block of code that should be interrupted if it takes more than 5 seconds
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There&amp;rsquo;s one thing the documentation doesn&amp;rsquo;t tell you though. If any of the lines in that block of code introduces side effects that rely on the execution of later lines of code to leave things in a stable state, then using the &lt;code&gt;timeout&lt;/code&gt; method is a great way to introduce instability in your program. Examples of this include pretty much any program that is not entirely without stateful information. Let&amp;rsquo;s have a closer look at this method to try and figure out what&amp;rsquo;s going on here exactly.&lt;/p&gt;
+
+&lt;h3 id=&#34;exceptions-absolutely-anywhere:9337c8a75f66f40fb43aecac823e1f80&#34;&gt;Exceptions absolutely anywhere&lt;/h3&gt;
+
+&lt;p&gt;The problem with &lt;code&gt;timeout&lt;/code&gt; is that it relies upon Ruby&amp;rsquo;s questionable ability to have one thread raise an exception &lt;em&gt;absolutely anywhere&lt;/em&gt; in an entirely different thread. The idea is that when you place code inside a &lt;code&gt;timeout&lt;/code&gt; block, this code gets wrapped inside a new thread that executes in the background while the main thread goes to sleep for 5 seconds. Upon waking, the main thread grabs the background thread and forcefully stops it by raising an exception on it (&lt;a href=&#34;https://github.com/ruby/ruby/blob/trunk/lib/timeout.rb#L72-L110&#34;&gt;actual implementation&lt;/a&gt;).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# raising_exceptions.rb
+# threads can raise exceptions in other threads
+thr = Thread.new do
+  puts &#39;...initializing resource&#39;
+  sleep 1
+
+  puts &#39;...using resource&#39;
+  sleep 1
+
+  puts &#39;...cleaning resource&#39;
+  sleep 1
+end
+
+sleep 1.5
+thr.raise(&#39;raising an exception in the thread&#39;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ ruby raising_exeptions.rb
+
+...initializing resource
+...using resource
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The problem with this approach is that the main thread does not care what code the background thread is executing when it raises the exception. This means that the engineer responsible for the code that gets executed by the background thread needs to assume an exception can get thrown from &lt;em&gt;absolutely anywhere&lt;/em&gt; within her code. This is madness! No one can be expected to place exception catchers around every single block of code!&lt;/p&gt;
+
+&lt;p&gt;The following code further illustrates the problem of being able to raise an exception &lt;em&gt;absolutely anywhere&lt;/em&gt;. Turns out that &lt;em&gt;absolutely anywhere&lt;/em&gt; includes locations like the inside of &lt;code&gt;ensure&lt;/code&gt; blocks. These locations are generally not designed for handling any exceptions at all. I hope you weren&amp;rsquo;t using an &lt;code&gt;ensure&lt;/code&gt; block to terminate your database connection!&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# ensure_block.rb
+# raising exceptions inside an ensure block of another thread
+# note how we never finish cleaning the resource here
+thr = Thread.new do
+  begin
+    puts &#39;...initializing resource&#39;
+    sleep 1
+
+    raise &#39;something went wrong&#39;
+
+    puts &#39;...using resource&#39;
+    sleep 1
+  ensure
+    puts &#39;...started cleaning resource&#39;
+    sleep 1
+    puts &#39;...finished cleaning resource&#39;
+  end
+end
+
+sleep 1.5
+thr.raise(&#39;raising an exception in the thread&#39;)
+
+# prevent program from immediately terminating after raising exception
+sleep 5
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ ruby ensure_blocks.rb
+
+...initializing resource
+...started cleaning resource
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;real-world-example:9337c8a75f66f40fb43aecac823e1f80&#34;&gt;Real world example&lt;/h3&gt;
+
+&lt;p&gt;Recently, I spent a lot of time working with the &lt;a href=&#34;https://github.com/taf2/curb&#34;&gt;curb http client&lt;/a&gt;. I ended up wrapping quite a few of my curb calls within &lt;code&gt;timeout&lt;/code&gt; blocks because of tight time constraints. However, this caused great instability within the system I was working on. Sometimes a call would work, whereas other times that very same call would throw an exception about an invalid handle. It was this that caused me to start investigating the &lt;code&gt;timeout&lt;/code&gt; method.&lt;/p&gt;
+
+&lt;p&gt;After having a bit of think, I came up with a proof of concept that showed beyond a doubt that the &lt;code&gt;timeout&lt;/code&gt; method was introducing instability in the very internals of my http client. The finished proof of concept code can look a bit complex, so rather than showing the final concept code straightaway, I&amp;rsquo;ll run you through my thought process instead.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s start with the basics and write some code that uses the http client to fetch a random google page. A randomized parameter is added to the google url in order to circumvent any client-side caching. The page fetch itself is wrapped inside a &lt;code&gt;timeout&lt;/code&gt; block as we are interested in testing whether the &lt;code&gt;timeout&lt;/code&gt; method is corrupting the http client.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# basics.rb
+# timeout doesn&#39;t get triggered
+require &#39;curb&#39;
+require &#39;timeout&#39;
+
+timeout(1) do
+  Curl.get(&amp;quot;http://www.google.com?foo=#{rand}&amp;quot;)
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This code will rarely timeout as a page fetch generally takes way less than one second to complete. This is why we&amp;rsquo;re going to wrap our page fetch inside an infinite while loop.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# infinite_loop.rb
+# timeout gets triggered and Timeout::Error exception gets thrown
+require &#39;curb&#39;
+require &#39;timeout&#39;
+
+timeout(1) do
+  while true
+    Curl.get(&amp;quot;http://www.google.com?foo=#{rand}&amp;quot;)
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ ruby infinite_loop.rb
+
+/Users/vaneyckt/.rvm/gems/ruby-2.0.0-p594/gems/curb-0.8.8/lib/curl/easy.rb:68:
+  in &#39;perform&#39;: execution expired (Timeout::Error)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The above code is now timing out and throwing a &lt;code&gt;Timeout::Error&lt;/code&gt; exception. Next we want to determine whether the timing out of a page fetch could corrupt the internal state of the http client, thereby causing problems for a subsequent page fetch. We&amp;rsquo;ll need to make lots of page fetches to test this, so we&amp;rsquo;re going to wrap all of our current code inside another infinite while loop. Furthermore, we don&amp;rsquo;t want any &lt;code&gt;Timeout::Error&lt;/code&gt; exceptions to break us out of this while loop, so we&amp;rsquo;re going to catch and ignore these exceptions inside the while loop we just created. This gives us our finished proof of concept code.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# proof_of_concept.rb
+# timeout corrupts the very internals of the curb http client
+require &#39;curb&#39;
+require &#39;timeout&#39;
+
+while true
+  begin
+    timeout(1) do
+      while true
+        Curl.get(&amp;quot;http://www.google.com?foo=#{rand}&amp;quot;)
+      end
+    end
+  rescue Timeout::Error =&amp;gt; e
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ ruby proof_of_concept.rb
+
+/Users/vaneyckt/.rvm/gems/ruby-2.0.0-p594/gems/curb-0.8.8/lib/curl/easy.rb:67:
+  in &#39;add&#39;: CURLError: The easy handle is already added to a multi handle
+  (Curl::Err::MultiAddedAlready)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Running the above program will result in an exception being thrown after a few seconds. At some point, the &lt;code&gt;timeout&lt;/code&gt; method is causing a &lt;code&gt;Timeout::Error&lt;/code&gt; exception to be raised inside a critical code path of the http client. This badly timed &lt;code&gt;Timeout::Error&lt;/code&gt; exception leaves the client in an invalid state, which in turn causes the next page fetch to fail with the exception shown above. Hopefully this illustrates why you should avoid creating programs that can have &lt;code&gt;Timeout::Error&lt;/code&gt; exceptions pop up &lt;em&gt;absolutely anywhere&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;conclusion:9337c8a75f66f40fb43aecac823e1f80&#34;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;I hope this has convinced you there is nothing you can do to prevent &lt;code&gt;timeout&lt;/code&gt; from doing whatever it wants to your program&amp;rsquo;s internal state. There is just no way a program can deal with &lt;code&gt;Timeout::Error&lt;/code&gt; exceptions being able to potentially pop up &lt;em&gt;absolutely anywhere&lt;/em&gt;. The only time you can really get away with using timeouts is when writing functional code that does not rely on any state. In all other cases, it is best to just avoid timeouts entirely.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Iterating over a hash containing arrays</title>

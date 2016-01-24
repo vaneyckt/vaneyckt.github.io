@@ -89,24 +89,185 @@
 </div>
 
 
-    <div class="content container">
-<div class="posts">
+  <div class="content container">
+    <div class="posts">
 
       
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/a_javascript_closures_recap/">
-        A javascript closures recap
-      </a>
-    </h1>
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/">
+                The disaster that is Ruby&#39;s timeout method
+              </a>
+            </h1>
 
-    <span class="post-date">Sep 26, 2015</span>
+            <span class="post-date">Dec 19, 2015</span>
 
-    
+            
 
+            
 
-    
+<p>On paper, <a href="http://ruby-doc.org/stdlib-2.1.1/libdoc/timeout/rdoc/Timeout.html#method-c-timeout">Ruby&rsquo;s timeout method</a> looks like an incredibly useful piece of code. Ever had a network request occasionally slow down your entire program because it just wouldn&rsquo;t finish? That&rsquo;s where <code>timeout</code> comes in. It provides a hard guarantee that a block of code will be finished within a specified amount of time.</p>
+
+<pre><code class="language-ruby">require 'timeout'
+
+timeout(5) do
+  # block of code that should be interrupted if it takes more than 5 seconds
+end
+</code></pre>
+
+<p>There&rsquo;s one thing the documentation doesn&rsquo;t tell you though. If any of the lines in that block of code introduces side effects that rely on the execution of later lines of code to leave things in a stable state, then using the <code>timeout</code> method is a great way to introduce instability in your program. Examples of this include pretty much any program that is not entirely without stateful information. Let&rsquo;s have a closer look at this method to try and figure out what&rsquo;s going on here exactly.</p>
+
+<h3 id="exceptions-absolutely-anywhere:9337c8a75f66f40fb43aecac823e1f80">Exceptions absolutely anywhere</h3>
+
+<p>The problem with <code>timeout</code> is that it relies upon Ruby&rsquo;s questionable ability to have one thread raise an exception <em>absolutely anywhere</em> in an entirely different thread. The idea is that when you place code inside a <code>timeout</code> block, this code gets wrapped inside a new thread that executes in the background while the main thread goes to sleep for 5 seconds. Upon waking, the main thread grabs the background thread and forcefully stops it by raising an exception on it (<a href="https://github.com/ruby/ruby/blob/trunk/lib/timeout.rb#L72-L110">actual implementation</a>).</p>
+
+<pre><code class="language-ruby"># raising_exceptions.rb
+# threads can raise exceptions in other threads
+thr = Thread.new do
+  puts '...initializing resource'
+  sleep 1
+
+  puts '...using resource'
+  sleep 1
+
+  puts '...cleaning resource'
+  sleep 1
+end
+
+sleep 1.5
+thr.raise('raising an exception in the thread')
+</code></pre>
+
+<pre><code class="language-bash">$ ruby raising_exeptions.rb
+
+...initializing resource
+...using resource
+</code></pre>
+
+<p>The problem with this approach is that the main thread does not care what code the background thread is executing when it raises the exception. This means that the engineer responsible for the code that gets executed by the background thread needs to assume an exception can get thrown from <em>absolutely anywhere</em> within her code. This is madness! No one can be expected to place exception catchers around every single block of code!</p>
+
+<p>The following code further illustrates the problem of being able to raise an exception <em>absolutely anywhere</em>. Turns out that <em>absolutely anywhere</em> includes locations like the inside of <code>ensure</code> blocks. These locations are generally not designed for handling any exceptions at all. I hope you weren&rsquo;t using an <code>ensure</code> block to terminate your database connection!</p>
+
+<pre><code class="language-ruby"># ensure_block.rb
+# raising exceptions inside an ensure block of another thread
+# note how we never finish cleaning the resource here
+thr = Thread.new do
+  begin
+    puts '...initializing resource'
+    sleep 1
+
+    raise 'something went wrong'
+
+    puts '...using resource'
+    sleep 1
+  ensure
+    puts '...started cleaning resource'
+    sleep 1
+    puts '...finished cleaning resource'
+  end
+end
+
+sleep 1.5
+thr.raise('raising an exception in the thread')
+
+# prevent program from immediately terminating after raising exception
+sleep 5
+</code></pre>
+
+<pre><code class="language-bash">$ ruby ensure_blocks.rb
+
+...initializing resource
+...started cleaning resource
+</code></pre>
+
+<h3 id="real-world-example:9337c8a75f66f40fb43aecac823e1f80">Real world example</h3>
+
+<p>Recently, I spent a lot of time working with the <a href="https://github.com/taf2/curb">curb http client</a>. I ended up wrapping quite a few of my curb calls within <code>timeout</code> blocks because of tight time constraints. However, this caused great instability within the system I was working on. Sometimes a call would work, whereas other times that very same call would throw an exception about an invalid handle. It was this that caused me to start investigating the <code>timeout</code> method.</p>
+
+<p>After having a bit of think, I came up with a proof of concept that showed beyond a doubt that the <code>timeout</code> method was introducing instability in the very internals of my http client. The finished proof of concept code can look a bit complex, so rather than showing the final concept code straightaway, I&rsquo;ll run you through my thought process instead.</p>
+
+<p>Let&rsquo;s start with the basics and write some code that uses the http client to fetch a random google page. A randomized parameter is added to the google url in order to circumvent any client-side caching. The page fetch itself is wrapped inside a <code>timeout</code> block as we are interested in testing whether the <code>timeout</code> method is corrupting the http client.</p>
+
+<pre><code class="language-ruby"># basics.rb
+# timeout doesn't get triggered
+require 'curb'
+require 'timeout'
+
+timeout(1) do
+  Curl.get(&quot;http://www.google.com?foo=#{rand}&quot;)
+end
+</code></pre>
+
+<p>This code will rarely timeout as a page fetch generally takes way less than one second to complete. This is why we&rsquo;re going to wrap our page fetch inside an infinite while loop.</p>
+
+<pre><code class="language-ruby"># infinite_loop.rb
+# timeout gets triggered and Timeout::Error exception gets thrown
+require 'curb'
+require 'timeout'
+
+timeout(1) do
+  while true
+    Curl.get(&quot;http://www.google.com?foo=#{rand}&quot;)
+  end
+end
+</code></pre>
+
+<pre><code class="language-bash">$ ruby infinite_loop.rb
+
+/Users/vaneyckt/.rvm/gems/ruby-2.0.0-p594/gems/curb-0.8.8/lib/curl/easy.rb:68:
+  in 'perform': execution expired (Timeout::Error)
+</code></pre>
+
+<p>The above code is now timing out and throwing a <code>Timeout::Error</code> exception. Next we want to determine whether the timing out of a page fetch could corrupt the internal state of the http client, thereby causing problems for a subsequent page fetch. We&rsquo;ll need to make lots of page fetches to test this, so we&rsquo;re going to wrap all of our current code inside another infinite while loop. Furthermore, we don&rsquo;t want any <code>Timeout::Error</code> exceptions to break us out of this while loop, so we&rsquo;re going to catch and ignore these exceptions inside the while loop we just created. This gives us our finished proof of concept code.</p>
+
+<pre><code class="language-ruby"># proof_of_concept.rb
+# timeout corrupts the very internals of the curb http client
+require 'curb'
+require 'timeout'
+
+while true
+  begin
+    timeout(1) do
+      while true
+        Curl.get(&quot;http://www.google.com?foo=#{rand}&quot;)
+      end
+    end
+  rescue Timeout::Error =&gt; e
+  end
+end
+</code></pre>
+
+<pre><code class="language-bash">$ ruby proof_of_concept.rb
+
+/Users/vaneyckt/.rvm/gems/ruby-2.0.0-p594/gems/curb-0.8.8/lib/curl/easy.rb:67:
+  in 'add': CURLError: The easy handle is already added to a multi handle
+  (Curl::Err::MultiAddedAlready)
+</code></pre>
+
+<p>Running the above program will result in an exception being thrown after a few seconds. At some point, the <code>timeout</code> method is causing a <code>Timeout::Error</code> exception to be raised inside a critical code path of the http client. This badly timed <code>Timeout::Error</code> exception leaves the client in an invalid state, which in turn causes the next page fetch to fail with the exception shown above. Hopefully this illustrates why you should avoid creating programs that can have <code>Timeout::Error</code> exceptions pop up <em>absolutely anywhere</em>.</p>
+
+<h3 id="conclusion:9337c8a75f66f40fb43aecac823e1f80">Conclusion</h3>
+
+<p>I hope this has convinced you there is nothing you can do to prevent <code>timeout</code> from doing whatever it wants to your program&rsquo;s internal state. There is just no way a program can deal with <code>Timeout::Error</code> exceptions being able to potentially pop up <em>absolutely anywhere</em>. The only time you can really get away with using timeouts is when writing functional code that does not rely on any state. In all other cases, it is best to just avoid timeouts entirely.</p>
+
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/a_javascript_closures_recap/">
+                A javascript closures recap
+              </a>
+            </h1>
+
+            <span class="post-date">Sep 26, 2015</span>
+
+            
+
+            
 
 <p>Javascript closures have always been one those things that I used to navigate by intuition. Recently however, upon stumbling across some code that I did not quite grok, it became clear I should try and obtain a more formal understanding. This post is mainly intended as a quick recap for my future self. It won&rsquo;t go into all the details about closures; instead it will focus on the bits that I found most helpful.</p>
 
@@ -301,23 +462,23 @@ foo();        // returns 3
 
 <p>Ideally, this is going to become my go-to post for providing an introduction to closures. So please let me know any suggestions you might have to improve this post.</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/installing_chromedriver/">
-        Installing Chromedriver
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/installing_chromedriver/">
+                Installing Chromedriver
+              </a>
+            </h1>
 
-    <span class="post-date">Aug 16, 2015</span>
+            <span class="post-date">Aug 16, 2015</span>
 
-    
+            
 
-
-    <p>Some time ago I needed to install <a href="https://sites.google.com/a/chromium.org/chromedriver/">chromedriver</a> on a ubuntu machine. While this wasn&rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.</p>
+            <p>Some time ago I needed to install <a href="https://sites.google.com/a/chromium.org/chromedriver/">chromedriver</a> on a ubuntu machine. While this wasn&rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.</p>
 
 <p>First of all, let&rsquo;s install chromedriver.</p>
 
@@ -351,23 +512,86 @@ $ sudo apt-get install google-chrome-stable
 
 <p>And that&rsquo;s it. You should be good to go now.</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/">
-        Creating an EC2 Instance in a VPC with the AWS CLI
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/">
+                Unwanted spot instance termination in multi-AZ ASG
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 29, 2014</span>
+            <span class="post-date">Jan 24, 2015</span>
 
-    
+            
 
+            <p>An auto scaling group is an AWS abstraction that facilitates increasing or decreasing the number of EC2 instances within your application&rsquo;s architecture. Spot instances are unused AWS servers that are auctioned off for little money. The combination of these two allows for large auto scaling groups at low costs. However, you can lose your spot instances at a moment&rsquo;s notice as soon as someone out there wants to pay more than you do.</p>
 
-    
+<p>Knowing all this, I recently found myself looking into why AWS was terminating several of our spot instances every day. We were bidding 20% over the average price, so it seemed unlikely that this was being caused by a monetary issue. Nevertheless, we kept noticing multiple spot instances disappearing on a daily basis.</p>
+
+<p>It took a while to get to the bottom of things, but it turned out that this particular problem was being caused by an unfortunate combination of:</p>
+
+<ul>
+<li>our auto scaling group spanning multiple availability zones</li>
+<li>our scaling code making calls to <code>TerminateInstanceInAutoScalingGroup</code></li>
+</ul>
+
+<p>The step-by-step explanation of this issue was as follows:</p>
+
+<ul>
+<li>our scaling code was asking AWS to put 10 instances in our auto scaling group</li>
+<li>AWS obliged and put 5 instances in availability zone A and another 5 in zone B</li>
+<li>some time later our scaling code would decide that 2 specific instances were no longer needed. A call would be made to <code>TerminateInstanceInAutoScalingGroup</code> to have just these 2 specific instances terminated.</li>
+<li>if these 2 instances happened to be in the same availability zone, then one zone would now end up having have 3 instances, while the other one would have 5</li>
+<li>AWS would detect that both zones were no longer balanced and would initiate a rebalancing action. This rebalancing action would terminate one of the instances in the zone with 5 instances, and spin up another instance in the zone with 3 instances.</li>
+</ul>
+
+<p>So while this action did indeed end up rebalancing the instances across the different availability zones, it also inadvertently ended up terminating a running instance.</p>
+
+<p>The relevant entry from the <a href="http://awsdocs.s3.amazonaws.com/AutoScaling/latest/as-dg.pdf">AWS Auto Scaling docs</a> is shown below.</p>
+
+<blockquote>
+<p><strong>Instance Distribution and Balance across Multiple Zones</strong></p>
+
+<p>Auto Scaling attempts to distribute instances evenly between the Availability Zones that are enabled for your Auto Scaling group. Auto Scaling attempts to launch new instances in the Availability Zone with the fewest instances. If the attempt fails, however, Auto Scaling will attempt to launch in other zones until it succeeds.</p>
+
+<p>Certain operations and conditions can cause your Auto Scaling group to become unbalanced. Auto Scaling compensates by creating a rebalancing activity under any of the following conditions:</p>
+
+<ul>
+<li>You issue a request to change the Availability Zones for your group.</li>
+<li>You call <code>TerminateInstanceInAutoScalingGroup</code>, which causes the group to become unbalanced.</li>
+<li>An Availability Zone that previously had insufficient capacity recovers and has additional capacity available.</li>
+</ul>
+
+<p>Auto Scaling always launches new instances before attempting to terminate old ones, so a rebalancing activity will not compromise the performance or availability of your application.</p>
+
+<p><strong>Multi-Zone Instance Counts when Approaching Capacity</strong></p>
+
+<p>Because Auto Scaling always attempts to launch new instances before terminating old ones, being at or near the specified maximum capacity could impede or completely halt rebalancing activities. To avoid this problem, the system can temporarily exceed the specified maximum capacity of a group by a 10 percent margin during a rebalancing activity (or by a 1-instance margin, whichever is greater). The margin is extended only if the group is at or near maximum capacity and needs rebalancing, either as a result of user-requested rezoning or to compensate for zone availability issues. The extension lasts only as long as needed to rebalance the group—typically a few minutes.</p>
+</blockquote>
+
+<p>I&rsquo;m not sure about the best way to deal with this behavior. In our case, we just restricted our auto scaling group to one availability zone. This was good enough for us as none of the work done by our spot instances is critical. Going through the <a href="http://awsdocs.s3.amazonaws.com/AutoScaling/latest/as-dg.pdf">docs</a>, it seems one approach might be to disable the <code>AZRebalance</code> process. However, I have not had the chance to try this, so I cannot guarantee a lack of unexpected side effects.</p>
+
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/">
+                Creating an EC2 Instance in a VPC with the AWS CLI
+              </a>
+            </h1>
+
+            <span class="post-date">Oct 29, 2014</span>
+
+            
+
+            
 
 <p>Setting up an EC2 instance on AWS used to be as straightforward as provisioning a machine and SSHing into it. However, this process has become a bit more complicated now that Amazon VPC has become the standard for managing machines in the cloud.</p>
 
@@ -450,23 +674,23 @@ $ ssh -i ~/.ssh/my-key.pem ubuntu@$instanceUrl
 
 <p>And that&rsquo;s it. It&rsquo;s really not all that hard. There&rsquo;s just an awful lot of concepts that you need to get your head around which can make it a bit daunting at first. Be sure to check out the free <a href="http://www.amazon.com/gp/product/B007S33NT2/ref=cm_cr_ryp_prd_ttl_sol_0">Amazon Virtual Private Cloud User Guide</a> if you want to learn more about VPCs.</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/">
-        Adding a post-execution hook to the db:migrate task
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/">
+                Adding a post-execution hook to the db:migrate task
+              </a>
+            </h1>
 
-    <span class="post-date">Jun 9, 2014</span>
+            <span class="post-date">Jun 9, 2014</span>
 
-    
+            
 
-
-    <p>A few days ago we discovered that our MySQL database&rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&rsquo;t happen again, we looked into adding a post-execution hook to the rails db:migrate task.</p>
+            <p>A few days ago we discovered that our MySQL database&rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&rsquo;t happen again, we looked into adding a post-execution hook to the rails db:migrate task.</p>
 
 <p>Our first attempt is shown below. Here, we append a post-execution hook to the existing db:migrate task by creating a new db:migrate task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails db:migrate task, we are actually just appending a call to the <code>post_execution_hook</code> method to it.</p>
 
@@ -500,23 +724,23 @@ Rake::Task['db:migrate'].enhance(['db:attach_hook'])
 
 <p>Here we make use of the <a href="http://ruby-doc.org/stdlib-2.0.0/libdoc/rake/rdoc/Rake/Task.html#method-i-enhance">enhance method</a> to add db:attach_hook as a prerequisite task to db:migrate. This means that calling db:migrate will now cause the db:attach_hook task to get executed before db:migrate gets run. The db:attach_hook task creates an <code>at_exit</code> hook that will trigger our post-execution code upon exit of the db:migrate task. Hence, our post-execution hook will now get called even when db:migrate raises an exception!</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/">
-        Safer bash scripts with &#39;set -euxo pipefail&#39;
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/">
+                Safer bash scripts with &#39;set -euxo pipefail&#39;
+              </a>
+            </h1>
 
-    <span class="post-date">May 14, 2014</span>
+            <span class="post-date">May 14, 2014</span>
 
-    
+            
 
-
-    
+            
 
 <p>Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won&rsquo;t. In this article, we&rsquo;ll look at how we can improve on this.</p>
 
@@ -657,23 +881,23 @@ echo &quot;bar&quot;
 
 <p>And that&rsquo;s it. I hope this post showed you why using <code>set -euxo pipefail</code> is such a good idea. If you have any other options you want to suggest, then please let me know and I&rsquo;ll be happy to add them to this list.</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/">
-        Programmatically rotating the Android screen
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/">
+                Programmatically rotating the Android screen
+              </a>
+            </h1>
 
-    <span class="post-date">Mar 20, 2014</span>
+            <span class="post-date">Mar 20, 2014</span>
 
-    
+            
 
-
-    <p>A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the <code>dumpsys</code> output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.</p>
+            <p>A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the <code>dumpsys</code> output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.</p>
 
 <pre><code class="language-bash"># get current orientation
 adb shell dumpsys input | grep SurfaceOrientation | awk '{print $2}'
@@ -699,23 +923,23 @@ myActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 myActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 </code></pre>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/programmatically_creating_android_touch_events/">
-        Programmatically creating Android touch events
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/programmatically_creating_android_touch_events/">
+                Programmatically creating Android touch events
+              </a>
+            </h1>
 
-    <span class="post-date">Mar 4, 2014</span>
+            <span class="post-date">Mar 4, 2014</span>
 
-    
+            
 
-
-    <p>Recent versions of Android have the <code>adb shell input touch</code> functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running <code>adb shell getevent</code> to capture events as they are being generated. These events can then later be replayed using the <code>adb shell sendevent</code> command.</p>
+            <p>Recent versions of Android have the <code>adb shell input touch</code> functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running <code>adb shell getevent</code> to capture events as they are being generated. These events can then later be replayed using the <code>adb shell sendevent</code> command.</p>
 
 <p>Running <code>adb shell getevent</code> when touching the screen might get you something like shown below. Notice how the output is in hexadecimal.</p>
 
@@ -749,23 +973,23 @@ adb shell sendevent /dev/input/event7: 0 2 0
 adb shell sendevent /dev/input/event7: 0 0 0
 </code></pre>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/some_lesser_known_github_api_functionality-conflict-1/">
-        Some lesser known Github API functionality
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/some_lesser_known_github_api_functionality-conflict-1/">
+                Some lesser known Github API functionality
+              </a>
+            </h1>
 
-    <span class="post-date">Feb 8, 2014</span>
+            <span class="post-date">Feb 8, 2014</span>
 
-    
+            
 
-
-    
+            
 
 <p>One of our automation tools occasionally needs to interact with our Github repositories. Unfortunately, the current implementation of this tool leaves something to be desired as it requires cloning these repositories to local disk. Changes against these local repositories are then made on local branches, after which these branches get pushed to Github.</p>
 
@@ -818,23 +1042,23 @@ class GithubClient &lt; Octokit::Client
 end
 </code></pre>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/">
-        The amazing bitwise XOR operator
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/">
+                The amazing bitwise XOR operator
+              </a>
+            </h1>
 
-    <span class="post-date">Jan 12, 2014</span>
+            <span class="post-date">Jan 12, 2014</span>
 
-    
+            
 
-
-    
+            
 
 <p>One of my colleagues recently mentioned this interview question to me.</p>
 
@@ -914,41 +1138,41 @@ end
 
 <p>So there you have it. Given an array that contains two million elements, the XOR operator approach turns out to be more than 6 times faster than utilizing a hashmap. That&rsquo;s quite a nice performance improvement!</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/">
-        A visual explanation of SQL joins
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/">
+                A visual explanation of SQL joins
+              </a>
+            </h1>
 
-    <span class="post-date">Nov 17, 2013</span>
+            <span class="post-date">Nov 17, 2013</span>
 
-    
+            
 
+            <p>I admit that I find myself going to <a href="http://blog.codinghorror.com/a-visual-explanation-of-sql-joins/">this article</a> every time I need to write some joins. Hopefully putting it here will save me from always having to google it.</p>
 
-    <p>I admit that I find myself going to <a href="http://blog.codinghorror.com/a-visual-explanation-of-sql-joins/">this article</a> every time I need to write some joins. Hopefully putting it here will save me from always having to google it.</p>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/">
+                Check the order of your rescue_from handlers!
+              </a>
+            </h1>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/">
-        Check the order of your rescue_from handlers!
-      </a>
-    </h1>
+            <span class="post-date">Nov 11, 2013</span>
 
-    <span class="post-date">Nov 11, 2013</span>
+            
 
-    
-
-
-    <p>Our <code>rescue_from</code> handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?</p>
+            <p>Our <code>rescue_from</code> handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?</p>
 
 <pre><code class="language-ruby">class WidgetsController &lt; ActionController::Base
   rescue_from ActionController::RoutingError, :with =&gt; :render_404
@@ -964,23 +1188,23 @@ end
 end
 </code></pre>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/the_javascript_event_loop/">
-        The javascript event loop
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/the_javascript_event_loop/">
+                The javascript event loop
+              </a>
+            </h1>
 
-    <span class="post-date">Nov 10, 2013</span>
+            <span class="post-date">Nov 10, 2013</span>
 
-    
+            
 
-
-    <p>Sometimes you come across an article that is so well written you can&rsquo;t do anything but link to it. So if you&rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give <a href="http://blog.carbonfive.com/2013/10/27/the-javascript-event-loop-explained/">this article</a> a read.</p>
+            <p>Sometimes you come across an article that is so well written you can&rsquo;t do anything but link to it. So if you&rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give <a href="http://blog.carbonfive.com/2013/10/27/the-javascript-event-loop-explained/">this article</a> a read.</p>
 
 <p>Some snippets:</p>
 
@@ -998,23 +1222,23 @@ end
 <p>Using Web Workers enables you to offload an expensive operation to a separate thread of execution, freeing up the main thread to do other things. The worker includes a separate message queue, event loop, and memory space independent from the original thread that instantiated it. Communication between the worker and the main thread is done via message passing, which looks very much like the traditional, evented code-examples we’ve already seen.</p>
 </blockquote>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/bug_hunting_with_git_bisect/">
-        Bug hunting with git bisect
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/bug_hunting_with_git_bisect/">
+                Bug hunting with git bisect
+              </a>
+            </h1>
 
-    <span class="post-date">Nov 4, 2013</span>
+            <span class="post-date">Nov 4, 2013</span>
 
-    
+            
 
-
-    <p>Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.</p>
+            <p>Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.</p>
 
 <p>It was at this point that I remembered <code>git bisect</code>. This git command asks you to specify two commits: one where things are working, and another one where things are broken. It then does a binary search across the range of commits in between these two. Each search step asks you whether the current commit contains broken code or not, after which it automatically selects the next commit for you. There&rsquo;s a great tutorial over <a href="http://webchick.net/node/99">here</a>.</p>
 
@@ -1025,23 +1249,23 @@ $ git bisect bad 2q7f529
 
 <p>It took me all of five minutes to discover the source of the bug this way. I can safely say that it would have taken me ages to track down this particular bit of offending code as it was located in a custom bug fix for a popular third party library (I&rsquo;m looking at you <a href="https://github.com/getsentry/raven-ruby">Sentry</a>).</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/">
-        Why is MySQL converting my NULLs to blanks?
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/">
+                Why is MySQL converting my NULLs to blanks?
+              </a>
+            </h1>
 
-    <span class="post-date">Nov 1, 2013</span>
+            <span class="post-date">Nov 1, 2013</span>
 
-    
+            
 
-
-    <p>A while ago I ran into an issue where some records were showing a blank value in a given column. This was a bit weird as a blank value had never been written to that column. After a bit of searching we found that we had a bug that had inadvertently been writing the occasional NULL value to that particular column though. So how did those NULLs get turned into blanks?</p>
+            <p>A while ago I ran into an issue where some records were showing a blank value in a given column. This was a bit weird as a blank value had never been written to that column. After a bit of searching we found that we had a bug that had inadvertently been writing the occasional NULL value to that particular column though. So how did those NULLs get turned into blanks?</p>
 
 <p>It turns out that MySQL can operate in different <a href="https://dev.mysql.com/doc/refman/5.0/en/sql-mode.html">server modes</a>. You can check your server mode by running one of the two commands below. Note that your server mode will be blank by default.</p>
 
@@ -1068,23 +1292,23 @@ SHOW SESSION VARIABLES where Variable_name = 'sql_mode'
 
 <p>We found that our code was sometimes writing NULLs to a NOT NULL column on a server that was not running in strict mode. This in turn caused our NULLs to silently get changed to blanks as this was the column default value. Mystery solved.</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/using_environment_variables_in_migrations/">
-        Using environment variables in migrations
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/using_environment_variables_in_migrations/">
+                Using environment variables in migrations
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 29, 2013</span>
+            <span class="post-date">Oct 29, 2013</span>
 
-    
+            
 
-
-    <p>Recently we had to run a migration that was so slow we couldn&rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&rsquo;t perform any safety checks.</p>
+            <p>Recently we had to run a migration that was so slow we couldn&rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&rsquo;t perform any safety checks.</p>
 
 <p>The first path would be run on a recent database dump, whereas the latter would be executed directly on the live database once the first had finished without error. This was a lot less crazy than it might sound as the particular table under modification had very infrequent changes.</p>
 
@@ -1106,23 +1330,23 @@ end
 <pre><code class="language-bash">skip_checks=true bundle exec rake db:migrate
 </code></pre>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/getting_connection_information_with_lsof/">
-        Getting connection information with lsof
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/getting_connection_information_with_lsof/">
+                Getting connection information with lsof
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 21, 2013</span>
+            <span class="post-date">Oct 21, 2013</span>
 
-    
+            
 
-
-    
+            
 
 <p>The <a href="http://linux.die.net/man/8/lsof">lsof command</a> is one of those super useful commands for figuring out what connections are taking place on your machine. While the <code>lsof</code> command technically just lists open files, just about everything in linux (even sockets) is a file!</p>
 
@@ -1183,23 +1407,23 @@ Spotify 36908 vaneyckt   98u     REG                1,4  12591104 54784503 /User
 Spotify 36908 vaneyckt   99r     REG                1,4    144580    28952 /System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/HIToolbox.framework/Versions/A/Resources/HIToolbox.rsrc
 </code></pre>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/">
-        Carefully converting your MySQL database to utf8
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/">
+                Carefully converting your MySQL database to utf8
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 20, 2013</span>
+            <span class="post-date">Oct 20, 2013</span>
 
-    
+            
 
-
-    <p>Converting all the data in your database can be a nail-biting experience. As you can see from the code below we are doing our best to be super careful. We convert each table separately and before each conversion we store the table&rsquo;s column types and an MD5 hash of every row in the table (we were lucky enough to not have enormous tables). After converting the table we check that no column types or rows were changed. It goes without saying that we do a trial run on a database dump first.</p>
+            <p>Converting all the data in your database can be a nail-biting experience. As you can see from the code below we are doing our best to be super careful. We convert each table separately and before each conversion we store the table&rsquo;s column types and an MD5 hash of every row in the table (we were lucky enough to not have enormous tables). After converting the table we check that no column types or rows were changed. It goes without saying that we do a trial run on a database dump first.</p>
 
 <pre><code class="language-ruby">require 'set'
 require 'digest/md5'
@@ -1299,23 +1523,23 @@ end
 
 <p>Furthermore, since we now no longer have a lock on our table we can also drop the transaction. This gives us the much-simplified code shown above.</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/character_set_vs_collation/">
-        Character set vs collation
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/character_set_vs_collation/">
+                Character set vs collation
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 19, 2013</span>
+            <span class="post-date">Oct 19, 2013</span>
 
-    
+            
 
-
-    <p>There&rsquo;s a surprising amount of confusion about the difference between these two terms. The best explanation I&rsquo;ve found is <a href="http://stackoverflow.com/questions/341273/what-does-character-set-and-collation-mean-exactly/341481#341481">here</a>.</p>
+            <p>There&rsquo;s a surprising amount of confusion about the difference between these two terms. The best explanation I&rsquo;ve found is <a href="http://stackoverflow.com/questions/341273/what-does-character-set-and-collation-mean-exactly/341481#341481">here</a>.</p>
 
 <blockquote>
 <p>A character set is a subset of all written glyphs. A character encoding specifies how those characters are mapped to numeric values. Some character encodings, like UTF-8 and UTF-16, can encode any character in the Universal Character Set. Others, like US-ASCII or ISO-8859-1 can only encode a small subset, since they use 7 and 8 bits per character, respectively. Because many standards specify both a character set and a character encoding, the term &ldquo;character set&rdquo; is often substituted freely for &ldquo;character encoding&rdquo;.</p>
@@ -1331,23 +1555,23 @@ end
 
 <p>The only thing I&rsquo;d like to add is that some collations are more cpu intensive than others. For example, <code>utf8_general_ci</code> treats À, Á, and Å as being equal to A when doing comparisons. This is in contrast to <code>utf8_unicode_ci</code> which uses about 10% more cpu, but differentiates between these characters.</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/">
-        MySQL write locks also prevent reads
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/">
+                MySQL write locks also prevent reads
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 17, 2013</span>
+            <span class="post-date">Oct 17, 2013</span>
 
-    
+            
 
-
-    <p>Locking a table with</p>
+            <p>Locking a table with</p>
 
 <pre><code class="language-ruby">table_name = 'widgets'
 ActiveRecord::Base.connection.execute(&quot;LOCK TABLES #{table_name} WRITE&quot;)
@@ -1355,23 +1579,23 @@ ActiveRecord::Base.connection.execute(&quot;LOCK TABLES #{table_name} WRITE&quot
 
 <p>ensures that <a href="http://dev.mysql.com/doc/refman/5.0/en/lock-tables.html">only the current connection can access that table</a>. Other connections cannot even read from this table while it is locked!</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/">
-        Rails migrations and the dangers of implicit commits
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/">
+                Rails migrations and the dangers of implicit commits
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 16, 2013</span>
+            <span class="post-date">Oct 16, 2013</span>
 
-    
+            
 
-
-    <p>I recently came across the migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.</p>
+            <p>I recently came across the migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.</p>
 
 <pre><code class="language-ruby"># migration to convert table to utf8
 class ConvertWidgetsTableToUtf8Unicode &lt; ActiveRecord::Migration
@@ -1389,23 +1613,23 @@ end
 
 <p>Notice how the utf8 conversion code is wrapped inside a transaction. The assumption here is that if something goes wrong the transaction will trigger a rollback. However, an <code>ALTER TABLE</code> command in MySQL causes an <a href="http://dev.mysql.com/doc/refman/5.0/en/implicit-commit.html">implicit commit</a>. This means that the rollback will not undo any changes introduced by the <code>ALTER TABLE</code> command!</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/">
-        Iterating over a hash containing arrays
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/">
+                Iterating over a hash containing arrays
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 15, 2013</span>
+            <span class="post-date">Oct 15, 2013</span>
 
-    
+            
 
-
-    <p>Last week I was implementing some auditing functionality in a rails app. At some point I was writing a page that would display how the attributes of a given ActiveRecord object had been changed. One of my colleagues spotted this and pointed out the following neat bit of syntactic sugar in Ruby.</p>
+            <p>Last week I was implementing some auditing functionality in a rails app. At some point I was writing a page that would display how the attributes of a given ActiveRecord object had been changed. One of my colleagues spotted this and pointed out the following neat bit of syntactic sugar in Ruby.</p>
 
 <pre><code class="language-ruby">changes = {:attribute_a =&gt; [1, 2], :attribute_b =&gt; [3, 4]}
 
@@ -1423,45 +1647,45 @@ data.each do |key, ((a, b), c)|
 end
 </code></pre>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/">
-        URI.js and URL manipulation in rails
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/">
+                URI.js and URL manipulation in rails
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 13, 2013</span>
+            <span class="post-date">Oct 13, 2013</span>
 
-    
+            
 
-
-    <p>Manipulating urls in javascript often ends up being an exercise in string interpolation. This rarely produces good looking code. Recently we&rsquo;ve started enforcing the use of the <a href="https://medialize.github.io/URI.js/">URI.js library</a> to combat this.</p>
+            <p>Manipulating urls in javascript often ends up being an exercise in string interpolation. This rarely produces good looking code. Recently we&rsquo;ve started enforcing the use of the <a href="https://medialize.github.io/URI.js/">URI.js library</a> to combat this.</p>
 
 <p>Our new approach has us embed any necessary urls in hidden input fields on the web page in question. Rather than hardcoding these urls, we use the named route functionality offered by rails as this provides more flexibility. When the page gets rendered, these named routes are converted to actual urls through ERB templating. The embedded urls can then be fetched by javascript code and manipulated with URI.js.</p>
 
 <p>It&rsquo;s no silver bullet, but the resulting code is a lot more readable.</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/the_css_important_keyword/">
-        The css !important keyword
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/the_css_important_keyword/">
+                The css !important keyword
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 12, 2013</span>
+            <span class="post-date">Oct 12, 2013</span>
 
-    
+            
 
-
-    <p>Today I learned about the css !important keyword. I was trying to change the way code snippets (gists) were being displayed on a site, but found my css rules being ignored.</p>
+            <p>Today I learned about the css !important keyword. I was trying to change the way code snippets (gists) were being displayed on a site, but found my css rules being ignored.</p>
 
 <p>As it turned out, the javascript snippets used for embedding gists were adding an additional css stylesheet to the page. Since this stylesheet was getting added after my own stylesheet, its rules had priority over my own. The solution was to add <code>!important</code> to my own rules.</p>
 
@@ -1470,23 +1694,23 @@ end
 }
 </code></pre>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/finding_models_from_strings_with_rails/">
-        Finding models from strings with rails
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/finding_models_from_strings_with_rails/">
+                Finding models from strings with rails
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 11, 2013</span>
+            <span class="post-date">Oct 11, 2013</span>
 
-    
+            
 
-
-    <p>Imagine you have a Widget model that stores data in a table &lsquo;widgets&rsquo;. At some point in your rails app you find yourself being given a string &lsquo;Widget&rsquo; and are asked to find the Widget model. This can be done like shown here.</p>
+            <p>Imagine you have a Widget model that stores data in a table &lsquo;widgets&rsquo;. At some point in your rails app you find yourself being given a string &lsquo;Widget&rsquo; and are asked to find the Widget model. This can be done like shown here.</p>
 
 <pre><code class="language-ruby">str = 'Widget'
 model = str.constantize
@@ -1502,23 +1726,23 @@ model = str.constantize.table_name.classify.constantize
 
 <p>Note that the above will only work if you&rsquo;ve followed rails naming conventions though :).</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/">
-        Retrieving data in a time range with rails
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/">
+                Retrieving data in a time range with rails
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 10, 2013</span>
+            <span class="post-date">Oct 10, 2013</span>
 
-    
+            
 
-
-    <p>I&rsquo;m writing this mostly as a reminder to myself, since I keep forgetting this :)</p>
+            <p>I&rsquo;m writing this mostly as a reminder to myself, since I keep forgetting this :)</p>
 
 <p>Instead of:</p>
 
@@ -1530,23 +1754,23 @@ model = str.constantize.table_name.classify.constantize
 <pre><code class="language-ruby">widgets = Widget.where(:created_at =&gt; time_from .. time_to)
 </code></pre>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/get_vs_post/">
-        GET vs POST
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/get_vs_post/">
+                GET vs POST
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 9, 2013</span>
+            <span class="post-date">Oct 9, 2013</span>
 
-    
+            
 
-
-    
+            
 
 <p>Today I was looking into why a particular GET request was failing on IE. As it turned out this was due to IE not appreciating long query strings. While going through our nginx logs, we also found nginx had a default query string limit that was being hit sporadically by some other customers as well. The solution in both cases was to move the affected calls from GET to POST.</p>
 
@@ -1574,23 +1798,23 @@ model = str.constantize.table_name.classify.constantize
 <li>use these for actions that alter data</li>
 </ul>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/the_dig_command/">
-        The dig command
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/the_dig_command/">
+                The dig command
+              </a>
+            </h1>
 
-    <span class="post-date">Oct 8, 2013</span>
+            <span class="post-date">Oct 8, 2013</span>
 
-    
+            
 
-
-    <p>Today I learned of the existence of the <a href="http://linux.die.net/man/1/dig">dig command</a>. A very useful little tool for DNS lookups. Here&rsquo;s an example of it in action.</p>
+            <p>Today I learned of the existence of the <a href="http://linux.die.net/man/1/dig">dig command</a>. A very useful little tool for DNS lookups. Here&rsquo;s an example of it in action.</p>
 
 <pre><code class="language-bash">$ dig www.google.com
 
@@ -1617,23 +1841,23 @@ www.google.com.		72	IN	A	74.125.24.106
 ;; MSG SIZE  rcvd: 128
 </code></pre>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/profiling_rails_assets_precompilation/">
-        Profiling rails assets precompilation
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/profiling_rails_assets_precompilation/">
+                Profiling rails assets precompilation
+              </a>
+            </h1>
 
-    <span class="post-date">Sep 1, 2013</span>
+            <span class="post-date">Sep 1, 2013</span>
 
-    
+            
 
-
-    <p>Assets precompilation on rails can take a fair bit of time. This is especially annoying in scenarios where you want to deploy your app multiple times a day. Let&rsquo;s see if we can come up with a way to actually figure out where all this time is being spent. Also, while I will be focusing on rails 3.2 in this post, the general principle should be easy enough to apply to other rails versions.</p>
+            <p>Assets precompilation on rails can take a fair bit of time. This is especially annoying in scenarios where you want to deploy your app multiple times a day. Let&rsquo;s see if we can come up with a way to actually figure out where all this time is being spent. Also, while I will be focusing on rails 3.2 in this post, the general principle should be easy enough to apply to other rails versions.</p>
 
 <p>Our first call of action is finding the assets precompilation logic. A bit of digging will turn up the <a href="https://github.com/rails/rails/blob/3-2-stable/actionpack/lib/sprockets/assets.rake">assets.rake file</a> for rails 3.2. The relevant code starts on lines 59-67 and from there on out invokes methods throughout the entire file.</p>
 
@@ -1798,23 +2022,23 @@ end
 
 <p>Now we can run <code>bundle exec rake profile:assets:precompile</code> to precompile our assets while outputting profiling info. Hopefully we can now finally figure out why this is always taking so long :).</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/regarding_if_statement_scope_in_ruby/">
-        Regarding if statement scope in Ruby
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/regarding_if_statement_scope_in_ruby/">
+                Regarding if statement scope in Ruby
+              </a>
+            </h1>
 
-    <span class="post-date">Aug 31, 2013</span>
+            <span class="post-date">Aug 31, 2013</span>
 
-    
+            
 
-
-    <p>I recently learned that <code>if</code> statements in Ruby do not introduce scope. This means that you can write code like shown below and it&rsquo;ll work fine.</p>
+            <p>I recently learned that <code>if</code> statements in Ruby do not introduce scope. This means that you can write code like shown below and it&rsquo;ll work fine.</p>
 
 <pre><code class="language-ruby"># perfectly valid Ruby code
 if true
@@ -1852,31 +2076,32 @@ end
 
 <p>And that&rsquo;s amazing!</p>
 
-  </div>
-  
-  
-  
-  <div class="post">
-    <h1 class="post-title">
-      <a href="http://vaneyckt.io/posts/ec2_instance_cost_comparison/">
-        EC2 instance cost comparison
-      </a>
-    </h1>
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="http://vaneyckt.io/posts/ec2_instance_cost_comparison/">
+                EC2 instance cost comparison
+              </a>
+            </h1>
 
-    <span class="post-date">Aug 11, 2013</span>
+            <span class="post-date">Aug 11, 2013</span>
 
-    
+            
 
-
-    <p>Amazon&rsquo;s pricing scheme for its ec2 instances never struck me as particularly transparent. Until recently some of my DevOps colleagues even estimated cost by cross-referencing <a href="https://aws.amazon.com/ec2/instance-types">instance details</a> with <a href="http://aws.amazon.com/ec2/pricing">pricing information</a>. While this approach gives reasonable results for finding the cost of a given instance type, it doesn&rsquo;t lend itself very well to comparing prices across a range of different types.</p>
+            <p>Amazon&rsquo;s pricing scheme for its ec2 instances never struck me as particularly transparent. Until recently some of my DevOps colleagues even estimated cost by cross-referencing <a href="https://aws.amazon.com/ec2/instance-types">instance details</a> with <a href="http://aws.amazon.com/ec2/pricing">pricing information</a>. While this approach gives reasonable results for finding the cost of a given instance type, it doesn&rsquo;t lend itself very well to comparing prices across a range of different types.</p>
 
 <p>When talking to an ex-colleague of mine about the hardships encountered for such a common task, he pointed me to <a href="http://www.ec2instances.info">this absolutely brilliant page</a>. It&rsquo;s so unbelievably simple and well thought-out that I can&rsquo;t help getting ever so slightly annoyed with whomever is in charge of communicating Amazon&rsquo;s pricing structure and the subpar job they are doing.</p>
 
+            <hr>
+          </div>
+        
+      
+    </div>
   </div>
-  
-  
-</div>
 
-
-  </body>
+</body>
 </html>

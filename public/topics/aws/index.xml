@@ -7,8 +7,63 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
-    <lastBuildDate>Wed, 29 Oct 2014 17:36:12 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 24 Jan 2015 19:17:53 +0000</lastBuildDate>
     <atom:link href="http://vaneyckt.io/topics/aws/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Unwanted spot instance termination in multi-AZ ASG</title>
+      <link>http://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</link>
+      <pubDate>Sat, 24 Jan 2015 19:17:53 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</guid>
+      <description>&lt;p&gt;An auto scaling group is an AWS abstraction that facilitates increasing or decreasing the number of EC2 instances within your application&amp;rsquo;s architecture. Spot instances are unused AWS servers that are auctioned off for little money. The combination of these two allows for large auto scaling groups at low costs. However, you can lose your spot instances at a moment&amp;rsquo;s notice as soon as someone out there wants to pay more than you do.&lt;/p&gt;
+
+&lt;p&gt;Knowing all this, I recently found myself looking into why AWS was terminating several of our spot instances every day. We were bidding 20% over the average price, so it seemed unlikely that this was being caused by a monetary issue. Nevertheless, we kept noticing multiple spot instances disappearing on a daily basis.&lt;/p&gt;
+
+&lt;p&gt;It took a while to get to the bottom of things, but it turned out that this particular problem was being caused by an unfortunate combination of:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;our auto scaling group spanning multiple availability zones&lt;/li&gt;
+&lt;li&gt;our scaling code making calls to &lt;code&gt;TerminateInstanceInAutoScalingGroup&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The step-by-step explanation of this issue was as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;our scaling code was asking AWS to put 10 instances in our auto scaling group&lt;/li&gt;
+&lt;li&gt;AWS obliged and put 5 instances in availability zone A and another 5 in zone B&lt;/li&gt;
+&lt;li&gt;some time later our scaling code would decide that 2 specific instances were no longer needed. A call would be made to &lt;code&gt;TerminateInstanceInAutoScalingGroup&lt;/code&gt; to have just these 2 specific instances terminated.&lt;/li&gt;
+&lt;li&gt;if these 2 instances happened to be in the same availability zone, then one zone would now end up having have 3 instances, while the other one would have 5&lt;/li&gt;
+&lt;li&gt;AWS would detect that both zones were no longer balanced and would initiate a rebalancing action. This rebalancing action would terminate one of the instances in the zone with 5 instances, and spin up another instance in the zone with 3 instances.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So while this action did indeed end up rebalancing the instances across the different availability zones, it also inadvertently ended up terminating a running instance.&lt;/p&gt;
+
+&lt;p&gt;The relevant entry from the &lt;a href=&#34;http://awsdocs.s3.amazonaws.com/AutoScaling/latest/as-dg.pdf&#34;&gt;AWS Auto Scaling docs&lt;/a&gt; is shown below.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Instance Distribution and Balance across Multiple Zones&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Auto Scaling attempts to distribute instances evenly between the Availability Zones that are enabled for your Auto Scaling group. Auto Scaling attempts to launch new instances in the Availability Zone with the fewest instances. If the attempt fails, however, Auto Scaling will attempt to launch in other zones until it succeeds.&lt;/p&gt;
+
+&lt;p&gt;Certain operations and conditions can cause your Auto Scaling group to become unbalanced. Auto Scaling compensates by creating a rebalancing activity under any of the following conditions:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;You issue a request to change the Availability Zones for your group.&lt;/li&gt;
+&lt;li&gt;You call &lt;code&gt;TerminateInstanceInAutoScalingGroup&lt;/code&gt;, which causes the group to become unbalanced.&lt;/li&gt;
+&lt;li&gt;An Availability Zone that previously had insufficient capacity recovers and has additional capacity available.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Auto Scaling always launches new instances before attempting to terminate old ones, so a rebalancing activity will not compromise the performance or availability of your application.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Multi-Zone Instance Counts when Approaching Capacity&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Because Auto Scaling always attempts to launch new instances before terminating old ones, being at or near the specified maximum capacity could impede or completely halt rebalancing activities. To avoid this problem, the system can temporarily exceed the specified maximum capacity of a group by a 10 percent margin during a rebalancing activity (or by a 1-instance margin, whichever is greater). The margin is extended only if the group is at or near maximum capacity and needs rebalancing, either as a result of user-requested rezoning or to compensate for zone availability issues. The extension lasts only as long as needed to rebalance the group—typically a few minutes.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;I&amp;rsquo;m not sure about the best way to deal with this behavior. In our case, we just restricted our auto scaling group to one availability zone. This was good enough for us as none of the work done by our spot instances is critical. Going through the &lt;a href=&#34;http://awsdocs.s3.amazonaws.com/AutoScaling/latest/as-dg.pdf&#34;&gt;docs&lt;/a&gt;, it seems one approach might be to disable the &lt;code&gt;AZRebalance&lt;/code&gt; process. However, I have not had the chance to try this, so I cannot guarantee a lack of unexpected side effects.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Creating an EC2 Instance in a VPC with the AWS CLI</title>
