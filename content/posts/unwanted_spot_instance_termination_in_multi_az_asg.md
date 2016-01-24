@@ -20,7 +20,7 @@ The step-by-step explanation of this issue was as follows:
 * our scaling code was asking AWS to put 10 instances in our auto scaling group
 * AWS obliged and put 5 instances in availability zone A and another 5 in zone B
 * some time later our scaling code would decide that 2 specific instances were no longer needed. A call would be made to `TerminateInstanceInAutoScalingGroup` to have just these 2 specific instances terminated.
-* if these 2 instances happened to be in the same availability zone, then one zone would now have 3 instances, while the other one would have 5
+* if these 2 instances happened to be in the same availability zone, then one zone would now have 3 instances, while the other one would now have 5
 * AWS would detect that both zones were no longer balanced and would initiate a rebalancing action. This rebalancing action would terminate one of the instances in the zone with 5 instances, and spin up another instance in the zone with 3 instances.
 
 So while this action did indeed end up rebalancing the instances across the different availability zones, it also inadvertently ended up terminating a running instance.
