@@ -432,7 +432,7 @@ $ sudo apt-get install google-chrome-stable
 &lt;li&gt;our scaling code was asking AWS to put 10 instances in our auto scaling group&lt;/li&gt;
 &lt;li&gt;AWS obliged and put 5 instances in availability zone A and another 5 in zone B&lt;/li&gt;
 &lt;li&gt;some time later our scaling code would decide that 2 specific instances were no longer needed. A call would be made to &lt;code&gt;TerminateInstanceInAutoScalingGroup&lt;/code&gt; to have just these 2 specific instances terminated.&lt;/li&gt;
-&lt;li&gt;if these 2 instances happened to be in the same availability zone, then one zone would now end up having have 3 instances, while the other one would have 5&lt;/li&gt;
+&lt;li&gt;if these 2 instances happened to be in the same availability zone, then one zone would now have 3 instances, while the other one would now have 5&lt;/li&gt;
 &lt;li&gt;AWS would detect that both zones were no longer balanced and would initiate a rebalancing action. This rebalancing action would terminate one of the instances in the zone with 5 instances, and spin up another instance in the zone with 3 instances.&lt;/li&gt;
 &lt;/ul&gt;
 
