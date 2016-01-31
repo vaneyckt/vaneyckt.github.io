@@ -556,6 +556,76 @@ $ ssh -i ~/.ssh/my-key.pem ubuntu@$instanceUrl
     </item>
     
     <item>
+      <title>Finding and deleting old tags in a Github repository</title>
+      <link>http://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</link>
+      <pubDate>Fri, 18 Jul 2014 19:32:12 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</guid>
+      <description>
+
+&lt;p&gt;It&amp;rsquo;s very easy for a Github repository to accumulate lots of tags over time. This onslaught of tags tends to be tolerated until it starts impacting git performance. It is at this point, when you have well in excess of tens of thousands of tags, that a call to action tends to be made. In this article, we&amp;rsquo;ll look at two approaches to rid yourself of these old tags.&lt;/p&gt;
+
+&lt;h3 id=&#34;the-cut-off-tag-approach:257dca9811faca70d0b7c4cba16ee1c1&#34;&gt;The cut-off tag approach&lt;/h3&gt;
+
+&lt;p&gt;This approach has us specify a cut-off tag. All tags that can trace their ancestry back to this cut-off tag will be allowed to remain. All others will get deleted. This is especially useful for when you have just merged a new feature, and now you want to delete all tags that were created before this merge. In this scenario, all you have to do is tag the merge commit and then use this as the cut-off tag.&lt;/p&gt;
+
+&lt;p&gt;The sequence of commands below deletes all tags that do not have the release-5 tag as an ancestor. Most of these commands are pretty self-explanatory, except for the one in the middle. The remainder of this section will focus on explaining this command.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# fetch all tags from the remote
+git fetch
+
+# delete all tags on the remote that do not have the release-5 tag as an ancestor
+comm -23 &amp;lt;(git tag | sort) &amp;lt;(git tag --contains release-5 | sort) | xargs git push --delete origin
+
+# delete all local tags that are no longer present on the remote
+git fetch --prune origin +refs/tags/*:refs/tags/*
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/1/comm&#34;&gt;comm command&lt;/a&gt; is used to &lt;a href=&#34;http://www.unixcl.com/2009/08/linux-comm-command-brief-tutorial.html&#34;&gt;compare two sorted files line by line&lt;/a&gt;. Luckily, we can avoid having to create any actual files by relying on process substitution instead.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;comm -23 &amp;lt;(command to act as file 1) &amp;lt;(command to act as file 2) | xargs git push --delete origin
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;-23&lt;/code&gt; flag tells &lt;code&gt;comm&lt;/code&gt; to suppress any lines that are unique to file 2, as well as any lines that appear in both files. In other words, it causes &lt;code&gt;comm&lt;/code&gt; to return just those lines that only appear in file 1. Looking back at our sequence of commands above, it should be clear that this will cause us to obtain all tags that do not have the release-5 tag as an ancestor. Piping this output to &lt;code&gt;xargs git push --delete origin&lt;/code&gt; will then remove these tags from Github.&lt;/p&gt;
+
+&lt;h3 id=&#34;the-cut-off-date-approach:257dca9811faca70d0b7c4cba16ee1c1&#34;&gt;The cut-off date approach&lt;/h3&gt;
+
+&lt;p&gt;While the cut-off tag approach works great in a lot of scenarios, sometimes you just want to delete all tags that were created before a given cut-off date instead. Unfortunately, git doesn&amp;rsquo;t have any built-in functionality for accomplishing this. This is why we are going to make use of a Ruby script here.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# CUT_OFF_DATE needs to be of YYYY-MM-DD format
+CUT_OFF_DATE = &amp;quot;2015-05-10&amp;quot;
+
+def get_old_tags(cut_off_date)  
+  `git log --tags --simplify-by-decoration --pretty=&amp;quot;format:%ai %d&amp;quot;`
+  .split(&amp;quot;\n&amp;quot;)
+  .each_with_object([]) do |line, old_tags|
+    if line.include?(&amp;quot;tag: &amp;quot;)
+      date = line[0..9]
+      tags = line[28..-2].gsub(&amp;quot;,&amp;quot;, &amp;quot;&amp;quot;).concat(&amp;quot; &amp;quot;).scan(/tag: (.*?) /).flatten
+      old_tags.concat(tags) if date &amp;lt; cut_off_date
+    end
+  end
+end
+
+# fetch all tags from the remote
+`git fetch`
+
+# delete all tags on the remote that were created before the CUT_OFF_DATE
+get_old_tags(CUT_OFF_DATE).each_slice(100) do |batch|
+  system(&amp;quot;git&amp;quot;, &amp;quot;push&amp;quot;, &amp;quot;--delete&amp;quot;, &amp;quot;origin&amp;quot;, *batch)
+end
+
+# delete all local tags that are no longer present on the remote
+`git fetch --prune origin +refs/tags/*:refs/tags/*`
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This Ruby script should be pretty straightforward. The &lt;code&gt;get_old_tags&lt;/code&gt; method might stand out a bit here. It can look pretty complex, but most of it is just string manipulation to get the date and tags of each line outputted by the &lt;code&gt;git log&lt;/code&gt; command, and storing old tags in the &lt;code&gt;old_tags&lt;/code&gt; array. Note how we invoke the &lt;code&gt;system&lt;/code&gt; method with an array of arguments for those calls that require input. This protects us against possible shell injection.&lt;/p&gt;
+
+&lt;p&gt;Be careful, as running this exact script inside your repository will delete all tags created before 2015-05-10. Also, be sure to specify your cut-off date in YYYY-MM-DD format!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Adding a post-execution hook to the db:migrate task</title>
       <link>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
       <pubDate>Mon, 09 Jun 2014 16:31:22 +0000</pubDate>
@@ -1028,25 +1098,6 @@ end
 &lt;blockquote&gt;
 &lt;p&gt;Using Web Workers enables you to offload an expensive operation to a separate thread of execution, freeing up the main thread to do other things. The worker includes a separate message queue, event loop, and memory space independent from the original thread that instantiated it. Communication between the worker and the main thread is done via message passing, which looks very much like the traditional, evented code-examples we’ve already seen.&lt;/p&gt;
 &lt;/blockquote&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Bug hunting with git bisect</title>
-      <link>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</link>
-      <pubDate>Mon, 04 Nov 2013 20:02:14 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/bug_hunting_with_git_bisect/</guid>
-      <description>&lt;p&gt;Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.&lt;/p&gt;
-
-&lt;p&gt;It was at this point that I remembered &lt;code&gt;git bisect&lt;/code&gt;. This git command asks you to specify two commits: one where things are working, and another one where things are broken. It then does a binary search across the range of commits in between these two. Each search step asks you whether the current commit contains broken code or not, after which it automatically selects the next commit for you. There&amp;rsquo;s a great tutorial over &lt;a href=&#34;http://webchick.net/node/99&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ git bisect start
-$ git bisect good rj6y4j3
-$ git bisect bad 2q7f529
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;It took me all of five minutes to discover the source of the bug this way. I can safely say that it would have taken me ages to track down this particular bit of offending code as it was located in a custom bug fix for a popular third party library (I&amp;rsquo;m looking at you &lt;a href=&#34;https://github.com/getsentry/raven-ruby&#34;&gt;Sentry&lt;/a&gt;).&lt;/p&gt;
 </description>
     </item>
     

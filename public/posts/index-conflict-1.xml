@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on vaneyckt.io</title>
-    <link>http://vaneyckt.io/posts/</link>
+    <link>http://localhost:1313/posts/</link>
     <description>Recent content in Posts on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Sat, 19 Dec 2015 19:20:03 +0000</lastBuildDate>
-    <atom:link href="http://vaneyckt.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>The disaster that is Ruby&#39;s timeout method</title>
-      <link>http://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/</link>
+      <link>http://localhost:1313/posts/the_disaster_that_is_rubys_timeout_method/</link>
       <pubDate>Sat, 19 Dec 2015 19:20:03 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/</guid>
+      <guid>http://localhost:1313/posts/the_disaster_that_is_rubys_timeout_method/</guid>
       <description>
 
 &lt;p&gt;On paper, &lt;a href=&#34;http://ruby-doc.org/stdlib-2.1.1/libdoc/timeout/rdoc/Timeout.html#method-c-timeout&#34;&gt;Ruby&amp;rsquo;s timeout method&lt;/a&gt; looks like an incredibly useful piece of code. Ever had a network request occasionally slow down your entire program because it just wouldn&amp;rsquo;t finish? That&amp;rsquo;s where &lt;code&gt;timeout&lt;/code&gt; comes in. It provides a hard guarantee that a block of code will be finished within a specified amount of time.&lt;/p&gt;
@@ -166,10 +166,10 @@ end
     
     <item>
       <title>A javascript closures recap</title>
-      <link>http://vaneyckt.io/posts/a_javascript_closures_recap/</link>
+      <link>http://localhost:1313/posts/a_javascript_closures_recap/</link>
       <pubDate>Sat, 26 Sep 2015 17:54:23 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/a_javascript_closures_recap/</guid>
+      <guid>http://localhost:1313/posts/a_javascript_closures_recap/</guid>
       <description>
 
 &lt;p&gt;Javascript closures have always been one those things that I used to navigate by intuition. Recently however, upon stumbling across some code that I did not quite grok, it became clear I should try and obtain a more formal understanding. This post is mainly intended as a quick recap for my future self. It won&amp;rsquo;t go into all the details about closures; instead it will focus on the bits that I found most helpful.&lt;/p&gt;
@@ -369,10 +369,10 @@ foo();        // returns 3
     
     <item>
       <title>Installing Chromedriver</title>
-      <link>http://vaneyckt.io/posts/installing_chromedriver/</link>
+      <link>http://localhost:1313/posts/installing_chromedriver/</link>
       <pubDate>Sun, 16 Aug 2015 19:43:34 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
+      <guid>http://localhost:1313/posts/installing_chromedriver/</guid>
       <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
 
 &lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
@@ -411,10 +411,10 @@ $ sudo apt-get install google-chrome-stable
     
     <item>
       <title>Unwanted spot instance termination in multi-AZ ASG</title>
-      <link>http://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</link>
+      <link>http://localhost:1313/posts/unwanted_spot_instance_termination_in_multi_az_asg/</link>
       <pubDate>Sat, 24 Jan 2015 19:17:53 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</guid>
+      <guid>http://localhost:1313/posts/unwanted_spot_instance_termination_in_multi_az_asg/</guid>
       <description>&lt;p&gt;An auto scaling group is an AWS abstraction that facilitates increasing or decreasing the number of EC2 instances within your application&amp;rsquo;s architecture. Spot instances are unused AWS servers that are auctioned off for little money. The combination of these two allows for large auto scaling groups at low costs. However, you can lose your spot instances at a moment&amp;rsquo;s notice as soon as someone out there wants to pay more than you do.&lt;/p&gt;
 
 &lt;p&gt;Knowing all this, I recently found myself looking into why AWS was terminating several of our spot instances every day. We were bidding 20% over the average price, so it seemed unlikely that this was being caused by a monetary issue. Nevertheless, we kept noticing multiple spot instances disappearing on a daily basis.&lt;/p&gt;
@@ -466,10 +466,10 @@ $ sudo apt-get install google-chrome-stable
     
     <item>
       <title>Creating an EC2 Instance in a VPC with the AWS CLI</title>
-      <link>http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</link>
+      <link>http://localhost:1313/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</link>
       <pubDate>Wed, 29 Oct 2014 17:36:12 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</guid>
+      <guid>http://localhost:1313/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</guid>
       <description>
 
 &lt;p&gt;Setting up an EC2 instance on AWS used to be as straightforward as provisioning a machine and SSHing into it. However, this process has become a bit more complicated now that Amazon VPC has become the standard for managing machines in the cloud.&lt;/p&gt;
@@ -557,10 +557,10 @@ $ ssh -i ~/.ssh/my-key.pem ubuntu@$instanceUrl
     
     <item>
       <title>Finding and deleting old tags in a Github repository</title>
-      <link>http://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</link>
+      <link>http://localhost:1313/posts/finding_and_deleting_old_tags_in_a_github_repo/</link>
       <pubDate>Fri, 18 Jul 2014 19:32:12 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</guid>
+      <guid>http://localhost:1313/posts/finding_and_deleting_old_tags_in_a_github_repo/</guid>
       <description>
 
 &lt;p&gt;It&amp;rsquo;s very easy for a Github repository to accumulate lots of tags over time. This onslaught of tags tends to be tolerated until it starts impacting git performance. It is at this point, when you have well in excess of tens of thousands of tags, that a call to action tends to be made. In this article, we&amp;rsquo;ll look at two approaches to rid yourself of these old tags.&lt;/p&gt;
@@ -590,7 +590,7 @@ git fetch --prune origin +refs/tags/*:refs/tags/*
 
 &lt;h3 id=&#34;the-cut-off-date-approach:257dca9811faca70d0b7c4cba16ee1c1&#34;&gt;The cut-off date approach&lt;/h3&gt;
 
-&lt;p&gt;While the cut-off tag approach works great in a lot of scenarios, sometimes you just want to delete all tags that were created before a given cut-off date instead. Unfortunately, git doesn&amp;rsquo;t have any built-in functionality for accomplishing this. This is why we are going to make use of a Ruby script here.&lt;/p&gt;
+&lt;p&gt;While the cut-off tag approach works great in a lot of scenarios, sometimes you just want to delete all tags that were created before a given cut-off date instead. Unfortunately git doesn&amp;rsquo;t have any built-in functionality for accomplishing this. This is why we are going to make use of a ruby script here.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# CUT_OFF_DATE needs to be of YYYY-MM-DD format
 CUT_OFF_DATE = &amp;quot;2015-05-10&amp;quot;
@@ -619,7 +619,7 @@ end
 `git fetch --prune origin +refs/tags/*:refs/tags/*`
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;This Ruby script should be pretty straightforward. The &lt;code&gt;get_old_tags&lt;/code&gt; method might stand out a bit here. It can look pretty complex, but most of it is just string manipulation to get the date and tags of each line outputted by the &lt;code&gt;git log&lt;/code&gt; command, and storing old tags in the &lt;code&gt;old_tags&lt;/code&gt; array. Note how we invoke the &lt;code&gt;system&lt;/code&gt; method with an array of arguments for those calls that require input. This protects us against possible shell injection.&lt;/p&gt;
+&lt;p&gt;This ruby script should be pretty straightforward. The &lt;code&gt;get_old_tags&lt;/code&gt; method might stand out a bit here. It can look pretty complex, but most of it is just string manipulation to get the date and tags of each line outputted by the &lt;code&gt;git log&lt;/code&gt; command, and storing old tags in the &lt;code&gt;old_tags&lt;/code&gt; array. Note how we invoke the &lt;code&gt;system&lt;/code&gt; method with an array of arguments for those system calls that require input. This protects us against possible shell injection.&lt;/p&gt;
 
 &lt;p&gt;Be careful, as running this exact script inside your repository will delete all tags created before 2015-05-10. Also, be sure to specify your cut-off date in YYYY-MM-DD format!&lt;/p&gt;
 </description>
@@ -627,10 +627,10 @@ end
     
     <item>
       <title>Adding a post-execution hook to the db:migrate task</title>
-      <link>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
+      <link>http://localhost:1313/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
       <pubDate>Mon, 09 Jun 2014 16:31:22 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
+      <guid>http://localhost:1313/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
       <description>&lt;p&gt;A few days ago we discovered that our MySQL database&amp;rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&amp;rsquo;t happen again, we looked into adding a post-execution hook to the rails db:migrate task.&lt;/p&gt;
 
 &lt;p&gt;Our first attempt is shown below. Here, we append a post-execution hook to the existing db:migrate task by creating a new db:migrate task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails db:migrate task, we are actually just appending a call to the &lt;code&gt;post_execution_hook&lt;/code&gt; method to it.&lt;/p&gt;
@@ -669,10 +669,10 @@ Rake::Task[&#39;db:migrate&#39;].enhance([&#39;db:attach_hook&#39;])
     
     <item>
       <title>Safer bash scripts with &#39;set -euxo pipefail&#39;</title>
-      <link>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
+      <link>http://localhost:1313/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
       <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
+      <guid>http://localhost:1313/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
       <description>
 
 &lt;p&gt;Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won&amp;rsquo;t. In this article, we&amp;rsquo;ll look at how we can improve on this.&lt;/p&gt;
@@ -818,10 +818,10 @@ echo &amp;quot;bar&amp;quot;
     
     <item>
       <title>Programmatically rotating the Android screen</title>
-      <link>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</link>
+      <link>http://localhost:1313/posts/programmatically_rotating_the_android_screen/</link>
       <pubDate>Thu, 20 Mar 2014 20:08:17 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</guid>
+      <guid>http://localhost:1313/posts/programmatically_rotating_the_android_screen/</guid>
       <description>&lt;p&gt;A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the &lt;code&gt;dumpsys&lt;/code&gt; output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# get current orientation
@@ -852,10 +852,10 @@ myActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     
     <item>
       <title>Programmatically creating Android touch events</title>
-      <link>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</link>
+      <link>http://localhost:1313/posts/programmatically_creating_android_touch_events/</link>
       <pubDate>Tue, 04 Mar 2014 20:40:56 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</guid>
+      <guid>http://localhost:1313/posts/programmatically_creating_android_touch_events/</guid>
       <description>&lt;p&gt;Recent versions of Android have the &lt;code&gt;adb shell input touch&lt;/code&gt; functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running &lt;code&gt;adb shell getevent&lt;/code&gt; to capture events as they are being generated. These events can then later be replayed using the &lt;code&gt;adb shell sendevent&lt;/code&gt; command.&lt;/p&gt;
 
 &lt;p&gt;Running &lt;code&gt;adb shell getevent&lt;/code&gt; when touching the screen might get you something like shown below. Notice how the output is in hexadecimal.&lt;/p&gt;
@@ -894,10 +894,10 @@ adb shell sendevent /dev/input/event7: 0 0 0
     
     <item>
       <title>Some lesser known Github API functionality</title>
-      <link>http://vaneyckt.io/posts/some_lesser_known_github_api_functionality-conflict-1/</link>
+      <link>http://localhost:1313/posts/some_lesser_known_github_api_functionality-conflict-1/</link>
       <pubDate>Sat, 08 Feb 2014 18:05:12 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/some_lesser_known_github_api_functionality-conflict-1/</guid>
+      <guid>http://localhost:1313/posts/some_lesser_known_github_api_functionality-conflict-1/</guid>
       <description>
 
 &lt;p&gt;One of our automation tools occasionally needs to interact with our Github repositories. Unfortunately, the current implementation of this tool leaves something to be desired as it requires cloning these repositories to local disk. Changes against these local repositories are then made on local branches, after which these branches get pushed to Github.&lt;/p&gt;
@@ -955,10 +955,10 @@ end
     
     <item>
       <title>The amazing bitwise XOR operator</title>
-      <link>http://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</link>
+      <link>http://localhost:1313/posts/the_amazing_bitwise_xor_operator/</link>
       <pubDate>Sun, 12 Jan 2014 19:35:25 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</guid>
+      <guid>http://localhost:1313/posts/the_amazing_bitwise_xor_operator/</guid>
       <description>
 
 &lt;p&gt;One of my colleagues recently mentioned this interview question to me.&lt;/p&gt;
@@ -1043,20 +1043,20 @@ end
     
     <item>
       <title>A visual explanation of SQL joins</title>
-      <link>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</link>
+      <link>http://localhost:1313/posts/a_visual_explanation_of_sql_joins/</link>
       <pubDate>Sun, 17 Nov 2013 20:22:17 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</guid>
+      <guid>http://localhost:1313/posts/a_visual_explanation_of_sql_joins/</guid>
       <description>&lt;p&gt;I admit that I find myself going to &lt;a href=&#34;http://blog.codinghorror.com/a-visual-explanation-of-sql-joins/&#34;&gt;this article&lt;/a&gt; every time I need to write some joins. Hopefully putting it here will save me from always having to google it.&lt;/p&gt;
 </description>
     </item>
     
     <item>
       <title>Check the order of your rescue_from handlers!</title>
-      <link>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</link>
+      <link>http://localhost:1313/posts/check_the_order_of_your_rescue_from_handlers/</link>
       <pubDate>Mon, 11 Nov 2013 21:34:16 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</guid>
+      <guid>http://localhost:1313/posts/check_the_order_of_your_rescue_from_handlers/</guid>
       <description>&lt;p&gt;Our &lt;code&gt;rescue_from&lt;/code&gt; handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;class WidgetsController &amp;lt; ActionController::Base
@@ -1077,10 +1077,10 @@ end
     
     <item>
       <title>The javascript event loop</title>
-      <link>http://vaneyckt.io/posts/the_javascript_event_loop/</link>
+      <link>http://localhost:1313/posts/the_javascript_event_loop/</link>
       <pubDate>Sun, 10 Nov 2013 20:50:04 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_javascript_event_loop/</guid>
+      <guid>http://localhost:1313/posts/the_javascript_event_loop/</guid>
       <description>&lt;p&gt;Sometimes you come across an article that is so well written you can&amp;rsquo;t do anything but link to it. So if you&amp;rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give &lt;a href=&#34;http://blog.carbonfive.com/2013/10/27/the-javascript-event-loop-explained/&#34;&gt;this article&lt;/a&gt; a read.&lt;/p&gt;
 
 &lt;p&gt;Some snippets:&lt;/p&gt;

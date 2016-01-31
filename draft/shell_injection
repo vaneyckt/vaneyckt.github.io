@@ -1,0 +1,10 @@
+http://blog.littleimpact.de/index.php/2008/08/11/avoiding-shell-injection-in-ruby-python-and-php/
+http://stackoverflow.com/a/13337841/1420382
+http://ruby-doc.org/core-1.9.3/Kernel.html#method-i-system
+https://www.ruby-forum.com/topic/196871
+http://stackoverflow.com/questions/4650636/forming-sanitary-shell-commands-or-system-calls-in-ruby
+http://ruby-doc.org/stdlib-2.0.0/libdoc/shellwords/rdoc/Shellwords.html - does this work?
+http://stackoverflow.com/a/5970819/1420382
+http://gavinmiller.io/2015/fixing-command-injection-vulnerabilities/
+
+bypass shell and invokes command directly. E.g. passing ;ls will make ;ls be sent to the command as an argument. Note that && is a shell construct, so you're protected against that as well.
