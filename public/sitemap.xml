@@ -23,6 +23,11 @@
   </url>
   
   <url>
+    <loc>http://vaneyckt.io/posts/an_introduction_to_javascript_promises/</loc>
+    <lastmod>2015-02-07T18:34:09+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</loc>
     <lastmod>2015-01-24T19:17:53+00:00</lastmod>
   </url>

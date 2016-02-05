@@ -410,6 +410,191 @@ $ sudo apt-get install google-chrome-stable
     </item>
     
     <item>
+      <title>An introduction to javascript promises</title>
+      <link>http://vaneyckt.io/posts/an_introduction_to_javascript_promises/</link>
+      <pubDate>Sat, 07 Feb 2015 18:34:09 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/an_introduction_to_javascript_promises/</guid>
+      <description>
+
+&lt;p&gt;I recently had to write some javascript code that required the sequential execution of half a dozen asynchronous requests. I figured this was the perfect time to learn a bit more about javascript promises. This post is a recap of what I read in these &lt;a href=&#34;http://www.html5rocks.com/en/tutorials/es6/promises/&#34;&gt;three&lt;/a&gt; &lt;a href=&#34;http://www.mullie.eu/how-javascript-promises-work/&#34;&gt;amazing&lt;/a&gt; &lt;a href=&#34;http://www.sitepoint.com/overview-javascript-promises/&#34;&gt;write-ups&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;what-are-promises:e45390df332d7d109b53a5ac1df46eec&#34;&gt;What are promises?&lt;/h3&gt;
+
+&lt;p&gt;A Promise object represents a value that may not be available yet, but will be resolved at some point in future. This abstraction allows you to write asynchronous code in a more synchronous fashion. For example, you can use a Promise object to represent data that will eventually be returned by a call to a remote web service. The &lt;code&gt;then&lt;/code&gt; and &lt;code&gt;catch&lt;/code&gt; methods can be used to attach callbacks that will be triggered once the data arrives. We&amp;rsquo;ll take a closer look at these two methods in the next sections. For now, let&amp;rsquo;s write a simple AJAX request example that prints a random joke.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var promise = new Promise(function(resolve, reject) {
+  $.ajax({
+    url: &amp;quot;http://api.icndb.com/jokes/random&amp;quot;,
+    success: function(result) {
+      resolve(result[&amp;quot;value&amp;quot;][&amp;quot;joke&amp;quot;]);
+    }
+  });
+});
+
+promise.then(function(result) {
+  console.log(result);
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Note how the Promise object is just a wrapper around the AJAX request and how we&amp;rsquo;ve instructed the &lt;code&gt;success&lt;/code&gt; callback to trigger the &lt;code&gt;resolve&lt;/code&gt; method. We&amp;rsquo;ve also attached a callback to our Promise object with the &lt;code&gt;then&lt;/code&gt; method. This callback gets triggered when the &lt;code&gt;resolve&lt;/code&gt; method gets called. The &lt;code&gt;result&lt;/code&gt; variable of this callback will contain the data that was passed to the &lt;code&gt;resolve&lt;/code&gt; method.&lt;/p&gt;
+
+&lt;p&gt;Before we take a closer look at the &lt;code&gt;resolve&lt;/code&gt; method, let&amp;rsquo;s first investigate the Promise object a bit more. A Promise object can have one of three states:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;fulfilled&lt;/strong&gt; - the action relating to the Promise succeeded&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;rejected&lt;/strong&gt; - the action relating to the Promise failed&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;pending&lt;/strong&gt; - the Promise hasn&amp;rsquo;t been fulfilled or rejected yet&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A pending Promise object can be fulfilled or rejected by calling &lt;code&gt;resolve&lt;/code&gt; or &lt;code&gt;reject&lt;/code&gt; on it. Once a Promise is fulfilled or rejected, this state gets permanently associated with it. The state of a fulfilled Promise also includes the data that was passed to &lt;code&gt;resolve&lt;/code&gt;, just as the state of a rejected Promise also includes the data that was passed to &lt;code&gt;reject&lt;/code&gt;. In summary, we can say that a Promise executes only once and stores the result of its execution.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var promise = new Promise(function(resolve, reject) {
+  $.ajax({
+    url: &amp;quot;http://api.icndb.com/jokes/random&amp;quot;,
+    success: function(result) {
+      resolve(result[&amp;quot;value&amp;quot;][&amp;quot;joke&amp;quot;]);
+    }
+  });
+});
+
+promise.then(function(result) {
+  console.log(result);
+});
+
+promise.then(function(result) {
+  console.log(result);
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We can test whether a Promise only ever executes once by adding a second callback to the previous example. In this case, we see that only one AJAX request gets made and that the same joke gets printed to the console twice. This clearly shows that our Promise was only executed once.&lt;/p&gt;
+
+&lt;h3 id=&#34;the-then-method-and-chaining:e45390df332d7d109b53a5ac1df46eec&#34;&gt;The &lt;code&gt;then&lt;/code&gt; method and chaining&lt;/h3&gt;
+
+&lt;p&gt;The &lt;code&gt;then&lt;/code&gt; method takes two arguments: a mandatory success callback and an optional failure callback. These callbacks are called when the Promise is settled (i.e. either fulfilled or rejected). If the Promise was fulfilled, the success callback will be fired with the data you passed to &lt;code&gt;resolve&lt;/code&gt;. If the Promise was rejected, the failure callback will be called with the data you passed to &lt;code&gt;reject&lt;/code&gt;. We&amp;rsquo;ve already covered most of this in the previous section.&lt;/p&gt;
+
+&lt;p&gt;The real magic with the &lt;code&gt;then&lt;/code&gt; method happens when you start chaining several of them together. This chaining allows you to express your logic in separate stages, each of which can be made responsible for transforming data passed on by the previous stage or for running additional asynchronous requests. The code below shows how data returned by the success callback of the first &lt;code&gt;then&lt;/code&gt; method becomes available to the success callback of the second &lt;code&gt;then&lt;/code&gt; method.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var promise = new Promise(function(resolve, reject) {
+  $.ajax({
+    url: &amp;quot;http://api.icndb.com/jokes/random&amp;quot;,
+    success: function(result) {
+      resolve(result[&amp;quot;value&amp;quot;][&amp;quot;joke&amp;quot;]);
+    }
+  });
+});
+
+promise.then(function(result) {
+  return result;
+}).then(function(result) {
+  console.log(result);
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This chaining is possible because the &lt;code&gt;then&lt;/code&gt; method returns a new Promise object that will resolve to the return value of the callback. Or in other words, by calling &lt;code&gt;return result;&lt;/code&gt; we cause the creation of an anonymous Promise object that looks something like shown below. Notice that this particular anonymous Promise object will resolve immediately, as it does not make any asynchronous requests.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;new Promise(function(resolve, reject) {
+  resolve(result);
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now that we understand that the &lt;code&gt;then&lt;/code&gt; method always returns a Promise object, let&amp;rsquo;s take a look at what happens when we tell the callback of a &lt;code&gt;then&lt;/code&gt; method to explicitly return a Promise object.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;function getJokePromise() {
+  return new Promise(function(resolve, reject) {
+    $.ajax({
+      url: &amp;quot;http://api.icndb.com/jokes/random&amp;quot;,
+      success: function(result) {
+        resolve(result[&amp;quot;value&amp;quot;][&amp;quot;joke&amp;quot;]);
+      }
+    });
+  });
+}
+
+getJokePromise().then(function(result) {
+  console.log(result);
+  return getJokePromise();
+}).then(function(result) {
+  console.log(result);
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;In this case, we end up sequentially executing two asynchronous requests. When the first Promise is resolved, the first joke is printed and a new Promise object is returned by the &lt;code&gt;then&lt;/code&gt; method. This new Promise object then has &lt;code&gt;then&lt;/code&gt; called on it. When the Promise succeeds, the &lt;code&gt;then&lt;/code&gt; success callback is triggered and the second joke is printed.&lt;/p&gt;
+
+&lt;p&gt;The takeaway from all this is that calling &lt;code&gt;return&lt;/code&gt; in a &lt;code&gt;then&lt;/code&gt; callback will always result in returning a Promise object. It is this that allows for &lt;code&gt;then&lt;/code&gt; chaining!&lt;/p&gt;
+
+&lt;h3 id=&#34;error-handling:e45390df332d7d109b53a5ac1df46eec&#34;&gt;Error handling&lt;/h3&gt;
+
+&lt;p&gt;We mentioned in the previous section how the &lt;code&gt;then&lt;/code&gt; method can take an optional failure callback that gets triggered when &lt;code&gt;reject&lt;/code&gt; is called. It is customary to reject with an Error object as they capture a stack trace, thereby facilitating debugging.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var promise = new Promise(function(resolve, reject) {
+  $.ajax({
+    url: &amp;quot;http://random.url.com&amp;quot;,
+    success: function(result) {
+      resolve(result[&amp;quot;value&amp;quot;][&amp;quot;joke&amp;quot;]);
+    },
+    error: function(jqxhr, textStatus) {
+      reject(Error(&amp;quot;The AJAX request failed.&amp;quot;));
+    }
+  });
+});
+
+promise.then(function(result) {
+  console.log(result);
+}, function(error) {
+  console.log(error);
+  console.log(error.stack);
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Personally, I find this a bit hard to read. Luckily we can use the &lt;code&gt;catch&lt;/code&gt; method to make this look a bit nicer. There&amp;rsquo;s nothing special about the &lt;code&gt;catch&lt;/code&gt; method. In fact, it&amp;rsquo;s just sugar for &lt;code&gt;then(undefined, func)&lt;/code&gt;, but it definitely makes code easier to read.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var promise = new Promise(function(resolve, reject) {
+  $.ajax({
+    url: &amp;quot;http://random.url.com&amp;quot;,
+    success: function(result) {
+      resolve(result[&amp;quot;value&amp;quot;][&amp;quot;joke&amp;quot;]);
+    },
+    error: function(jqxhr, textStatus) {
+      reject(Error(&amp;quot;The AJAX request failed.&amp;quot;));
+    }
+  });
+});
+
+promise.then(function(result) {
+  console.log(result);
+}).then(function(result) {
+  console.log(&amp;quot;foo&amp;quot;); // gets skipped
+}).then(function(result) {
+  console.log(&amp;quot;bar&amp;quot;); // gets skipped
+}).catch(function(error) {
+  console.log(error);
+  console.log(error.stack);
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Aside from illustrating improved readability, the above code showcases another aspect of the &lt;code&gt;reject&lt;/code&gt; method in that Promise rejections will cause your code to skip forward to the next &lt;code&gt;then&lt;/code&gt; method that has a rejection callback (or the next &lt;code&gt;catch&lt;/code&gt; method, since this is equivalent). It is this fallthrough behavior that causes this code to not print &amp;ldquo;foo&amp;rdquo; or &amp;ldquo;bar&amp;rdquo;!&lt;/p&gt;
+
+&lt;p&gt;As a final point, it is useful to know that a Promise is implicitly rejected if an error is thrown in its constructor callback. This means it&amp;rsquo;s useful to do all your Promise related work inside the Promise constructor callback, so errors automatically become rejections.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;var promise = new Promise(function(resolve, reject) {
+  // JSON.parse throws an error if you feed it some
+  // invalid JSON, so this implicitly rejects
+  JSON.parse(&amp;quot;This ain&#39;t JSON&amp;quot;);
+});
+
+promise.then(function(result) {
+  console.log(result);
+}).catch(function(error) {
+  console.log(error);
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The above code will cause the Promise to be rejected and an error to be printed because it will fail to parse the invalid JSON string.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Unwanted spot instance termination in multi-AZ ASG</title>
       <link>http://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</link>
       <pubDate>Sat, 24 Jan 2015 19:17:53 +0000</pubDate>
@@ -1072,32 +1257,6 @@ end
   rescue_from ActionController::RoutingError, :with =&amp;gt; :render_404
 end
 &lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>The javascript event loop</title>
-      <link>http://vaneyckt.io/posts/the_javascript_event_loop/</link>
-      <pubDate>Sun, 10 Nov 2013 20:50:04 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/the_javascript_event_loop/</guid>
-      <description>&lt;p&gt;Sometimes you come across an article that is so well written you can&amp;rsquo;t do anything but link to it. So if you&amp;rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give &lt;a href=&#34;http://blog.carbonfive.com/2013/10/27/the-javascript-event-loop-explained/&#34;&gt;this article&lt;/a&gt; a read.&lt;/p&gt;
-
-&lt;p&gt;Some snippets:&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;JavaScript runtimes contain a message queue which stores a list of messages to be processed and their associated callback functions. These messages are queued in response to external events (such as a mouse being clicked or receiving the response to an HTTP request) given a callback function has been provided. If, for example a user were to click a button and no callback function was provided – no message would have been enqueued.&lt;/p&gt;
-
-&lt;p&gt;In a loop, the queue is polled for the next message (each poll referred to as a “tick”) and when a message is encountered, the callback for that message is executed.&lt;/p&gt;
-
-&lt;p&gt;The calling of this callback function serves as the initial frame in the call stack, and due to JavaScript being single-threaded, further message polling and processing is halted pending the return of all calls on the stack.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;As well as:&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;Using Web Workers enables you to offload an expensive operation to a separate thread of execution, freeing up the main thread to do other things. The worker includes a separate message queue, event loop, and memory space independent from the original thread that instantiated it. Communication between the worker and the main thread is done via message passing, which looks very much like the traditional, evented code-examples we’ve already seen.&lt;/p&gt;
-&lt;/blockquote&gt;
 </description>
     </item>
     

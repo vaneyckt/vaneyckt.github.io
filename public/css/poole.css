@@ -127,7 +127,7 @@ dd {
 /* Misc */
 hr {
   position: relative;
-  margin: 1.0rem 0;
+  margin: 2.0rem 0;
   border: 0;
   border-top: 1px solid #eee;
   border-bottom: 1px solid #fff;
@@ -305,7 +305,7 @@ tbody tr:nth-child(odd) th {
 
 .page,
 .post {
-  margin-bottom: 3.5em;
+  margin-bottom: 2.0em;
 }
 
 /* Blog post or page title */
