@@ -6,7 +6,7 @@ ogtype = "article"
 topics = [ "linux" ]
 +++
 
-I've been spending a lot of time lately looking at I/O performance and reading up about the `iostat` command. While this linux command provides an absolute wealth of I/O information, the sheer amount of it all can make it hard to see the forest for the trees. In this post, we'll talk about interpreting this data. I would also like to thank the authors of the following blog posts:
+I've been spending a lot of time lately looking at I/O performance and reading up about the `iostat` command. While this command provides a wealth of I/O performance data, the sheer amount of it all can make it hard to see the forest for the trees. In this post, we'll talk about interpreting this data. Before we continue, I would first like to thank the authors of the blog posts mentioned below, as each of these has helped me understand `iostat` and its many complexities just a little bit more.
 
 * [Measuring disk usage in linux (%iowait vs IOPS)](http://www.thattommyhall.com/2011/02/18/iops-linux-iostat/)
 * [Basic I/O monitoring on linux](http://www.pythian.com/blog/basic-io-monitoring-on-linux/)
@@ -17,7 +17,11 @@ I've been spending a lot of time lately looking at I/O performance and reading u
 * [Beware of svctm in linux's iostat](http://www.xaprb.com/blog/2010/09/06/beware-of-svctm-in-linuxs-iostat/)
 * [Analyzing I/O performance](http://www.psce.com/blog/2012/04/18/analyzing-io-performance/)
 
-The `iostat` command can display both basic and extended metrics. We'll have a quick look at the basic metrics before moving on to the extended metrics in the rest of this post.
+The `iostat` command can display both basic and extended metrics. We'll take a look at the basic metrics first before moving on to extended metrics in the remainder of this post.
+
+### Basic iostat metrics
+
+The `-m` parameter tells `iostat` to display metrics in megabytes per second instead of blocks or kilobytes per second. The `5` parameter causes `iostat` to recalculate its metrics every 5 seconds causing the numbers to be an average over this interval.
 
 ```bash
 $ iostat -m 5
@@ -33,13 +37,13 @@ xvdf            205.17         1.62         2.68   13341297   22076001
 xvdh             51.16         0.64         1.43    5301463   11806257
 ```
 
-The `-m` parameter tells `iostat` to display metrics in megabytes per second instead of blocks or kilobytes per second. The `5` parameter causes `iostat` to recalculate its metrics every 5 seconds causing the numbers to be an average over this interval.
-
 The `tps` number here is the number of I/O Operations Per Second (IOPS). Wikipedia has [a nice list of average IOPS for different storage devices](https://en.wikipedia.org/wiki/IOPS). This should give you a pretty good idea about the I/O load on your machine.
 
 Some people put a lot of faith in the `%iowait` metric as an indicator for I/O performance. However, `%iowait` is first and foremost a CPU metric that measures the percentage of time the CPU is idle while waiting for an I/O operation to complete. This metric is heavily influenced by both your CPU speed and CPU load and is therefore easily misinterpreted.
 
 For example, consider a system with just two processes: the first creating an I/O bottleneck, the second creating a CPU bottleneck. As the second process prevents the CPU from going idle, the `%iowait` metric will stay low despite the I/O bottleneck introduced by the first process. Similar examples can be found [here](https://blog.pregos.info/wp-content/uploads/2010/09/iowait.txt) ([mirror](https://gist.github.com/vaneyckt/58028fb0ddbdbf561e60)). In short, both low and high `%iowait` values can be deceptive. The only thing `%iowait` tells us for sure is that the CPU is occasionally idle and can thus handle more computational work.
+
+### Extended iostat metrics
 
 That just about covers the basic metrics. Let's move on to the extended metrics now by calling the `iostat` command with the `-x` parameter.
 

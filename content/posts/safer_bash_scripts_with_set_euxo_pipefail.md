@@ -1,5 +1,5 @@
 +++
-date = "2014-05-14T20:14:48+00:00"
+date = "2015-07-16T19:43:34+00:00"
 title = "Safer bash scripts with 'set -euxo pipefail'"
 type = "post"
 ogtype = "article"
