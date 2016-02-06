@@ -1,6 +1,6 @@
 +++
-date = "2015-08-16T19:43:34+00:00"
-title = "Installing Chromedriver"
+date = "2015-07-16T19:43:34+00:00"
+title = "Installing chromedriver"
 type = "post"
 ogtype = "article"
 topics = [ "linux" ]
