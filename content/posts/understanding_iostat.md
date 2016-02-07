@@ -6,7 +6,7 @@ ogtype = "article"
 topics = [ "linux" ]
 +++
 
-I've been spending a lot of time lately looking at I/O performance and reading up about the `iostat` command. While this command provides a wealth of I/O performance data, the sheer amount of it all can make it hard to see the forest for the trees. In this post, we'll talk about interpreting this data. Before we continue, I would first like to thank the authors of the blog posts mentioned below, as each of these has helped me understand `iostat` and its many complexities just a little bit more.
+I've been spending a lot of time lately looking at I/O performance and reading up about the `iostat` command. While this command provides a wealth of I/O performance data, the sheer amount of it all can make it hard to see the forest for the trees. In this post, we'll talk about interpreting this data. Before we continue, I would first like to thank the authors of the blog posts mentioned below, as each of these has helped me understand `iostat` and its many complexities just a little bit better.
 
 * [Measuring disk usage in linux (%iowait vs IOPS)](http://www.thattommyhall.com/2011/02/18/iops-linux-iostat/)
 * [Basic I/O monitoring on linux](http://www.pythian.com/blog/basic-io-monitoring-on-linux/)
@@ -21,7 +21,7 @@ The `iostat` command can display both basic and extended metrics. We'll take a l
 
 ### Basic iostat metrics
 
-The `-m` parameter tells `iostat` to display metrics in megabytes per second instead of blocks or kilobytes per second. The `5` parameter causes `iostat` to recalculate its metrics every 5 seconds causing the numbers to be an average over this interval.
+The `iostat` command lists basic metrics by default. The `-m` parameter causes metrics to be displayed in megabytes per second instead of blocks or kilobytes per second. Using the `5` parameter causes `iostat` to recalculate metrics every 5 seconds, thereby making the numbers an average over this interval.
 
 ```bash
 $ iostat -m 5
@@ -37,15 +37,15 @@ xvdf            205.17         1.62         2.68   13341297   22076001
 xvdh             51.16         0.64         1.43    5301463   11806257
 ```
 
-The `tps` number here is the number of I/O Operations Per Second (IOPS). Wikipedia has [a nice list of average IOPS for different storage devices](https://en.wikipedia.org/wiki/IOPS). This should give you a pretty good idea about the I/O load on your machine.
+The `tps` number here is the number of I/O Operations Per Second (IOPS). Wikipedia has [a nice list of average IOPS for different storage devices](https://en.wikipedia.org/wiki/IOPS#Examples). This should give you a pretty good idea of the I/O load on your machine.
 
-Some people put a lot of faith in the `%iowait` metric as an indicator for I/O performance. However, `%iowait` is first and foremost a CPU metric that measures the percentage of time the CPU is idle while waiting for an I/O operation to complete. This metric is heavily influenced by both your CPU speed and CPU load and is therefore easily misinterpreted.
+Some people put a lot of faith in the `%iowait` metric as an indicator of I/O performance. However, `%iowait` is first and foremost a CPU metric that measures the percentage of time the CPU is idle while waiting for an I/O operation to complete. This metric is heavily influenced by both your CPU speed and CPU load and is therefore easily misinterpreted.
 
-For example, consider a system with just two processes: the first creating an I/O bottleneck, the second creating a CPU bottleneck. As the second process prevents the CPU from going idle, the `%iowait` metric will stay low despite the I/O bottleneck introduced by the first process. Similar examples can be found [here](https://blog.pregos.info/wp-content/uploads/2010/09/iowait.txt) ([mirror](https://gist.github.com/vaneyckt/58028fb0ddbdbf561e60)). In short, both low and high `%iowait` values can be deceptive. The only thing `%iowait` tells us for sure is that the CPU is occasionally idle and can thus handle more computational work.
+For example, consider a system with just two processes: the first one heavily I/O intensive, the second one heavily CPU intensive. As the second process will prevent the CPU from idling, the `%iowait` metric will stay low despite the high I/O utilization of the first process. Other examples illustrating the deceptive nature of `%iowait` can be found [here](https://blog.pregos.info/wp-content/uploads/2010/09/iowait.txt) ([mirror](https://gist.github.com/vaneyckt/58028fb0ddbdbf561e60)). The only thing `%iowait` really tells us is that the CPU occasionally idles while there is also an outstanding I/O request, and could thus be made to handle more computational work.
 
 ### Extended iostat metrics
 
-That just about covers the basic metrics. Let's move on to the extended metrics now by calling the `iostat` command with the `-x` parameter.
+Let's now take a look at the extended metrics by calling the `iostat -x` command.
 
 ```bash
 $ iostat -mx 5
@@ -61,22 +61,24 @@ xvdf              7.33    41.35  132.66   72.52     1.62     2.68    42.87     0
 xvdh              0.00     4.54   15.54   35.63     0.64     1.43    83.04     0.00   10.22    8.39   11.02   1.30   6.68
 ```
 
-The `r/s` and `w/s` numbers show the number of read and write requests issued to the device per second. These numbers provide a more detailed breakdown of the `tps` number we saw earlier, as `tps = r/s + w/s`.
+The `r/s` and `w/s` numbers show the amount of read and write requests issued to the I/O device per second. These numbers provide a more detailed breakdown of the `tps` metric we saw earlier, as `tps = r/s + w/s`.
 
-The `avgqu-sz` metric is an important value. Its name is rather poorly chosen as it does not in fact show the number of operations queued but not yet serviced. Instead, it shows [the number of operations that were either queued or being serviced](http://www.xaprb.com/blog/2010/01/09/how-linux-iostat-computes-its-results/). Ideally you want to have an idea of the value of this metric during normal operations for use as a reference when trouble occurs. Single digit numbers with the occasional double digit spike are safe(ish) values. Triple digit numbers are generally not.
+The `avgqu-sz` metric is an important value. Its name is rather poorly chosen as it doesn't actually show the number of operations that are queued but not yet serviced. Instead, it shows [the number of operations that were either queued or being serviced](http://www.xaprb.com/blog/2010/01/09/how-linux-iostat-computes-its-results). Ideally, you'd want to have an idea of this value during normal operations for use as a baseline number for when trouble occurs. Single digit numbers with the occasional double digit spike are safe(ish) values. Triple digit numbers generally are not.
 
-Note that this metric is unlikely to hover around zero unless you are doing very little I/O. A certain amount of queueing is generally unavoidable as modern storage devices [reorder disk operations so as to improve overall performance](https://en.wikipedia.org/wiki/Native_Command_Queuing/).
+Note that the `avgqu-sz` metric is unlikely to hover around zero unless very little I/O is being done. A certain amount of queueing is generally unavoidable as modern storage devices [reorder disk operations so as to improve overall performance](https://en.wikipedia.org/wiki/Native_Command_Queuing).
 
-The `await` metric is the average time from when a request is put in the queue to when the request is completed. Therefore, this metric is the sum of the time a request spent waiting in the queue and the time your storage device was working on servicing the request. This number is highly dependent on the number of items in the queue. Much like `avgqu-sz`, you'll want to have an idea of the value of this metric during normal operations for use as a reference when trouble occurs.
+The `await` metric is the average time from when a request was put in the queue to when the request was completed. This is the sum of the time a request was waiting in the queue and the time our storage device was working on servicing the request. This metric is highly dependent on the number of items in the queue. Much like `avgqu-sz`, you'll want to have an idea of the value of this metric during normal operations for use as a baseline.
 
-Our next metric is `svctm`. You'll find a lot of older blog posts that go into quite some detail about this one. However, `man iostat` makes it quite clear that this metric has now been deprecated and should no longer be trusted.
+Our next metric is `svctm`. You'll find a lot of older blog posts that go into quite some detail about this one. However, `man iostat` makes it quite clear that this metric has since been deprecated and should no longer be trusted. We will therefore ignore this metric.
 
-Our last metric is `%util`. Just like `svctm`, this metric has been touched by the progress of technology as well. The man pages show the following info.
+Our last metric is `%util`. Just like `svctm`, this metric has been touched by the progress of technology as well. The `man iostat` pages contain the information shown below.
 
 > **%util**
 >
 > Percentage of elapsed time during which I/O requests were issued to the device (bandwidth utilization for the device). Device saturation occurs when this value is close to 100% for devices serving requests serially. But for devices serving requests in parallel, such as RAID arrays and modern SSDs, this number does not reflect their performance limits.
 
-It’s common to assume that the closer to 100% utilization a device is, the more saturated it is. This is true when the storage device corresponds to a single magnetic disk as such a device can only serve one request at a time. However, a single SSD or a RAID array consisting of multiple disks can serve multiple requests at the same time. For such devices `%util` essentially indicates the percentage of time that the device was busy serving at least one request. Unfortunately, this tells us nothing about the maximum number of requests such a device can handle, and as such this value is useless as a saturation indicator for SSDs and RAID arrays.
+It’s common to assume that the closer a device gets to 100% utilization, the more saturated it becomes. This is true when the storage device corresponds to a single magnetic disk as such a device can only serve one request at a time. However, a single SSD or a RAID array consisting of multiple disks can serve multiple requests simultaneously. For such devices, `%util` essentially indicates the percentage of time that the device was busy serving one or more requests. Unfortunately, this value tells us absolutely nothing about the maximum number of simultaneous requests such a device can handle. This metric should therefore not be treated as a saturation indicator for either SSDs or RAID arrays.
 
-By now it should hopefully be clear that `iostat` is an incredibly powerful tool that can take some experience to interpret correctly. In a perfect world, your machines should regularly be writing these metrics to a monitoring service so you always have access to good baseline numbers. In a non-perfect world, knowing your device's average IOPS numbers can already help you out quite a bit when trying to figure out if a slowdown is I/O related.
+### Conclusion
+
+By now it should be clear that `iostat` is an incredibly powerful tool, the metrics of which can take some experience to interpret correctly. In a perfect world your machines should regularly be writing these metrics to a monitoring service, so you'll always have access to good baseline numbers. In an imperfect world, just knowing your baseline IOPS values will already go a long way when trying to diagnose whether a slowdown is I/O related.
