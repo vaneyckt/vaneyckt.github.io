@@ -18,8 +18,13 @@
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/installing_chromedriver/</loc>
-    <lastmod>2015-08-16T19:43:34+00:00</lastmod>
+    <loc>http://vaneyckt.io/posts/understanding_iostat/</loc>
+    <lastmod>2015-08-24T19:47:55+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</loc>
+    <lastmod>2015-03-16T19:43:34+00:00</lastmod>
   </url>
   
   <url>
@@ -48,7 +53,7 @@
   </url>
   
   <url>
-    <loc>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</loc>
+    <loc>http://vaneyckt.io/posts/installing_chromedriver/</loc>
     <lastmod>2014-05-14T20:14:48+00:00</lastmod>
   </url>
   

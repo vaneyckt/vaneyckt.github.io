@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="Understanding iostat" />
+<meta property="og:description" content="" />
+
+<meta property="og:type" content="article" />
+
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="http://vaneyckt.io/posts/understanding_iostat/" />
+
+
+  <title> Understanding iostat  &middot; vaneyckt.io </title>
+
+  
+
+  <link rel="stylesheet" href="/css/monokai.css">
+  <script src="/js/highlight.pack.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  
+  <link rel="stylesheet" href="http://vaneyckt.io/css/poole.css">
+  <link rel="stylesheet" href="http://vaneyckt.io/css/syntax.css">
+  <link rel="stylesheet" href="http://vaneyckt.io/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt.io" />
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+  <link href='http://fonts.googleapis.com/css?family=Raleway:400,300' rel='stylesheet' type='text/css'>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-71853042-1', 'auto');
+    ga('send', 'pageview');
+  </script>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1 class="brand"><a style="text-decoration:none" href="http://vaneyckt.io">vaneyckt</a></h1>
+      <p class="lead">
+         notes to my future self 
+      </p>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li><a href="http://vaneyckt.io">Home</a></li>
+      <li><a href="http://vaneyckt.io/posts">Posts</a></li>
+      <li><a href="http://vaneyckt.io/topics">Tags</a></li>
+      
+      <br/>
+      
+    </ul>
+      
+      
+      
+      <a href="https://github.com/vaneyckt"><i class="fa fa-github-square"></i></a>&nbsp;&nbsp;
+      <a href="mailto:tomvaneyck@gmail.com"><i class="fa fa-envelope-square"></i></a>&nbsp;&nbsp;
+      <a href="http://vaneyckt.io/index.xml"><i class="fa fa-rss-square"></i></a>&nbsp;&nbsp;
+      
+
+    <p class="footnote">powered by <a href="http://hugo.spf13.com">Hugo</a> <br/>
+    &copy; 2015 Tom Van Eyck. All rights reserved.</p>
+  </div>
+</div>
+
+
+  <div class="content container">
+    <div class="post">
+      <h1 class="post-title">Understanding iostat</h1>
+      <span class="post-date">Aug 24, 2015</span>
+      
+
+<p>I&rsquo;ve been spending a lot of time lately looking at I/O performance and reading up about the <code>iostat</code> command. While this command provides a wealth of I/O performance data, the sheer amount of it all can make it hard to see the forest for the trees. In this post, we&rsquo;ll talk about interpreting this data. Before we continue, I would first like to thank the authors of the blog posts mentioned below, as each of these has helped me understand <code>iostat</code> and its many complexities just a little bit better.</p>
+
+<ul>
+<li><a href="http://www.thattommyhall.com/2011/02/18/iops-linux-iostat/">Measuring disk usage in linux (%iowait vs IOPS)</a></li>
+<li><a href="http://www.pythian.com/blog/basic-io-monitoring-on-linux/">Basic I/O monitoring on linux</a></li>
+<li><a href="http://brooker.co.za/blog/2014/07/04/iostat-pct.html">Two traps in iostat: %util and svctm</a></li>
+<li><a href="https://blog.pregos.info/wp-content/uploads/2010/09/iowait.txt">What exactly is &ldquo;iowait&rdquo;?</a></li>
+<li><a href="https://www.igvita.com/2009/06/23/measuring-optimizing-io-performance/">Measuring &amp; optimizing I/O performance</a></li>
+<li><a href="http://dom.as/2009/03/11/iostat/">Iostat</a></li>
+<li><a href="http://www.xaprb.com/blog/2010/09/06/beware-of-svctm-in-linuxs-iostat/">Beware of svctm in linux&rsquo;s iostat</a></li>
+<li><a href="http://www.psce.com/blog/2012/04/18/analyzing-io-performance/">Analyzing I/O performance</a></li>
+</ul>
+
+<p>The <code>iostat</code> command can display both basic and extended metrics. We&rsquo;ll take a look at the basic metrics first before moving on to extended metrics in the remainder of this post. Note that this post will not go into detail about every last metric. Instead, I have decided to focus on just those metrics that I found to be especially useful, as well as those that seem to be often misunderstood.</p>
+
+<h3 id="basic-iostat-metrics:e3bfd6583e1363a6dd96b0cce07a2f7c">Basic iostat metrics</h3>
+
+<p>The <code>iostat</code> command lists basic metrics by default. The <code>-m</code> parameter causes metrics to be displayed in megabytes per second instead of blocks or kilobytes per second. Using the <code>5</code> parameter causes <code>iostat</code> to recalculate metrics every 5 seconds, thereby making the numbers an average over this interval.</p>
+
+<pre><code class="language-bash">$ iostat -m 5
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           8.84    0.16    3.91    7.73    0.04   79.33
+
+Device:            tps    MB_read/s    MB_wrtn/s    MB_read    MB_wrtn
+xvdap1           46.34         0.33         1.03    2697023    8471177
+xvdb              0.39         0.00         0.01       9496      71349
+xvdg             65.98         1.34         0.97   11088426    8010609
+xvdf            205.17         1.62         2.68   13341297   22076001
+xvdh             51.16         0.64         1.43    5301463   11806257
+</code></pre>
+
+<p>The <code>tps</code> number here is the number of I/O Operations Per Second (IOPS). Wikipedia has <a href="https://en.wikipedia.org/wiki/IOPS#Examples">a nice list of average IOPS for different storage devices</a>. This should give you a pretty good idea of the I/O load on your machine.</p>
+
+<p>Some people put a lot of faith in the <code>%iowait</code> metric as an indicator of I/O performance. However, <code>%iowait</code> is first and foremost a CPU metric that measures the percentage of time the CPU is idle while waiting for an I/O operation to complete. This metric is heavily influenced by both your CPU speed and CPU load and is therefore easily misinterpreted.</p>
+
+<p>For example, consider a system with just two processes: the first one heavily I/O intensive, the second one heavily CPU intensive. As the second process will prevent the CPU from going idle, the <code>%iowait</code> metric will stay low despite the first process&rsquo;s high I/O utilization. Other examples illustrating the deceptive nature of <code>%iowait</code> can be found <a href="https://blog.pregos.info/wp-content/uploads/2010/09/iowait.txt">here</a> (<a href="https://gist.github.com/vaneyckt/58028fb0ddbdbf561e60">mirror</a>). The only thing <code>%iowait</code> really tells us is that the CPU occasionally idles while there is an outstanding I/O request, and could thus be made to handle more computational work.</p>
+
+<h3 id="extended-iostat-metrics:e3bfd6583e1363a6dd96b0cce07a2f7c">Extended iostat metrics</h3>
+
+<p>Let&rsquo;s now take a look at the extended metrics by calling the <code>iostat -x</code> command.</p>
+
+<pre><code class="language-bash">$ iostat -mx 5
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           8.84    0.16    3.91    7.73    0.04   79.33
+
+Device:         rrqm/s   wrqm/s     r/s     w/s    rMB/s    wMB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util
+xvdap1            0.57     6.38   20.85   25.49     0.33     1.03    59.86     0.27   17.06   13.15   20.25   1.15   5.33
+xvdb              0.00     1.93    0.10    0.29     0.00     0.01    51.06     0.00    7.17    0.33    9.66   0.09   0.00
+xvdg              0.55     4.69   42.04   23.94     1.34     0.97    71.89     0.44    6.63    6.82    6.28   1.16   7.67
+xvdf              7.33    41.35  132.66   72.52     1.62     2.68    42.87     0.49    2.37    2.79    1.59   0.36   7.42
+xvdh              0.00     4.54   15.54   35.63     0.64     1.43    83.04     0.00   10.22    8.39   11.02   1.30   6.68
+</code></pre>
+
+<p>The <code>r/s</code> and <code>w/s</code> numbers show the amount of read and write requests issued to the I/O device per second. These numbers provide a more detailed breakdown of the <code>tps</code> metric we saw earlier, as <code>tps = r/s + w/s</code>.</p>
+
+<p>The <code>avgqu-sz</code> metric is an important value. Its name is rather poorly chosen as it doesn&rsquo;t actually show the number of operations that are queued but not yet serviced. Instead, it shows <a href="http://www.xaprb.com/blog/2010/01/09/how-linux-iostat-computes-its-results">the number of operations that were either queued, or being serviced</a>. Ideally, you&rsquo;d want to have an idea of this value during normal operations for use as a baseline number for when trouble occurs. Single digit numbers with the occasional double digit spike are safe(ish) values. Triple digit numbers generally are not.</p>
+
+<p>The <code>await</code> metric is the average time from when a request was put in the queue to when the request was completed. This is the sum of the time a request was waiting in the queue and the time our storage device was working on servicing the request. This metric is highly dependent on the number of items in the queue. Much like <code>avgqu-sz</code>, you&rsquo;ll want to have an idea of the value of this metric during normal operations for use as a baseline.</p>
+
+<p>Our next metric is <code>svctm</code>. You&rsquo;ll find a lot of older blog posts that go into quite some detail about this one. However, <code>man iostat</code> makes it quite clear that this metric has since been deprecated and should no longer be trusted.</p>
+
+<p>Our last metric is <code>%util</code>. Just like <code>svctm</code>, this metric has been touched by the progress of technology as well. The <code>man iostat</code> pages contain the information shown below.</p>
+
+<blockquote>
+<p><strong>%util</strong></p>
+
+<p>Percentage of elapsed time during which I/O requests were issued to the device (bandwidth utilization for the device). Device saturation occurs when this value is close to 100% for devices serving requests serially. But for devices serving requests in parallel, such as RAID arrays and modern SSDs, this number does not reflect their performance limits.</p>
+</blockquote>
+
+<p>It’s common to assume that the closer a device gets to 100% utilization, the more saturated it becomes. This is true when the storage device corresponds to a single magnetic disk as such a device can only serve one request at a time. However, a single SSD or a RAID array consisting of multiple disks can serve multiple requests simultaneously. For such devices, <code>%util</code> essentially indicates the percentage of time that the device was busy serving one or more requests. Unfortunately, this value tells us absolutely nothing about the maximum number of simultaneous requests such a device can handle. This metric should therefore not be treated as a saturation indicator for either SSDs or RAID arrays.</p>
+
+<h3 id="conclusion:e3bfd6583e1363a6dd96b0cce07a2f7c">Conclusion</h3>
+
+<p>By now it should be clear that <code>iostat</code> is an incredibly powerful tool, the metrics of which can take some experience to interpret correctly. In a perfect world your machines should regularly be writing these metrics to a monitoring service, so you&rsquo;ll always have access to good baseline numbers. In an imperfect world, just knowing your baseline IOPS values will already go a long way when trying to diagnose whether a slowdown is I/O related.</p>
+
+    </div>
+  </div>
+
+</body>
+</html>

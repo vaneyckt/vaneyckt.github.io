@@ -368,44 +368,238 @@ foo();        // returns 3
     </item>
     
     <item>
-      <title>Installing Chromedriver</title>
-      <link>http://vaneyckt.io/posts/installing_chromedriver/</link>
-      <pubDate>Sun, 16 Aug 2015 19:43:34 +0000</pubDate>
+      <title>Understanding iostat</title>
+      <link>http://vaneyckt.io/posts/understanding_iostat/</link>
+      <pubDate>Mon, 24 Aug 2015 19:47:55 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
-      <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
+      <guid>http://vaneyckt.io/posts/understanding_iostat/</guid>
+      <description>
 
-&lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;ve been spending a lot of time lately looking at I/O performance and reading up about the &lt;code&gt;iostat&lt;/code&gt; command. While this command provides a wealth of I/O performance data, the sheer amount of it all can make it hard to see the forest for the trees. In this post, we&amp;rsquo;ll talk about interpreting this data. Before we continue, I would first like to thank the authors of the blog posts mentioned below, as each of these has helped me understand &lt;code&gt;iostat&lt;/code&gt; and its many complexities just a little bit better.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-$ wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
-$ unzip chromedriver_linux64.zip
-$ rm chromedriver_linux64.zip
-$ sudo mv chromedriver /usr/local/bin
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.thattommyhall.com/2011/02/18/iops-linux-iostat/&#34;&gt;Measuring disk usage in linux (%iowait vs IOPS)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.pythian.com/blog/basic-io-monitoring-on-linux/&#34;&gt;Basic I/O monitoring on linux&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://brooker.co.za/blog/2014/07/04/iostat-pct.html&#34;&gt;Two traps in iostat: %util and svctm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://blog.pregos.info/wp-content/uploads/2010/09/iowait.txt&#34;&gt;What exactly is &amp;ldquo;iowait&amp;rdquo;?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.igvita.com/2009/06/23/measuring-optimizing-io-performance/&#34;&gt;Measuring &amp;amp; optimizing I/O performance&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://dom.as/2009/03/11/iostat/&#34;&gt;Iostat&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.xaprb.com/blog/2010/09/06/beware-of-svctm-in-linuxs-iostat/&#34;&gt;Beware of svctm in linux&amp;rsquo;s iostat&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.psce.com/blog/2012/04/18/analyzing-io-performance/&#34;&gt;Analyzing I/O performance&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The &lt;code&gt;iostat&lt;/code&gt; command can display both basic and extended metrics. We&amp;rsquo;ll take a look at the basic metrics first before moving on to extended metrics in the remainder of this post. Note that this post will not go into detail about every last metric. Instead, I have decided to focus on just those metrics that I found to be especially useful, as well as those that seem to be often misunderstood.&lt;/p&gt;
+
+&lt;h3 id=&#34;basic-iostat-metrics:e3bfd6583e1363a6dd96b0cce07a2f7c&#34;&gt;Basic iostat metrics&lt;/h3&gt;
+
+&lt;p&gt;The &lt;code&gt;iostat&lt;/code&gt; command lists basic metrics by default. The &lt;code&gt;-m&lt;/code&gt; parameter causes metrics to be displayed in megabytes per second instead of blocks or kilobytes per second. Using the &lt;code&gt;5&lt;/code&gt; parameter causes &lt;code&gt;iostat&lt;/code&gt; to recalculate metrics every 5 seconds, thereby making the numbers an average over this interval.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ iostat -m 5
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           8.84    0.16    3.91    7.73    0.04   79.33
+
+Device:            tps    MB_read/s    MB_wrtn/s    MB_read    MB_wrtn
+xvdap1           46.34         0.33         1.03    2697023    8471177
+xvdb              0.39         0.00         0.01       9496      71349
+xvdg             65.98         1.34         0.97   11088426    8010609
+xvdf            205.17         1.62         2.68   13341297   22076001
+xvdh             51.16         0.64         1.43    5301463   11806257
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Let&amp;rsquo;s see what happens when we try and run it.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;tps&lt;/code&gt; number here is the number of I/O Operations Per Second (IOPS). Wikipedia has &lt;a href=&#34;https://en.wikipedia.org/wiki/IOPS#Examples&#34;&gt;a nice list of average IOPS for different storage devices&lt;/a&gt;. This should give you a pretty good idea of the I/O load on your machine.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ chromedriver
+&lt;p&gt;Some people put a lot of faith in the &lt;code&gt;%iowait&lt;/code&gt; metric as an indicator of I/O performance. However, &lt;code&gt;%iowait&lt;/code&gt; is first and foremost a CPU metric that measures the percentage of time the CPU is idle while waiting for an I/O operation to complete. This metric is heavily influenced by both your CPU speed and CPU load and is therefore easily misinterpreted.&lt;/p&gt;
 
-chromedriver: error while loading shared libraries: libgconf-2.so.4:
-cannot open shared object file: No such file or directory
+&lt;p&gt;For example, consider a system with just two processes: the first one heavily I/O intensive, the second one heavily CPU intensive. As the second process will prevent the CPU from going idle, the &lt;code&gt;%iowait&lt;/code&gt; metric will stay low despite the first process&amp;rsquo;s high I/O utilization. Other examples illustrating the deceptive nature of &lt;code&gt;%iowait&lt;/code&gt; can be found &lt;a href=&#34;https://blog.pregos.info/wp-content/uploads/2010/09/iowait.txt&#34;&gt;here&lt;/a&gt; (&lt;a href=&#34;https://gist.github.com/vaneyckt/58028fb0ddbdbf561e60&#34;&gt;mirror&lt;/a&gt;). The only thing &lt;code&gt;%iowait&lt;/code&gt; really tells us is that the CPU occasionally idles while there is an outstanding I/O request, and could thus be made to handle more computational work.&lt;/p&gt;
+
+&lt;h3 id=&#34;extended-iostat-metrics:e3bfd6583e1363a6dd96b0cce07a2f7c&#34;&gt;Extended iostat metrics&lt;/h3&gt;
+
+&lt;p&gt;Let&amp;rsquo;s now take a look at the extended metrics by calling the &lt;code&gt;iostat -x&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ iostat -mx 5
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           8.84    0.16    3.91    7.73    0.04   79.33
+
+Device:         rrqm/s   wrqm/s     r/s     w/s    rMB/s    wMB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util
+xvdap1            0.57     6.38   20.85   25.49     0.33     1.03    59.86     0.27   17.06   13.15   20.25   1.15   5.33
+xvdb              0.00     1.93    0.10    0.29     0.00     0.01    51.06     0.00    7.17    0.33    9.66   0.09   0.00
+xvdg              0.55     4.69   42.04   23.94     1.34     0.97    71.89     0.44    6.63    6.82    6.28   1.16   7.67
+xvdf              7.33    41.35  132.66   72.52     1.62     2.68    42.87     0.49    2.37    2.79    1.59   0.36   7.42
+xvdh              0.00     4.54   15.54   35.63     0.64     1.43    83.04     0.00   10.22    8.39   11.02   1.30   6.68
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;That&amp;rsquo;s a bit unexpected. Luckily we can easily fix this.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;r/s&lt;/code&gt; and &lt;code&gt;w/s&lt;/code&gt; numbers show the amount of read and write requests issued to the I/O device per second. These numbers provide a more detailed breakdown of the &lt;code&gt;tps&lt;/code&gt; metric we saw earlier, as &lt;code&gt;tps = r/s + w/s&lt;/code&gt;.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ sudo apt-get install libgconf-2-4
+&lt;p&gt;The &lt;code&gt;avgqu-sz&lt;/code&gt; metric is an important value. Its name is rather poorly chosen as it doesn&amp;rsquo;t actually show the number of operations that are queued but not yet serviced. Instead, it shows &lt;a href=&#34;http://www.xaprb.com/blog/2010/01/09/how-linux-iostat-computes-its-results&#34;&gt;the number of operations that were either queued, or being serviced&lt;/a&gt;. Ideally, you&amp;rsquo;d want to have an idea of this value during normal operations for use as a baseline number for when trouble occurs. Single digit numbers with the occasional double digit spike are safe(ish) values. Triple digit numbers generally are not.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code&gt;await&lt;/code&gt; metric is the average time from when a request was put in the queue to when the request was completed. This is the sum of the time a request was waiting in the queue and the time our storage device was working on servicing the request. This metric is highly dependent on the number of items in the queue. Much like &lt;code&gt;avgqu-sz&lt;/code&gt;, you&amp;rsquo;ll want to have an idea of the value of this metric during normal operations for use as a baseline.&lt;/p&gt;
+
+&lt;p&gt;Our next metric is &lt;code&gt;svctm&lt;/code&gt;. You&amp;rsquo;ll find a lot of older blog posts that go into quite some detail about this one. However, &lt;code&gt;man iostat&lt;/code&gt; makes it quite clear that this metric has since been deprecated and should no longer be trusted.&lt;/p&gt;
+
+&lt;p&gt;Our last metric is &lt;code&gt;%util&lt;/code&gt;. Just like &lt;code&gt;svctm&lt;/code&gt;, this metric has been touched by the progress of technology as well. The &lt;code&gt;man iostat&lt;/code&gt; pages contain the information shown below.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;%util&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Percentage of elapsed time during which I/O requests were issued to the device (bandwidth utilization for the device). Device saturation occurs when this value is close to 100% for devices serving requests serially. But for devices serving requests in parallel, such as RAID arrays and modern SSDs, this number does not reflect their performance limits.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;It’s common to assume that the closer a device gets to 100% utilization, the more saturated it becomes. This is true when the storage device corresponds to a single magnetic disk as such a device can only serve one request at a time. However, a single SSD or a RAID array consisting of multiple disks can serve multiple requests simultaneously. For such devices, &lt;code&gt;%util&lt;/code&gt; essentially indicates the percentage of time that the device was busy serving one or more requests. Unfortunately, this value tells us absolutely nothing about the maximum number of simultaneous requests such a device can handle. This metric should therefore not be treated as a saturation indicator for either SSDs or RAID arrays.&lt;/p&gt;
+
+&lt;h3 id=&#34;conclusion:e3bfd6583e1363a6dd96b0cce07a2f7c&#34;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;By now it should be clear that &lt;code&gt;iostat&lt;/code&gt; is an incredibly powerful tool, the metrics of which can take some experience to interpret correctly. In a perfect world your machines should regularly be writing these metrics to a monitoring service, so you&amp;rsquo;ll always have access to good baseline numbers. In an imperfect world, just knowing your baseline IOPS values will already go a long way when trying to diagnose whether a slowdown is I/O related.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Safer bash scripts with &#39;set -euxo pipefail&#39;</title>
+      <link>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
+      <pubDate>Mon, 16 Mar 2015 19:43:34 +0000</pubDate>
+      
+      <guid>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
+      <description>
+
+&lt;p&gt;Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won&amp;rsquo;t. In this article, we&amp;rsquo;ll look at how we can improve on this.&lt;/p&gt;
+
+&lt;p&gt;The bash shell comes with several builtin commands for modifying the behavior of the shell itself. We are particularly interested in the &lt;a href=&#34;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&#34;&gt;set builtin&lt;/a&gt;, as this command has several options that will help us write safer scripts. I hope to convince you that it&amp;rsquo;s a really good idea to add &lt;code&gt;set -euxo pipefail&lt;/code&gt; to the beginning of all your future bash scripts.&lt;/p&gt;
+
+&lt;h3 id=&#34;set-e:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -e&lt;/h3&gt;
+
+&lt;p&gt;The &lt;code&gt;-e&lt;/code&gt; option will cause a bash script to exit immediately when a command fails. This is generally a vast improvement upon the default behavior where the script just ignores the failing command and continues with the next line. This option is also smart enough to not react on failing commands that are part of conditional statements. Moreover, you can append a command with &lt;code&gt;|| true&lt;/code&gt; for those rare cases where you don&amp;rsquo;t want a failing command to trigger an immediate exit.&lt;/p&gt;
+
+&lt;h4 id=&#34;before:d0406b09675b080255aad6f1a20a9332&#34;&gt;Before&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+
+# &#39;foo&#39; is a non-existing command
+foo
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+# line 4: foo: command not found
+# bar
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Now that we have a functioning chromedriver, the only thing left to do is to install Chrome. After all, chromedriver can&amp;rsquo;t function without Chrome.&lt;/p&gt;
+&lt;h4 id=&#34;after:d0406b09675b080255aad6f1a20a9332&#34;&gt;After&lt;/h4&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-$ sudo sh -c &#39;echo &amp;quot;deb http://dl.google.com/linux/chrome/deb/ stable main&amp;quot; &amp;gt;&amp;gt; /etc/apt/sources.list.d/google.list&#39;
-$ sudo apt-get update
-$ sudo apt-get install google-chrome-stable
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -e
+
+# &#39;foo&#39; is a non-existing command
+foo
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+# line 5: foo: command not found
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;And that&amp;rsquo;s it. You should be good to go now.&lt;/p&gt;
+&lt;h4 id=&#34;prevent-immediate-exit:d0406b09675b080255aad6f1a20a9332&#34;&gt;Prevent immediate exit&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -e
+
+# &#39;foo&#39; is a non-existing command
+foo || true
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+# line 5: foo: command not found
+# bar
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;set-o-pipefail:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -o pipefail&lt;/h3&gt;
+
+&lt;p&gt;The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the &lt;code&gt;-e&lt;/code&gt; option to only be able to act on the exit code of a pipeline&amp;rsquo;s last command. This is where &lt;code&gt;-o pipefail&lt;/code&gt; comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or zero if all commands of the pipeline exit successfully.&lt;/p&gt;
+
+&lt;h4 id=&#34;before-1:d0406b09675b080255aad6f1a20a9332&#34;&gt;Before&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -e
+
+# &#39;foo&#39; is a non-existing command
+foo | echo &amp;quot;a&amp;quot;
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+# a
+# line 5: foo: command not found
+# bar
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;after-1:d0406b09675b080255aad6f1a20a9332&#34;&gt;After&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -eo pipefail
+
+# &#39;foo&#39; is a non-existing command
+foo | echo &amp;quot;a&amp;quot;
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+# a
+# line 5: foo: command not found
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;set-u:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -u&lt;/h3&gt;
+
+&lt;p&gt;This option causes the bash shell to treat unset variables as an error and exit immediately. This brings us much closer to the behavior of higher-level languages.&lt;/p&gt;
+
+&lt;h4 id=&#34;before-2:d0406b09675b080255aad6f1a20a9332&#34;&gt;Before&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -eo pipefail
+
+echo $a
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+#
+# bar
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;after-2:d0406b09675b080255aad6f1a20a9332&#34;&gt;After&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -euo pipefail
+
+echo $a
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+# line 5: a: unbound variable
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;set-x:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -x&lt;/h3&gt;
+
+&lt;p&gt;The &lt;code&gt;-x&lt;/code&gt; option causes bash to print each command before executing it. This can be of great help when you have to try and debug a bash script failure through its logs. Note that arguments get expanded before a command gets printed. This causes our logs to display the actual argument values at the time of execution!&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+set -euxo pipefail
+
+a=5
+echo $a
+echo &amp;quot;bar&amp;quot;
+
+# output
+# ------
+# + a=5
+# + echo 5
+# 5
+# + echo bar
+# bar
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And that&amp;rsquo;s it. I hope this post showed you why using &lt;code&gt;set -euxo pipefail&lt;/code&gt; is such a good idea. If you have any other options you want to suggest, then please let me know and I&amp;rsquo;ll be happy to add them to this list.&lt;/p&gt;
 </description>
     </item>
     
@@ -853,151 +1047,44 @@ Rake::Task[&#39;db:migrate&#39;].enhance([&#39;db:attach_hook&#39;])
     </item>
     
     <item>
-      <title>Safer bash scripts with &#39;set -euxo pipefail&#39;</title>
-      <link>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
+      <title>Installing chromedriver</title>
+      <link>http://vaneyckt.io/posts/installing_chromedriver/</link>
       <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
-      <description>
+      <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
+      <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
 
-&lt;p&gt;Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won&amp;rsquo;t. In this article, we&amp;rsquo;ll look at how we can improve on this.&lt;/p&gt;
+&lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
 
-&lt;p&gt;The bash shell comes with several builtin commands for modifying the behavior of the shell itself. We are particularly interested in the &lt;a href=&#34;https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html&#34;&gt;set builtin&lt;/a&gt;, as this command has several options that will help us write safer scripts. I hope to convince you that it&amp;rsquo;s a really good idea to add &lt;code&gt;set -euxo pipefail&lt;/code&gt; to the beginning of all your future bash scripts.&lt;/p&gt;
-
-&lt;h3 id=&#34;set-e:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -e&lt;/h3&gt;
-
-&lt;p&gt;The &lt;code&gt;-e&lt;/code&gt; option will cause a bash script to exit immediately when a command fails. This is generally a vast improvement upon the default behavior where the script just ignores the failing command and continues with the next line. This option is also smart enough to not react on failing commands that are part of conditional statements. Moreover, you can append a command with &lt;code&gt;|| true&lt;/code&gt; for those rare cases where you don&amp;rsquo;t want a failing command to trigger an immediate exit.&lt;/p&gt;
-
-&lt;h4 id=&#34;before:d0406b09675b080255aad6f1a20a9332&#34;&gt;Before&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
-
-# &#39;foo&#39; is a non-existing command
-foo
-echo &amp;quot;bar&amp;quot;
-
-# output
-# ------
-# line 4: foo: command not found
-# bar
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+$ wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip
+$ unzip chromedriver_linux64.zip
+$ rm chromedriver_linux64.zip
+$ sudo mv chromedriver /usr/local/bin
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h4 id=&#34;after:d0406b09675b080255aad6f1a20a9332&#34;&gt;After&lt;/h4&gt;
+&lt;p&gt;Let&amp;rsquo;s see what happens when we try and run it.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
-set -e
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ chromedriver
 
-# &#39;foo&#39; is a non-existing command
-foo
-echo &amp;quot;bar&amp;quot;
-
-# output
-# ------
-# line 5: foo: command not found
+chromedriver: error while loading shared libraries: libgconf-2.so.4:
+cannot open shared object file: No such file or directory
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h4 id=&#34;prevent-immediate-exit:d0406b09675b080255aad6f1a20a9332&#34;&gt;Prevent immediate exit&lt;/h4&gt;
+&lt;p&gt;That&amp;rsquo;s a bit unexpected. Luckily we can easily fix this.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
-set -e
-
-# &#39;foo&#39; is a non-existing command
-foo || true
-echo &amp;quot;bar&amp;quot;
-
-# output
-# ------
-# line 5: foo: command not found
-# bar
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ sudo apt-get install libgconf-2-4
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;set-o-pipefail:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -o pipefail&lt;/h3&gt;
+&lt;p&gt;Now that we have a functioning chromedriver, the only thing left to do is to install Chrome. After all, chromedriver can&amp;rsquo;t function without Chrome.&lt;/p&gt;
 
-&lt;p&gt;The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the &lt;code&gt;-e&lt;/code&gt; option to only be able to act on the exit code of a pipeline&amp;rsquo;s last command. This is where &lt;code&gt;-o pipefail&lt;/code&gt; comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or zero if all commands of the pipeline exit successfully.&lt;/p&gt;
-
-&lt;h4 id=&#34;before-1:d0406b09675b080255aad6f1a20a9332&#34;&gt;Before&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
-set -e
-
-# &#39;foo&#39; is a non-existing command
-foo | echo &amp;quot;a&amp;quot;
-echo &amp;quot;bar&amp;quot;
-
-# output
-# ------
-# a
-# line 5: foo: command not found
-# bar
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+$ sudo sh -c &#39;echo &amp;quot;deb http://dl.google.com/linux/chrome/deb/ stable main&amp;quot; &amp;gt;&amp;gt; /etc/apt/sources.list.d/google.list&#39;
+$ sudo apt-get update
+$ sudo apt-get install google-chrome-stable
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h4 id=&#34;after-1:d0406b09675b080255aad6f1a20a9332&#34;&gt;After&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
-set -eo pipefail
-
-# &#39;foo&#39; is a non-existing command
-foo | echo &amp;quot;a&amp;quot;
-echo &amp;quot;bar&amp;quot;
-
-# output
-# ------
-# a
-# line 5: foo: command not found
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;set-u:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -u&lt;/h3&gt;
-
-&lt;p&gt;This option causes the bash shell to treat unset variables as an error and exit immediately. This brings us much closer to the behavior of higher-level languages.&lt;/p&gt;
-
-&lt;h4 id=&#34;before-2:d0406b09675b080255aad6f1a20a9332&#34;&gt;Before&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
-set -eo pipefail
-
-echo $a
-echo &amp;quot;bar&amp;quot;
-
-# output
-# ------
-#
-# bar
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;after-2:d0406b09675b080255aad6f1a20a9332&#34;&gt;After&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
-set -euo pipefail
-
-echo $a
-echo &amp;quot;bar&amp;quot;
-
-# output
-# ------
-# line 5: a: unbound variable
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;set-x:d0406b09675b080255aad6f1a20a9332&#34;&gt;set -x&lt;/h3&gt;
-
-&lt;p&gt;The &lt;code&gt;-x&lt;/code&gt; option causes bash to print each command before executing it. This can be of great help when you have to try and debug a bash script failure through its logs. Note that arguments get expanded before a command gets printed. This causes our logs to display the actual argument values at the time of execution!&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
-set -euxo pipefail
-
-a=5
-echo $a
-echo &amp;quot;bar&amp;quot;
-
-# output
-# ------
-# + a=5
-# + echo 5
-# 5
-# + echo bar
-# bar
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;And that&amp;rsquo;s it. I hope this post showed you why using &lt;code&gt;set -euxo pipefail&lt;/code&gt; is such a good idea. If you have any other options you want to suggest, then please let me know and I&amp;rsquo;ll be happy to add them to this list.&lt;/p&gt;
+&lt;p&gt;And that&amp;rsquo;s it. You should be good to go now.&lt;/p&gt;
 </description>
     </item>
     
@@ -1233,30 +1320,6 @@ end
       
       <guid>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</guid>
       <description>&lt;p&gt;I admit that I find myself going to &lt;a href=&#34;http://blog.codinghorror.com/a-visual-explanation-of-sql-joins/&#34;&gt;this article&lt;/a&gt; every time I need to write some joins. Hopefully putting it here will save me from always having to google it.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Check the order of your rescue_from handlers!</title>
-      <link>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</link>
-      <pubDate>Mon, 11 Nov 2013 21:34:16 +0000</pubDate>
-      
-      <guid>http://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</guid>
-      <description>&lt;p&gt;Our &lt;code&gt;rescue_from&lt;/code&gt; handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;class WidgetsController &amp;lt; ActionController::Base
-  rescue_from ActionController::RoutingError, :with =&amp;gt; :render_404
-  rescue_from Exception,                      :with =&amp;gt; :render_500
-end
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Turns out it&amp;rsquo;s not okay at all. Handlers are searched &lt;a href=&#34;http://apidock.com/rails/ActiveSupport/Rescuable/ClassMethods/rescue_from&#34;&gt;from bottom to top&lt;/a&gt;. This means that they should always be defined in order of most generic to most specific. Or in other words, the above code is exactly the wrong thing to do. Instead, we need to write our handlers like shown here.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;class WidgetsController &amp;lt; ActionController::Base
-  rescue_from Exception,                      :with =&amp;gt; :render_500
-  rescue_from ActionController::RoutingError, :with =&amp;gt; :render_404
-end
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
