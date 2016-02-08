@@ -67,7 +67,7 @@ The `avgqu-sz` metric is an important value. Its name is rather poorly chosen as
 
 The `await` metric is the average time from when a request was put in the queue to when the request was completed. This is the sum of the time a request was waiting in the queue and the time our storage device was working on servicing the request. This metric is highly dependent on the number of items in the queue. Much like `avgqu-sz`, you'll want to have an idea of the value of this metric during normal operations for use as a baseline.
 
-Our next metric is `svctm`. You'll find a lot of older blog posts that go into quite some detail about this one. However, `man iostat` makes it quite clear that this metric has since been deprecated and should no longer be trusted. We will therefore ignore it.
+Our next metric is `svctm`. You'll find a lot of older blog posts that go into quite some detail about this one. However, `man iostat` makes it quite clear that this metric has since been deprecated and should no longer be trusted.
 
 Our last metric is `%util`. Just like `svctm`, this metric has been touched by the progress of technology as well. The `man iostat` pages contain the information shown below.
 
