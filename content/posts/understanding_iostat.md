@@ -17,7 +17,7 @@ I've been spending a lot of time lately looking at I/O performance and reading u
 * [Beware of svctm in linux's iostat](http://www.xaprb.com/blog/2010/09/06/beware-of-svctm-in-linuxs-iostat/)
 * [Analyzing I/O performance](http://www.psce.com/blog/2012/04/18/analyzing-io-performance/)
 
-The `iostat` command can display both basic and extended metrics. We'll take a look at the basic metrics first before moving on to extended metrics in the remainder of this post.
+The `iostat` command can display both basic and extended metrics. We'll take a look at the basic metrics first before moving on to extended metrics in the remainder of this post. Note that this post will not go into detail about every last metric. Instead, I have decided to focus on just those metrics that I found to be especially useful, as well as those that seem to be often misunderstood.
 
 ### Basic iostat metrics
 
@@ -41,7 +41,7 @@ The `tps` number here is the number of I/O Operations Per Second (IOPS). Wikiped
 
 Some people put a lot of faith in the `%iowait` metric as an indicator of I/O performance. However, `%iowait` is first and foremost a CPU metric that measures the percentage of time the CPU is idle while waiting for an I/O operation to complete. This metric is heavily influenced by both your CPU speed and CPU load and is therefore easily misinterpreted.
 
-For example, consider a system with just two processes: the first one heavily I/O intensive, the second one heavily CPU intensive. As the second process will prevent the CPU from idling, the `%iowait` metric will stay low despite the high I/O utilization of the first process. Other examples illustrating the deceptive nature of `%iowait` can be found [here](https://blog.pregos.info/wp-content/uploads/2010/09/iowait.txt) ([mirror](https://gist.github.com/vaneyckt/58028fb0ddbdbf561e60)). The only thing `%iowait` really tells us is that the CPU occasionally idles while there is also an outstanding I/O request, and could thus be made to handle more computational work.
+For example, consider a system with just two processes: the first one heavily I/O intensive, the second one heavily CPU intensive. As the second process will prevent the CPU from going idle, the `%iowait` metric will stay low despite the first process's high I/O utilization. Other examples illustrating the deceptive nature of `%iowait` can be found [here](https://blog.pregos.info/wp-content/uploads/2010/09/iowait.txt) ([mirror](https://gist.github.com/vaneyckt/58028fb0ddbdbf561e60)). The only thing `%iowait` really tells us is that the CPU occasionally idles while there is an outstanding I/O request, and could thus be made to handle more computational work.
 
 ### Extended iostat metrics
 
@@ -63,13 +63,11 @@ xvdh              0.00     4.54   15.54   35.63     0.64     1.43    83.04     0
 
 The `r/s` and `w/s` numbers show the amount of read and write requests issued to the I/O device per second. These numbers provide a more detailed breakdown of the `tps` metric we saw earlier, as `tps = r/s + w/s`.
 
-The `avgqu-sz` metric is an important value. Its name is rather poorly chosen as it doesn't actually show the number of operations that are queued but not yet serviced. Instead, it shows [the number of operations that were either queued or being serviced](http://www.xaprb.com/blog/2010/01/09/how-linux-iostat-computes-its-results). Ideally, you'd want to have an idea of this value during normal operations for use as a baseline number for when trouble occurs. Single digit numbers with the occasional double digit spike are safe(ish) values. Triple digit numbers generally are not.
-
-Note that the `avgqu-sz` metric is unlikely to hover around zero unless very little I/O is being done. A certain amount of queueing is generally unavoidable as modern storage devices [reorder disk operations so as to improve overall performance](https://en.wikipedia.org/wiki/Native_Command_Queuing).
+The `avgqu-sz` metric is an important value. Its name is rather poorly chosen as it doesn't actually show the number of operations that are queued but not yet serviced. Instead, it shows [the number of operations that were either queued, or being serviced](http://www.xaprb.com/blog/2010/01/09/how-linux-iostat-computes-its-results). Ideally, you'd want to have an idea of this value during normal operations for use as a baseline number for when trouble occurs. Single digit numbers with the occasional double digit spike are safe(ish) values. Triple digit numbers generally are not.
 
 The `await` metric is the average time from when a request was put in the queue to when the request was completed. This is the sum of the time a request was waiting in the queue and the time our storage device was working on servicing the request. This metric is highly dependent on the number of items in the queue. Much like `avgqu-sz`, you'll want to have an idea of the value of this metric during normal operations for use as a baseline.
 
-Our next metric is `svctm`. You'll find a lot of older blog posts that go into quite some detail about this one. However, `man iostat` makes it quite clear that this metric has since been deprecated and should no longer be trusted. We will therefore ignore this metric.
+Our next metric is `svctm`. You'll find a lot of older blog posts that go into quite some detail about this one. However, `man iostat` makes it quite clear that this metric has since been deprecated and should no longer be trusted. We will therefore ignore it.
 
 Our last metric is `%util`. Just like `svctm`, this metric has been touched by the progress of technology as well. The `man iostat` pages contain the information shown below.
 
