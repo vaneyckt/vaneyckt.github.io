@@ -14,9 +14,75 @@ Note that any code shown in this post is only guaranteed to work with rspec 3.3.
 
 Rspec generates its command line output by using formatters that receive messages on events like `example_passed` and `example_failed`. We can use these hooks to help us keep track of failed tests by writing their identifiers to a text file. The `FailureFormatter` shown below shows how to do this.
 
+```ruby
+# failure_formatter.rb
+require 'rspec/core/formatters/progress_formatter'
 
-This is where writing your own rspec retry mechanism comes in.
+class FailureFormatter < RSpec::Core::Formatters::ProgressFormatter
+  RSpec::Core::Formatters.register self, :example_failed
 
+  def example_failed(notification)
+    super
+    File.open('tests_failed', 'a') do |file|
+      file.puts(notification.example.full_description)
+    end
+  end
+end
+```
+
+Let's see how our test suite behaves when we try to run it with this particular formatter. First, let's prepare some example tests. We'll create two tests. One of which will always pass, while the other one will always fail.
+
+```ruby
+# my_fake_tests_spec.rb
+describe 'my fake tests', :type => :feature do
+
+  it 'should do this' do
+    expect(true).to eq true
+  end
+
+  it 'should do that' do
+    expect(false).to eq true
+  end
+end
+```
+
+Having done that, we can now run our tests with the `FailureFormatter` we wrote earlier. As you can see, we'll have to pass both `--require` and `--format` params in order to get this working. I've also set the `--no-fail-fast` flag to prevent our test suite from stopping upon encountering its first failure.
+
+```bash
+$ bundle exec rspec --require ./spec/formatters/failure_formatter.rb --format FailureFormatter --no-fail-fast
+
+.F
+
+Failures:
+
+  1) my fake tests should do that
+     Failure/Error: expect(false).to eq true
+
+       expected: true
+            got: false
+
+       (compared using ==)
+     # ./spec/my_fake_tests_spec.rb:8:in `block (2 levels) in <top (required)>'
+
+Finished in 0.02257 seconds (files took 0.11574 seconds to load)
+2 examples, 1 failure
+
+Failed examples:
+
+rspec ./spec/my_fake_tests_spec.rb:7 # my fake tests should do that
+```
+
+After running this, we should now have a tests_failed file that holds a single line describing our failed test. As we can see in the snippet below, this is indeed the case.
+
+```bash
+$ cat tests_failed
+
+my fake tests should do that
+```
+
+Take a moment to reflect on what we have just done. By writing just a few lines of code we have effectively created a logging mechanism that will keep track of failed tests for us. In the next section we will look at how we can make use of this mechanism to automatically have failed tests rerun for us.
+
+### Creating the retry task
 
 
 

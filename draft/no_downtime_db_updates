@@ -1,0 +1,3 @@
+http://jakeyesbeck.com/2016/02/07/how-to-remove-a-column-with-zero-downtime-in-ruby-on-rails/
+
+how does it work when a column is added? How do we do it? Do we mask our downtime behind our ELB?
