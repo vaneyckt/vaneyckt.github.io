@@ -8,3 +8,7 @@ http://stackoverflow.com/a/5970819/1420382
 http://gavinmiller.io/2015/fixing-command-injection-vulnerabilities/
 
 bypass shell and invokes command directly. E.g. passing ;ls will make ;ls be sent to the command as an argument. Note that && is a shell construct, so you're protected against that as well.
+
+if we bypass the shell, then does that mean that shell scripts (e.g. bash_rc) won't trigger, thereby leaving you with an unmodified PATH?
+
+backticks don't capture stderr

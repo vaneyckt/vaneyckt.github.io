@@ -1,3 +1,35 @@
 http://jakeyesbeck.com/2016/02/07/how-to-remove-a-column-with-zero-downtime-in-ruby-on-rails/
 
 how does it work when a column is added? How do we do it? Do we mask our downtime behind our ELB?
+
+Rob C. says there's still failure cases in this scenario:
+
+Tom Van Eyck <tom.vaneyck@swrve.com>
+9:36 PM (12 hours ago)
+
+to Robert
+Hey Rob,
+
+I remember there being a discussion about this a while back. Is this still something we would like to see solved? And if so, does this article help?
+
+http://jakeyesbeck.com/2016/02/07/how-to-remove-a-column-with-zero-downtime-in-ruby-on-rails/
+
+Robert Clancy
+10:28 AM (2 minutes ago)
+
+to me
+The query we have a problem with is of the form:
+Company.includes(:games).order("games.name")
+which uses the column cache to determine which columns from games to load.
+
+Trying this query in a rails console, it generates a query like:
+SELECT `companies`.`id` AS t0_r0, `companies`.`name` AS t0_r1, ..., `games`.`id` AS t1_r0, `games`.`name` AS t1_r1, `games`.`created_at` AS t1_r2,...
+
+so it's still not quite safe to remove a column in rails 4.
+
+
+Tom Van Eyck <tom.vaneyck@swrve.com>
+10:31 AM (0 minutes ago)
+
+to Robert
+aah, didn't realize that. Thanks for taking the time to check!

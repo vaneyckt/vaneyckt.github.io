@@ -36,11 +36,11 @@ Let's see how our test suite behaves when we try to run it with this particular 
 # my_fake_tests_spec.rb
 describe 'my fake tests', :type => :feature do
 
-  it 'should do this' do
+  it 'this scenario should pass' do
     expect(true).to eq true
   end
 
-  it 'should do that' do
+  it 'this scenario should fail' do
     expect(false).to eq true
   end
 end
@@ -50,12 +50,11 @@ Having done that, we can now run our tests with the `FailureFormatter` we wrote 
 
 ```bash
 $ bundle exec rspec --require ./spec/formatters/failure_formatter.rb --format FailureFormatter --no-fail-fast
-
 .F
 
 Failures:
 
-  1) my fake tests should do that
+  1) my fake tests this scenario should fail
      Failure/Error: expect(false).to eq true
 
        expected: true
@@ -64,12 +63,12 @@ Failures:
        (compared using ==)
      # ./spec/my_fake_tests_spec.rb:8:in `block (2 levels) in <top (required)>'
 
-Finished in 0.02257 seconds (files took 0.11574 seconds to load)
+Finished in 0.02272 seconds (files took 0.0965 seconds to load)
 2 examples, 1 failure
 
 Failed examples:
 
-rspec ./spec/my_fake_tests_spec.rb:7 # my fake tests should do that
+rspec ./spec/my_fake_tests_spec.rb:7 # my fake tests this scenario should fail
 ```
 
 After running this, we should now have a tests_failed file that holds a single line describing our failed test. As we can see in the snippet below, this is indeed the case.
@@ -77,47 +76,201 @@ After running this, we should now have a tests_failed file that holds a single l
 ```bash
 $ cat tests_failed
 
-my fake tests should do that
+my fake tests this scenario should fail
 ```
 
-Take a moment to reflect on what we have just done. By writing just a few lines of code we have effectively created a logging mechanism that will keep track of failed tests for us. In the next section we will look at how we can make use of this mechanism to automatically have failed tests rerun for us.
+Take a moment to reflect on what we have just done. By writing just a few lines of code we have effectively created a logging mechanism that will keep track of failed tests for us. In the next section we will look at how we can make use of this mechanism to automatically rerun failed tests.
 
 ### Creating the retry task
 
+In this section we are going to create a rake task that runs our rspec test suite and handles retrying our failed tests.
+
+backticks don't capture stderr
+
+also bad with kill -9
+
+2 examples, 1 failure at first run
+1 example, 1 failure at next runs
 
 
+```ruby
+require 'fileutils'
 
-simulating browser sessions is still not entirely without pains and sometimes your tests will fail because of bugs in your browser session simulation libraries.
+task :rspec_with_retries, [:max_tries] do |_, args|
+  max_tries = args[:max_tries].to_i
 
-Having had a lot of first-hand experience with an app that started out as pure Ruby On Rails, but whose newer features are a mix of RoR and Ember.js, I can say with some authority that sometimes your tests will break because of bugs in your browser session simulation software.
+  # construct initial rspec command
+  command = 'bundle exec rspec --require ./spec/formatters/failure_formatter.rb --format FailureFormatter --no-fail-fast'
 
- Ruby On Raiapp whose older product features are pure Ruby on Rails, while the newer ones are a mix of  onpart rails, part Ember.js
+  max_tries.times do |t|
+    puts "\n"
+    puts '##########'
+    puts "### STARTING TEST RUN #{t + 1} OUT OF A MAXIMUM OF #{max_tries}"
+    puts "### executing command: #{command}"
+    puts '##########'
 
-whileWhile this sounds idealUnfortunately, sometimes the software
+    # delete tests_failed file left over by previous run
+    FileUtils.rm('tests_failed', :force => true)
 
-through which it validates your app's correctness by checking how it reacts to textfields getting filledm buttons getting pressed, and data hitting its endpoints.
+    # run tests
+    puts `#{command}`
 
-sending data, pressing buttons, and filling text fields
+    # early out
+    exit 0 if $?.exitstatus.zero?
+    exit 1 if (t == max_tries - 1)
 
- filling text fields, pressing buttons, and sending data to public endpoints. In short, each system test checks for bugs in the expected user experience.
+    # determine which tests need to be run again
+    failed_tests = []
+    File.open('tests_failed', 'r') do |file|
+      failed_tests = file.readlines.map { |line| "\"#{line.strip}\"" }
+    end
+
+    # construct command to rerun just the failed tests
+    command  = ['bundle exec rspec']
+    command += Array.new(failed_tests.length, '-e').zip(failed_tests).flatten
+    command += ['--require ./spec/formatters/failure_formatter.rb --format FailureFormatter --no-fail-fast']
+    command = command.join(' ')
+  end
+end
+```
+```bash
+$ rake rspec_with_retries[3]
+
+##########
+### STARTING TEST RUN 1 OUT OF A MAXIMUM OF 3
+### executing command: bundle exec rspec --require ./spec/formatters/failure_formatter.rb --format FailureFormatter --no-fail-fast
+##########
+.F
+
+Failures:
+
+  1) my fake tests this scenario should fail
+     Failure/Error: expect(false).to eq true
+
+       expected: true
+            got: false
+
+       (compared using ==)
+     # ./spec/my_fake_tests_spec.rb:8:in `block (2 levels) in <top (required)>'
+
+Finished in 0.02272 seconds (files took 0.0965 seconds to load)
+2 examples, 1 failure
+
+Failed examples:
+
+rspec ./spec/my_fake_tests_spec.rb:7 # my fake tests this scenario should fail
 
 
-from the user's point of view by run a browser against
+##########
+### STARTING TEST RUN 2 OUT OF A MAXIMUM OF 3
+### executing command: bundle exec rspec -e "my fake tests this scenario should fail" --require ./spec/formatters/failure_formatter.rb --format FailureFormatter --no-fail-fast
+##########
+Run options: include {:full_description=>/my\ fake\ tests\ this\ scenario\ should\ fail/}
+F
 
-simulating how a real user would interact with your app
+Failures:
 
-'re using your rspec test suite to drive
+  1) my fake tests this scenario should fail
+     Failure/Error: expect(false).to eq true
 
-run fullstack system tests.
-Sometimes you want your rspec tests to retry themselves in case of falure.
+       expected: true
+            got: false
 
-rspec 3 - the goal: retry mechanism for failed test. Retries should be clearly visible in output.
-General approach: run tests, mark which tests failed, rerun with just those tests
-How? Formatters! Explain we can write a formatter that writes each failed test to a fail.
-We'll need to wrap our test runner logic in a script. This is where Ruby comes in.
-Check that our system call gives us access to stdout and exit code.
-logging failed tests is eaier for demonstaring puproses. Call this failure_log
-nope, better to have a success log
-f we dnt use ChildProcess, how does it react to kill -9? Does the childprocess get killed? or can we have parentless processes?
-What's the impact of this on the exit code?
-you need to list tests!
+       (compared using ==)
+     # ./spec/my_fake_tests_spec.rb:8:in `block (2 levels) in <top (required)>'
+
+Finished in 0.02286 seconds (files took 0.09094 seconds to load)
+1 example, 1 failure
+
+Failed examples:
+
+rspec ./spec/my_fake_tests_spec.rb:7 # my fake tests this scenario should fail
+
+
+##########
+### STARTING TEST RUN 3 OUT OF A MAXIMUM OF 3
+### executing command: bundle exec rspec -e "my fake tests this scenario should fail" --require ./spec/formatters/failure_formatter.rb --format FailureFormatter --no-fail-fast
+##########
+Run options: include {:full_description=>/my\ fake\ tests\ this\ scenario\ should\ fail/}
+F
+
+Failures:
+
+  1) my fake tests this scenario should fail
+     Failure/Error: expect(false).to eq true
+
+       expected: true
+            got: false
+
+       (compared using ==)
+     # ./spec/my_fake_tests_spec.rb:8:in `block (2 levels) in <top (required)>'
+
+Finished in 0.02378 seconds (files took 0.09512 seconds to load)
+1 example, 1 failure
+
+Failed examples:
+
+rspec ./spec/my_fake_tests_spec.rb:7 # my fake tests this scenario should fail
+```
+
+childprocess gives you stderr
+as well as kill -9 safety
+
+### Perfecting the retry task
+
+ctrl+c (handy for CI machines)
+child process also inheriting stderr
+output is the same
+array notation for commands
+no more puts, as we are inheriting the stream
+
+
+```ruby
+require 'fileutils'
+require 'childprocess'
+
+task :rspec_with_retries, [:max_tries] do |_, args|
+  max_tries = args[:max_tries].to_i
+
+  # exit hook to ensure rspec process gets stopped when CTRL+C (SIGTERM is pressed)
+  # needs to be set outside the times loop as otherwise each iteration would add its
+  # own at_exit hook
+  process = nil
+  at_exit { process.stop unless process.nil? }
+
+  # construct initial rspec command
+  command = ['bundle', 'exec', 'rspec', '--require', './spec/formatters/failure_formatter.rb', '--format', 'FailureFormatter', '--no-fail-fast']
+
+  max_tries.times do |t|
+    puts "\n"
+    puts '##########'
+    puts "### STARTING TEST RUN #{t + 1} OUT OF A MAXIMUM OF #{max_tries}"
+    puts "### executing command: #{command}"
+    puts '##########'
+
+    # delete tests_failed file left over by previous run
+    FileUtils.rm('tests_failed', :force => true)
+
+    # run tests in separate process
+    process = ChildProcess.build(*command)
+    process.io.inherit!
+    process.start
+    process.wait
+
+    # early out
+    exit 0 if process.exit_code.zero?
+    exit 1 if (t == max_tries - 1)
+
+    # determine which tests need to be run again
+    failed_tests = []
+    File.open('tests_failed', 'r') do |file|
+      failed_tests = file.readlines.map { |line| "#{line.strip}" }
+    end
+
+    # construct command to rerun just the failed tests
+    command  = ['bundle', 'exec', 'rspec']
+    command += Array.new(failed_tests.length, '-e').zip(failed_tests).flatten
+    command += ['--require', './spec/formatters/failure_formatter.rb', '--format', 'FailureFormatter', '--no-fail-fast']
+  end
+end
+```
