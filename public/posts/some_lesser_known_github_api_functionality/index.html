@@ -13,7 +13,7 @@
 <meta property="og:type" content="article" />
 
 <meta property="og:locale" content="en_US" />
-<meta property="og:url" content="http://vaneyckt.io/posts/some_lesser_known_github_api_functionality-conflict-1/" />
+<meta property="og:url" content="http://vaneyckt.io/posts/some_lesser_known_github_api_functionality/" />
 
 
   <title> Some lesser known Github API functionality  &middot; vaneyckt.io </title>
@@ -81,7 +81,7 @@
       
 
     <p class="footnote">powered by <a href="http://hugo.spf13.com">Hugo</a> <br/>
-    &copy; 2015 Tom Van Eyck. All rights reserved.</p>
+    &copy; 2016 Tom Van Eyck. All rights reserved.</p>
   </div>
 </div>
 
@@ -98,7 +98,7 @@
 
 <p>The solution to this complexity was to completely remove the need for local repositories and instead aim to have everything done through the wonderful Github API. This article is a reminder to myself about some API functionality that I found while looking into this.</p>
 
-<h3 id="checking-if-a-branch-contains-a-commit:2812339c011ecef2e0f6dd8f922aaa4f">Checking if a branch contains a commit</h3>
+<h3 id="checking-if-a-branch-contains-a-commit:ebeddf967e2b970d374ec29d22d794b8">Checking if a branch contains a commit</h3>
 
 <p>While the Github API does not have an explicit call to check whether a given commit is included in a branch, we can nevertheless use the <a href="https://developer.github.com/v3/repos/commits/#compare-two-commits">compare call</a> for just this purpose. This call takes two commits as input and returns a large JSON response of comparison data. We can use the <code>status</code> field of the response to ascertain if a given commit is behind or identical to the HEAD commit of a branch. If so, then the branch contains that commit.</p>
 
@@ -113,7 +113,7 @@ class GithubClient &lt; Octokit::Client
 end
 </code></pre>
 
-<h3 id="creating-a-remote-branch-from-a-remote-commit:2812339c011ecef2e0f6dd8f922aaa4f">Creating a remote branch from a remote commit</h3>
+<h3 id="creating-a-remote-branch-from-a-remote-commit:ebeddf967e2b970d374ec29d22d794b8">Creating a remote branch from a remote commit</h3>
 
 <p>Sometimes you&rsquo;ll want to create a remote branch by branching from a remote commit. We can use the <a href="https://developer.github.com/v3/git/refs/#create-a-reference">create_reference call</a> to accomplish this. Note that the <code>ref</code> parameter of this call needs to be set to <code>refs/heads/#{branch}</code> when creating a remote branch.</p>
 
@@ -128,7 +128,7 @@ class GithubClient &lt; Octokit::Client
 end
 </code></pre>
 
-<h3 id="setting-the-head-of-a-remote-branch-to-a-specific-remote-commit:2812339c011ecef2e0f6dd8f922aaa4f">Setting the HEAD of a remote branch to a specific remote commit</h3>
+<h3 id="setting-the-head-of-a-remote-branch-to-a-specific-remote-commit:ebeddf967e2b970d374ec29d22d794b8">Setting the HEAD of a remote branch to a specific remote commit</h3>
 
 <p>You can even forcefully set the HEAD of a remote branch to a specific remote commit by using the <a href="https://developer.github.com/v3/git/refs/#update-a-reference">update_reference call</a>. As mentioned earlier, the <code>ref</code> parameter needs to be set to <code>refs/heads/#{branch}</code>. Be careful when using this functionality though as it essentially allows you to overwrite the history of a remote branch!</p>
 

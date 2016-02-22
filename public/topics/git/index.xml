@@ -82,10 +82,10 @@ end
     
     <item>
       <title>Some lesser known Github API functionality</title>
-      <link>http://vaneyckt.io/posts/some_lesser_known_github_api_functionality-conflict-1/</link>
+      <link>http://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</link>
       <pubDate>Sat, 08 Feb 2014 18:05:12 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/some_lesser_known_github_api_functionality-conflict-1/</guid>
+      <guid>http://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</guid>
       <description>
 
 &lt;p&gt;One of our automation tools occasionally needs to interact with our Github repositories. Unfortunately, the current implementation of this tool leaves something to be desired as it requires cloning these repositories to local disk. Changes against these local repositories are then made on local branches, after which these branches get pushed to Github.&lt;/p&gt;
@@ -94,7 +94,7 @@ end
 
 &lt;p&gt;The solution to this complexity was to completely remove the need for local repositories and instead aim to have everything done through the wonderful Github API. This article is a reminder to myself about some API functionality that I found while looking into this.&lt;/p&gt;
 
-&lt;h3 id=&#34;checking-if-a-branch-contains-a-commit:2812339c011ecef2e0f6dd8f922aaa4f&#34;&gt;Checking if a branch contains a commit&lt;/h3&gt;
+&lt;h3 id=&#34;checking-if-a-branch-contains-a-commit:ebeddf967e2b970d374ec29d22d794b8&#34;&gt;Checking if a branch contains a commit&lt;/h3&gt;
 
 &lt;p&gt;While the Github API does not have an explicit call to check whether a given commit is included in a branch, we can nevertheless use the &lt;a href=&#34;https://developer.github.com/v3/repos/commits/#compare-two-commits&#34;&gt;compare call&lt;/a&gt; for just this purpose. This call takes two commits as input and returns a large JSON response of comparison data. We can use the &lt;code&gt;status&lt;/code&gt; field of the response to ascertain if a given commit is behind or identical to the HEAD commit of a branch. If so, then the branch contains that commit.&lt;/p&gt;
 
@@ -109,7 +109,7 @@ class GithubClient &amp;lt; Octokit::Client
 end
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;creating-a-remote-branch-from-a-remote-commit:2812339c011ecef2e0f6dd8f922aaa4f&#34;&gt;Creating a remote branch from a remote commit&lt;/h3&gt;
+&lt;h3 id=&#34;creating-a-remote-branch-from-a-remote-commit:ebeddf967e2b970d374ec29d22d794b8&#34;&gt;Creating a remote branch from a remote commit&lt;/h3&gt;
 
 &lt;p&gt;Sometimes you&amp;rsquo;ll want to create a remote branch by branching from a remote commit. We can use the &lt;a href=&#34;https://developer.github.com/v3/git/refs/#create-a-reference&#34;&gt;create_reference call&lt;/a&gt; to accomplish this. Note that the &lt;code&gt;ref&lt;/code&gt; parameter of this call needs to be set to &lt;code&gt;refs/heads/#{branch}&lt;/code&gt; when creating a remote branch.&lt;/p&gt;
 
@@ -124,7 +124,7 @@ class GithubClient &amp;lt; Octokit::Client
 end
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;setting-the-head-of-a-remote-branch-to-a-specific-remote-commit:2812339c011ecef2e0f6dd8f922aaa4f&#34;&gt;Setting the HEAD of a remote branch to a specific remote commit&lt;/h3&gt;
+&lt;h3 id=&#34;setting-the-head-of-a-remote-branch-to-a-specific-remote-commit:ebeddf967e2b970d374ec29d22d794b8&#34;&gt;Setting the HEAD of a remote branch to a specific remote commit&lt;/h3&gt;
 
 &lt;p&gt;You can even forcefully set the HEAD of a remote branch to a specific remote commit by using the &lt;a href=&#34;https://developer.github.com/v3/git/refs/#update-a-reference&#34;&gt;update_reference call&lt;/a&gt;. As mentioned earlier, the &lt;code&gt;ref&lt;/code&gt; parameter needs to be set to &lt;code&gt;refs/heads/#{branch}&lt;/code&gt;. Be careful when using this functionality though as it essentially allows you to overwrite the history of a remote branch!&lt;/p&gt;
 
