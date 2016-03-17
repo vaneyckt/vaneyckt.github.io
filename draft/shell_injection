@@ -12,3 +12,4 @@ bypass shell and invokes command directly. E.g. passing ;ls will make ;ls be sen
 if we bypass the shell, then does that mean that shell scripts (e.g. bash_rc) won't trigger, thereby leaving you with an unmodified PATH?
 
 backticks don't capture stderr
+http://jvns.ca/blog/2013/10/01/hacker-school-day-2-what-does-a-shell-even-do/
