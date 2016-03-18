@@ -1,14 +1,47 @@
 +++
 date = "2016-03-17T19:12:21+00:00"
-title = "Capybara monkeypatching for reliable javascript tests"
+title = "Achieving reliable end-to-end tests with Capybara"
 type = "post"
 ogtype = "article"
-topics = [ "ruby", "javascript" ]
+topics = [ "ruby" ]
 +++
 
 End-to-end [system tests](http://david.heinemeierhansson.com/2014/tdd-is-dead-long-live-testing.html) are a great tool to help you test your application. This type of test simulates a customer interacting with your app by browsing your site, filling out text fields, and clicking buttons. You can create a fully automated end-to-end regression test suite by focusing on system tests that capture the kind of customer behavior that leads to the most communication between your backend components. Such a suite will help you keep bugs out of your product without having to invest heavily in manual regression testing.
 
-So if system tests are so great, how come we don't see them being used everywhere?
+So if system tests are so great, how come we don't see them being used everywhere? As it turns out, creating stable end-to-end tests is [hard](https://bibwild.wordpress.com/2016/02/18/struggling-towards-reliable-capybara-javascript-testing/), [really hard](http://googletesting.blogspot.ie/2015/04/just-say-no-to-more-end-to-end-tests.html). Dealing with undocumented behavior of your browser driver is just the first of your worries. The real trouble starts when the pages you're writing tests for rely heavily on asynchronous javascript actions, as these can make it really hard for your tests to detect when a page has finished rendering.
+
+In this article I am going to walk you through every step of my approach towards building a test suite that is currently being used for automated regression testing of a rails app. About half the pages of this particular rails app depend on javascript and jQuery, while the other half were created with the Ember.js framework. So there's going to be plenty of javascript logic that could confuse my tests something fierce.
+
+I am going to talk about all aspects related to dealing with this onslaught of javascript. I will speak about the best way to arrange your tests, which libraries to use and their respective configurations, as well as go into detail about how we can monkeypatch Capybara in order to greatly improve test reliability. The completed code of this article can be found [here](todo).
+
+### Page objects
+
+- what asre page objects
+- why are we going to use them
+- introduction to siteprism
+- talks to the page through Capybara
+- is great: if all our tests are driven through page objects, then the vast majority from our test suite to Capybara will go through Site Prism. This means we just need to figure out which Capybara methods are being used by SitePrism, and ensure that these will function correctly when dealing with large amounts of javascript. Don't worry if this sounds confusing, we will go into detail into this in the next section.
+
+
+
+
+
+
+ want to introduce my approach to end-to-end system tests.
+
+This article starts by investigating how rspec formatters can be used to help us keep track of failed tests. Next, we'll use this information to take a first stab at creating a rake task that can automatically retry failed tests. Lastly, we'll explore how to further improve our simple rake task so as to make it ready for use in production.
+
+Note that any code shown in this post is only guaranteed to work with rspec 3.3. In the past I've written similar code for other rspec versions as well though. So don't worry, it shouldn't be too hard to get all of this to work on whatever rspec version you find yourself using.
+
+what are we gonna show in this article. I am going to walk you through every step of our solution to fully automated stable end-to-end system tests for an internal rails app, some pages of which are built primarily with javascript and jquery, otehr pages of which are built entirely with the help of Ember.js. In short, there'sa lot of javascript here that can confouse yourt tests. I will be talking about hoe to arrange your tests (page objects!), which frameworks to use, explain configuration choices, and walk you through how to mnkeypatch Capybara to achieve reliable tests in the face of an onslaught of javascript. Also make code available in github repo.
+
+- Before we start I want to reiterate that this will ONLY work for pages built with jquery or Ember.js. Although by the end of thisarticle you should be able to understand how to come up with solution that involve other asynchrinous javascript frontedn frameworks.
+
+As This can make it really hard for a
+
+the bugs and unfoNot only do you need to be aware of the bugs and undocumented behavior of your browser driver, but
+
+
 
 #1: Name the enemy
 #2: Answer “Why now?”
@@ -26,9 +59,9 @@ Rspec generates its command line output by relying on formatters that receive me
 
 - Before we start I want to reiterate that this will ONLY work for pages built with jquery or Ember.js. Although by the end of thisarticle you should be able to understand how to come up with solution that involve other asynchrinous javascript frontedn frameworks.
 
-### Page objects and the SitePrism library
+### Pagse OObjects and the SitePrism library
 
-- what are page objects
+- what asre page objects
 - why are we going to use them
 - introduction to siteprism
 - talks to the page through Capybara
