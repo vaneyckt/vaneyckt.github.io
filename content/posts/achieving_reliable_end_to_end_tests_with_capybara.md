@@ -16,6 +16,13 @@ I am going to talk about all aspects related to dealing with this onslaught of j
 
 ### Page objects
 
+ A page object is a wrapper around a html page. Its goal is to act as a high-level abstraction of the underlying page, thereby allowing you to write code that interacts with the elements on the page without you having to be aware of the page's html. Page objects are going to form the very core of our tests, so let's take the time to get acquainted with them.
+
+
+
+
+
+
 - the core of how to arrange your tests <- transition from previous paragraph
 - what asre page objects
 - why are we going to use them
