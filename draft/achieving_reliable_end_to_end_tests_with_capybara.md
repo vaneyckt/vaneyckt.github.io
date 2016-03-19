@@ -16,13 +16,20 @@ I am going to talk about all aspects related to dealing with this onslaught of j
 
 ### Page objects
 
+- the core of how to arrange your tests <- transition from previous paragraph
 - what asre page objects
 - why are we going to use them
 - introduction to siteprism
 - talks to the page through Capybara
 - is great: if all our tests are driven through page objects, then the vast majority from our test suite to Capybara will go through Site Prism. This means we just need to figure out which Capybara methods are being used by SitePrism, and ensure that these will function correctly when dealing with large amounts of javascript. Don't worry if this sounds confusing, we will go into detail into this in the next section.
 
+https://github.com/natritmeyer/site_prism
 
+
+### Choosing and configuring libraries
+
+
+### Capybara monkeypatching
 
 
 

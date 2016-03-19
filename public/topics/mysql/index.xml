@@ -2,30 +2,30 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Mysql on vaneyckt.io</title>
-    <link>http://vaneyckt.io/topics/mysql/</link>
+    <link>https://vaneyckt.io/topics/mysql/</link>
     <description>Recent content in Mysql on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Sun, 17 Nov 2013 20:22:17 +0000</lastBuildDate>
-    <atom:link href="http://vaneyckt.io/topics/mysql/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://vaneyckt.io/topics/mysql/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>A visual explanation of SQL joins</title>
-      <link>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</link>
+      <link>https://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</link>
       <pubDate>Sun, 17 Nov 2013 20:22:17 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</guid>
+      <guid>https://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</guid>
       <description>&lt;p&gt;I admit that I find myself going to &lt;a href=&#34;http://blog.codinghorror.com/a-visual-explanation-of-sql-joins/&#34;&gt;this article&lt;/a&gt; every time I need to write some joins. Hopefully putting it here will save me from always having to google it.&lt;/p&gt;
 </description>
     </item>
     
     <item>
       <title>Why is MySQL converting my NULLs to blanks?</title>
-      <link>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</link>
+      <link>https://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</link>
       <pubDate>Fri, 01 Nov 2013 19:17:56 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</guid>
+      <guid>https://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</guid>
       <description>&lt;p&gt;A while ago I ran into an issue where some records were showing a blank value in a given column. This was a bit weird as a blank value had never been written to that column. After a bit of searching we found that we had a bug that had inadvertently been writing the occasional NULL value to that particular column though. So how did those NULLs get turned into blanks?&lt;/p&gt;
 
 &lt;p&gt;It turns out that MySQL can operate in different &lt;a href=&#34;https://dev.mysql.com/doc/refman/5.0/en/sql-mode.html&#34;&gt;server modes&lt;/a&gt;. You can check your server mode by running one of the two commands below. Note that your server mode will be blank by default.&lt;/p&gt;
@@ -57,10 +57,10 @@ SHOW SESSION VARIABLES where Variable_name = &#39;sql_mode&#39;
     
     <item>
       <title>Carefully converting your MySQL database to utf8</title>
-      <link>http://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</link>
+      <link>https://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</link>
       <pubDate>Sun, 20 Oct 2013 17:19:31 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</guid>
+      <guid>https://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</guid>
       <description>&lt;p&gt;Converting all the data in your database can be a nail-biting experience. As you can see from the code below we are doing our best to be super careful. We convert each table separately and before each conversion we store the table&amp;rsquo;s column types and an MD5 hash of every row in the table (we were lucky enough to not have enormous tables). After converting the table we check that no column types or rows were changed. It goes without saying that we do a trial run on a database dump first.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;require &#39;set&#39;
@@ -165,10 +165,10 @@ end
     
     <item>
       <title>Character set vs collation</title>
-      <link>http://vaneyckt.io/posts/character_set_vs_collation/</link>
+      <link>https://vaneyckt.io/posts/character_set_vs_collation/</link>
       <pubDate>Sat, 19 Oct 2013 20:31:43 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/character_set_vs_collation/</guid>
+      <guid>https://vaneyckt.io/posts/character_set_vs_collation/</guid>
       <description>&lt;p&gt;There&amp;rsquo;s a surprising amount of confusion about the difference between these two terms. The best explanation I&amp;rsquo;ve found is &lt;a href=&#34;http://stackoverflow.com/questions/341273/what-does-character-set-and-collation-mean-exactly/341481#341481&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 &lt;blockquote&gt;
@@ -189,10 +189,10 @@ end
     
     <item>
       <title>MySQL write locks also prevent reads</title>
-      <link>http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</link>
+      <link>https://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</link>
       <pubDate>Thu, 17 Oct 2013 17:20:45 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</guid>
+      <guid>https://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</guid>
       <description>&lt;p&gt;Locking a table with&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;table_name = &#39;widgets&#39;
@@ -205,10 +205,10 @@ ActiveRecord::Base.connection.execute(&amp;quot;LOCK TABLES #{table_name} WRITE&
     
     <item>
       <title>Rails migrations and the dangers of implicit commits</title>
-      <link>http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</link>
+      <link>https://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</link>
       <pubDate>Wed, 16 Oct 2013 18:45:12 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</guid>
+      <guid>https://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</guid>
       <description>&lt;p&gt;I recently came across the migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# migration to convert table to utf8

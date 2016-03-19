@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Linux on vaneyckt.io</title>
-    <link>http://vaneyckt.io/topics/linux/</link>
+    <link>https://vaneyckt.io/topics/linux/</link>
     <description>Recent content in Linux on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Mon, 24 Aug 2015 19:47:55 +0000</lastBuildDate>
-    <atom:link href="http://vaneyckt.io/topics/linux/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://vaneyckt.io/topics/linux/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Understanding iostat</title>
-      <link>http://vaneyckt.io/posts/understanding_iostat/</link>
+      <link>https://vaneyckt.io/posts/understanding_iostat/</link>
       <pubDate>Mon, 24 Aug 2015 19:47:55 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/understanding_iostat/</guid>
+      <guid>https://vaneyckt.io/posts/understanding_iostat/</guid>
       <description>
 
 &lt;p&gt;I&amp;rsquo;ve been spending a lot of time lately looking at I/O performance and reading up about the &lt;code&gt;iostat&lt;/code&gt; command. While this command provides a wealth of I/O performance data, the sheer amount of it all can make it hard to see the forest for the trees. In this post, we&amp;rsquo;ll talk about interpreting this data. Before we continue, I would first like to thank the authors of the blog posts mentioned below, as each of these has helped me understand &lt;code&gt;iostat&lt;/code&gt; and its many complexities just a little bit better.&lt;/p&gt;
@@ -99,10 +99,10 @@ xvdh              0.00     4.54   15.54   35.63     0.64     1.43    83.04     0
     
     <item>
       <title>Safer bash scripts with &#39;set -euxo pipefail&#39;</title>
-      <link>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
+      <link>https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
       <pubDate>Mon, 16 Mar 2015 19:43:34 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
+      <guid>https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
       <description>
 
 &lt;p&gt;Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won&amp;rsquo;t. In this article, we&amp;rsquo;ll look at how we can improve on this.&lt;/p&gt;
@@ -248,10 +248,10 @@ echo &amp;quot;bar&amp;quot;
     
     <item>
       <title>Installing chromedriver</title>
-      <link>http://vaneyckt.io/posts/installing_chromedriver/</link>
+      <link>https://vaneyckt.io/posts/installing_chromedriver/</link>
       <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
+      <guid>https://vaneyckt.io/posts/installing_chromedriver/</guid>
       <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
 
 &lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
@@ -290,10 +290,10 @@ $ sudo apt-get install google-chrome-stable
     
     <item>
       <title>Getting connection information with lsof</title>
-      <link>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</link>
+      <link>https://vaneyckt.io/posts/getting_connection_information_with_lsof/</link>
       <pubDate>Mon, 21 Oct 2013 17:21:52 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/getting_connection_information_with_lsof/</guid>
+      <guid>https://vaneyckt.io/posts/getting_connection_information_with_lsof/</guid>
       <description>
 
 &lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/8/lsof&#34;&gt;lsof command&lt;/a&gt; is one of those super useful commands for figuring out what connections are taking place on your machine. While the &lt;code&gt;lsof&lt;/code&gt; command technically just lists open files, just about everything in linux (even sockets) is a file!&lt;/p&gt;
@@ -359,10 +359,10 @@ Spotify 36908 vaneyckt   99r     REG                1,4    144580    28952 /Syst
     
     <item>
       <title>The dig command</title>
-      <link>http://vaneyckt.io/posts/the_dig_command/</link>
+      <link>https://vaneyckt.io/posts/the_dig_command/</link>
       <pubDate>Tue, 08 Oct 2013 13:24:17 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_dig_command/</guid>
+      <guid>https://vaneyckt.io/posts/the_dig_command/</guid>
       <description>&lt;p&gt;Today I learned of the existence of the &lt;a href=&#34;http://linux.die.net/man/1/dig&#34;&gt;dig command&lt;/a&gt;. A very useful little tool for DNS lookups. Here&amp;rsquo;s an example of it in action.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ dig www.google.com

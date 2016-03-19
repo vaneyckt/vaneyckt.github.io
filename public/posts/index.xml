@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on vaneyckt.io</title>
-    <link>http://vaneyckt.io/posts/</link>
+    <link>https://vaneyckt.io/posts/</link>
     <description>Recent content in Posts on vaneyckt.io</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Sun, 17 Jan 2016 20:17:35 +0000</lastBuildDate>
-    <atom:link href="http://vaneyckt.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://vaneyckt.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>How to write your own rspec retry mechanism</title>
-      <link>http://vaneyckt.io/posts/how_to_write_your_own_rspec_retry_mechanism/</link>
+      <link>https://vaneyckt.io/posts/how_to_write_your_own_rspec_retry_mechanism/</link>
       <pubDate>Sun, 17 Jan 2016 20:17:35 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/how_to_write_your_own_rspec_retry_mechanism/</guid>
+      <guid>https://vaneyckt.io/posts/how_to_write_your_own_rspec_retry_mechanism/</guid>
       <description>
 
 &lt;p&gt;Imagine you have an rspec test suite filled with &lt;a href=&#34;http://david.heinemeierhansson.com/2014/tdd-is-dead-long-live-testing.html&#34;&gt;system tests&lt;/a&gt;. Each system test simulates how a real user would interact with your app by opening a browser session through which it fills out text fields, clicks on buttons, and sends data to public endpoints. Unfortunately, browser drivers are not without bugs and sometimes your tests will fail because of these. Wouldn&amp;rsquo;t it be nice if we could automatically retry these failed tests?&lt;/p&gt;
@@ -299,10 +299,10 @@ end
     
     <item>
       <title>The disaster that is Ruby&#39;s timeout method</title>
-      <link>http://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/</link>
+      <link>https://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/</link>
       <pubDate>Sat, 19 Dec 2015 19:20:03 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/</guid>
+      <guid>https://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/</guid>
       <description>
 
 &lt;p&gt;On paper, &lt;a href=&#34;http://ruby-doc.org/stdlib-2.1.1/libdoc/timeout/rdoc/Timeout.html#method-c-timeout&#34;&gt;Ruby&amp;rsquo;s timeout method&lt;/a&gt; looks like an incredibly useful piece of code. Ever had a network request occasionally slow down your entire program because it just wouldn&amp;rsquo;t finish? That&amp;rsquo;s where &lt;code&gt;timeout&lt;/code&gt; comes in. It provides a hard guarantee that a block of code will be finished within a specified amount of time.&lt;/p&gt;
@@ -453,10 +453,10 @@ end
     
     <item>
       <title>A javascript closures recap</title>
-      <link>http://vaneyckt.io/posts/a_javascript_closures_recap/</link>
+      <link>https://vaneyckt.io/posts/a_javascript_closures_recap/</link>
       <pubDate>Sat, 26 Sep 2015 17:54:23 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/a_javascript_closures_recap/</guid>
+      <guid>https://vaneyckt.io/posts/a_javascript_closures_recap/</guid>
       <description>
 
 &lt;p&gt;Javascript closures have always been one those things that I used to navigate by intuition. Recently however, upon stumbling across some code that I did not quite grok, it became clear I should try and obtain a more formal understanding. This post is mainly intended as a quick recap for my future self. It won&amp;rsquo;t go into all the details about closures; instead it will focus on the bits that I found most helpful.&lt;/p&gt;
@@ -656,10 +656,10 @@ foo();        // returns 3
     
     <item>
       <title>Understanding iostat</title>
-      <link>http://vaneyckt.io/posts/understanding_iostat/</link>
+      <link>https://vaneyckt.io/posts/understanding_iostat/</link>
       <pubDate>Mon, 24 Aug 2015 19:47:55 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/understanding_iostat/</guid>
+      <guid>https://vaneyckt.io/posts/understanding_iostat/</guid>
       <description>
 
 &lt;p&gt;I&amp;rsquo;ve been spending a lot of time lately looking at I/O performance and reading up about the &lt;code&gt;iostat&lt;/code&gt; command. While this command provides a wealth of I/O performance data, the sheer amount of it all can make it hard to see the forest for the trees. In this post, we&amp;rsquo;ll talk about interpreting this data. Before we continue, I would first like to thank the authors of the blog posts mentioned below, as each of these has helped me understand &lt;code&gt;iostat&lt;/code&gt; and its many complexities just a little bit better.&lt;/p&gt;
@@ -743,10 +743,10 @@ xvdh              0.00     4.54   15.54   35.63     0.64     1.43    83.04     0
     
     <item>
       <title>Safer bash scripts with &#39;set -euxo pipefail&#39;</title>
-      <link>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
+      <link>https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
       <pubDate>Mon, 16 Mar 2015 19:43:34 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
+      <guid>https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
       <description>
 
 &lt;p&gt;Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won&amp;rsquo;t. In this article, we&amp;rsquo;ll look at how we can improve on this.&lt;/p&gt;
@@ -892,10 +892,10 @@ echo &amp;quot;bar&amp;quot;
     
     <item>
       <title>An introduction to javascript promises</title>
-      <link>http://vaneyckt.io/posts/an_introduction_to_javascript_promises/</link>
+      <link>https://vaneyckt.io/posts/an_introduction_to_javascript_promises/</link>
       <pubDate>Sat, 07 Feb 2015 18:34:09 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/an_introduction_to_javascript_promises/</guid>
+      <guid>https://vaneyckt.io/posts/an_introduction_to_javascript_promises/</guid>
       <description>
 
 &lt;p&gt;I recently had to write some javascript code that required the sequential execution of half a dozen asynchronous requests. I figured this was the perfect time to learn a bit more about javascript promises. This post is a recap of what I read in these &lt;a href=&#34;http://www.html5rocks.com/en/tutorials/es6/promises/&#34;&gt;three&lt;/a&gt; &lt;a href=&#34;http://www.mullie.eu/how-javascript-promises-work/&#34;&gt;amazing&lt;/a&gt; &lt;a href=&#34;http://www.sitepoint.com/overview-javascript-promises/&#34;&gt;write-ups&lt;/a&gt;.&lt;/p&gt;
@@ -1077,10 +1077,10 @@ promise.then(function(result) {
     
     <item>
       <title>Unwanted spot instance termination in multi-AZ ASG</title>
-      <link>http://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</link>
+      <link>https://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</link>
       <pubDate>Sat, 24 Jan 2015 19:17:53 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</guid>
+      <guid>https://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</guid>
       <description>&lt;p&gt;An auto scaling group is an AWS abstraction that facilitates increasing or decreasing the number of EC2 instances within your application&amp;rsquo;s architecture. Spot instances are unused AWS servers that are auctioned off for little money. The combination of these two allows for large auto scaling groups at low costs. However, you can lose your spot instances at a moment&amp;rsquo;s notice as soon as someone out there wants to pay more than you do.&lt;/p&gt;
 
 &lt;p&gt;Knowing all this, I recently found myself looking into why AWS was terminating several of our spot instances every day. We were bidding 20% over the average price, so it seemed unlikely that this was being caused by a monetary issue. Nevertheless, we kept noticing multiple spot instances disappearing on a daily basis.&lt;/p&gt;
@@ -1132,10 +1132,10 @@ promise.then(function(result) {
     
     <item>
       <title>Creating an EC2 Instance in a VPC with the AWS CLI</title>
-      <link>http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</link>
+      <link>https://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</link>
       <pubDate>Wed, 29 Oct 2014 17:36:12 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</guid>
+      <guid>https://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</guid>
       <description>
 
 &lt;p&gt;Setting up an EC2 instance on AWS used to be as straightforward as provisioning a machine and SSHing into it. However, this process has become a bit more complicated now that Amazon VPC has become the standard for managing machines in the cloud.&lt;/p&gt;
@@ -1223,10 +1223,10 @@ $ ssh -i ~/.ssh/my-key.pem ubuntu@$instanceUrl
     
     <item>
       <title>Finding and deleting old tags in a Github repository</title>
-      <link>http://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</link>
+      <link>https://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</link>
       <pubDate>Fri, 18 Jul 2014 19:32:12 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</guid>
+      <guid>https://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</guid>
       <description>
 
 &lt;p&gt;It&amp;rsquo;s very easy for a Github repository to accumulate lots of tags over time. This onslaught of tags tends to be tolerated until it starts impacting git performance. It is at this point, when you have well in excess of tens of thousands of tags, that a call to action tends to be made. In this article, we&amp;rsquo;ll look at two approaches to rid yourself of these old tags.&lt;/p&gt;
@@ -1293,10 +1293,10 @@ end
     
     <item>
       <title>Adding a post-execution hook to the db:migrate task</title>
-      <link>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
+      <link>https://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
       <pubDate>Mon, 09 Jun 2014 16:31:22 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
+      <guid>https://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
       <description>&lt;p&gt;A few days ago we discovered that our MySQL database&amp;rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&amp;rsquo;t happen again, we looked into adding a post-execution hook to the rails db:migrate task.&lt;/p&gt;
 
 &lt;p&gt;Our first attempt is shown below. Here, we append a post-execution hook to the existing db:migrate task by creating a new db:migrate task. In rake, when a task is defined twice, the behavior of the new task gets appended to the behavior of the old task. So even though the code below may give the impression of overwriting the rails db:migrate task, we are actually just appending a call to the &lt;code&gt;post_execution_hook&lt;/code&gt; method to it.&lt;/p&gt;
@@ -1335,10 +1335,10 @@ Rake::Task[&#39;db:migrate&#39;].enhance([&#39;db:attach_hook&#39;])
     
     <item>
       <title>Installing chromedriver</title>
-      <link>http://vaneyckt.io/posts/installing_chromedriver/</link>
+      <link>https://vaneyckt.io/posts/installing_chromedriver/</link>
       <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/installing_chromedriver/</guid>
+      <guid>https://vaneyckt.io/posts/installing_chromedriver/</guid>
       <description>&lt;p&gt;Some time ago I needed to install &lt;a href=&#34;https://sites.google.com/a/chromium.org/chromedriver/&#34;&gt;chromedriver&lt;/a&gt; on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.&lt;/p&gt;
 
 &lt;p&gt;First of all, let&amp;rsquo;s install chromedriver.&lt;/p&gt;
@@ -1377,10 +1377,10 @@ $ sudo apt-get install google-chrome-stable
     
     <item>
       <title>Programmatically rotating the Android screen</title>
-      <link>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</link>
+      <link>https://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</link>
       <pubDate>Thu, 20 Mar 2014 20:08:17 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</guid>
+      <guid>https://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</guid>
       <description>&lt;p&gt;A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the &lt;code&gt;dumpsys&lt;/code&gt; output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# get current orientation
@@ -1411,10 +1411,10 @@ myActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     
     <item>
       <title>Programmatically creating Android touch events</title>
-      <link>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</link>
+      <link>https://vaneyckt.io/posts/programmatically_creating_android_touch_events/</link>
       <pubDate>Tue, 04 Mar 2014 20:40:56 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/programmatically_creating_android_touch_events/</guid>
+      <guid>https://vaneyckt.io/posts/programmatically_creating_android_touch_events/</guid>
       <description>&lt;p&gt;Recent versions of Android have the &lt;code&gt;adb shell input touch&lt;/code&gt; functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running &lt;code&gt;adb shell getevent&lt;/code&gt; to capture events as they are being generated. These events can then later be replayed using the &lt;code&gt;adb shell sendevent&lt;/code&gt; command.&lt;/p&gt;
 
 &lt;p&gt;Running &lt;code&gt;adb shell getevent&lt;/code&gt; when touching the screen might get you something like shown below. Notice how the output is in hexadecimal.&lt;/p&gt;
@@ -1453,10 +1453,10 @@ adb shell sendevent /dev/input/event7: 0 0 0
     
     <item>
       <title>Some lesser known Github API functionality</title>
-      <link>http://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</link>
+      <link>https://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</link>
       <pubDate>Sat, 08 Feb 2014 18:05:12 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</guid>
+      <guid>https://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</guid>
       <description>
 
 &lt;p&gt;One of our automation tools occasionally needs to interact with our Github repositories. Unfortunately, the current implementation of this tool leaves something to be desired as it requires cloning these repositories to local disk. Changes against these local repositories are then made on local branches, after which these branches get pushed to Github.&lt;/p&gt;
@@ -1514,10 +1514,10 @@ end
     
     <item>
       <title>The amazing bitwise XOR operator</title>
-      <link>http://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</link>
+      <link>https://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</link>
       <pubDate>Sun, 12 Jan 2014 19:35:25 +0000</pubDate>
       
-      <guid>http://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</guid>
+      <guid>https://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</guid>
       <description>
 
 &lt;p&gt;One of my colleagues recently mentioned this interview question to me.&lt;/p&gt;
