@@ -10,13 +10,17 @@ End-to-end [system tests](http://david.heinemeierhansson.com/2014/tdd-is-dead-lo
 
 So if system tests are so great, how come we don't see them being used everywhere? As it turns out, creating stable end-to-end tests is [hard](https://bibwild.wordpress.com/2016/02/18/struggling-towards-reliable-capybara-javascript-testing/), [really hard](http://googletesting.blogspot.ie/2015/04/just-say-no-to-more-end-to-end-tests.html). Dealing with undocumented behavior of your browser driver is just the first of your worries. The real trouble starts when the pages you're writing tests for rely heavily on asynchronous javascript actions, as these can make it really hard for your tests to detect when a page has finished rendering.
 
-In this article I am going to walk you through every step of my approach towards building a test suite that is currently being used for automated regression testing of a rails app. About half the pages of this particular rails app depend on javascript and jQuery, while the other half were created with the Ember.js framework. So there's going to be plenty of javascript logic that could confuse my tests something fierce.
+In this article I am going to walk you through every step of my approach towards building a test suite that is currently being used for automated regression testing of a rails app. About half the pages of this particular rails app depend on javascript and jQuery, while the other half were created with the Ember.js framework. There's more than enough javascript logic here to confuse my tests something fierce.
 
 I am going to talk about all aspects related to dealing with this onslaught of javascript. I will speak about the best way to arrange your tests, which libraries to use and their respective configurations, as well as go into detail about how we can monkeypatch Capybara in order to greatly improve test reliability. The completed code of this article can be found [here](todo).
 
 ### Page objects
 
- A page object is a wrapper around a html page. Its goal is to act as a high-level abstraction of the underlying page, thereby allowing you to write code that interacts with the elements on the page without you having to be aware of the page's html. Page objects are going to form the very core of our tests, so let's take the time to get acquainted with them.
+ A page object is a wrapper around a html page. Its goal is to act as a high-level abstraction of the underlying page, thereby allowing you to write code that interacts with the elements on the page without you having to be aware of the page's html. Page objects are going to form the very core of our tests, so let's take some time to get acquainted with them. This is why we'll be writing some simple tests that interact with [CrunchBase](https://www.crunchbase.com). This site is part Ruby on Rails, part Ember.js, and part jQuery. In other words, it has plenty of nasty javascript.
+
+  that could easily trip up our tests.
+
+
 
 
 
