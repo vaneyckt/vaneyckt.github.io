@@ -167,7 +167,7 @@ Since there are a lot of ways for instruction reordering to take place, it is no
 
 Luckily there is no need to worry too much about this. When looking at the code above, it should be obvious that code reordering is going to be the least of its problems. The lack of any kind of synchronization to help deal with atomicity and visibility issues in this threaded program is going to cause way bigger headaches than code reordering ever could.
 
-These synchronization issues can be fixed by using a mutex. By introducing a mutex we are explicitly telling the interpreter and CPU how our code should behave, thus preventing any problematic code reordering from occurring. Dealing with atomicity and visibility issues will therefore implicitly prevent any dangerous code reordering.
+Those synchronization issues can be fixed by using a mutex. By introducing a mutex we are explicitly telling the interpreter and CPU how our code should behave, thus preventing any problematic code reordering from occurring. Dealing with atomicity and visibility issues will therefore implicitly prevent any dangerous code reordering.
 
 ### Conclusion
 
