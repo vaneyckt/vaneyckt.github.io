@@ -1,0 +1,18 @@
+### Condition variable
+
+- Condition variable: mutex is about exlusive access to a critical section, whereas condition variable is about inter-thread communication by putting threads to sleep and waking them back up once a certain condition is met. Condition variables always need to be used in conjunction with mutexes.
+
+https://stackoverflow.com/questions/13086107/how-to-use-condition-variables
+https://www.ruby-forum.com/topic/552008
+https://spin.atomicobject.com/2014/07/07/ruby-queue-pop-timeout/
+does calling signal() only forces a switch once the mutex is unlocked? or does the waiting var forcibly grab the mutex?
+conditionvariable seem great for callback, e.g. don't return unless there is data - without having to use a lock
+see p.110 of book - note that book uses loop, website uses if statement
+queue is only threadsafe data structure in ruby
+
+note that pop blocks by default - http://ruby-doc.org/stdlib-2.0.0/libdoc/thread/rdoc/Queue.html#method-i-pop
+atomicity -> can other treads interrupt it, thereby corrupting the value?
+visibility -> how can we be sure we won't read a cached value?
+http://jeremymanson.blogspot.ie/2007/08/atomicity-visibility-and-ordering.html
+http://blog.ifyouseewendy.com/blog/2016/02/16/review-working-with-ruby-threads/
+http://blog.ifyouseewendy.com/blog/2016/02/16/ruby-concurrency-article-collection/

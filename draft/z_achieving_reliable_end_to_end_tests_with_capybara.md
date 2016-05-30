@@ -16,9 +16,17 @@ I am going to talk about all aspects related to dealing with this onslaught of j
 
 ### Page objects
 
- A page object is a wrapper around a html page. Its goal is to act as a high-level abstraction of the underlying page, thereby allowing you to write code that interacts with the elements on the page without you having to be aware of the page's html. Page objects are going to form the very core of our tests, so let's take some time to get acquainted with them. This is why we'll be writing some simple tests that interact with [CrunchBase](https://www.crunchbase.com). This site is part Ruby on Rails, part Ember.js, and part jQuery. In other words, it has plenty of nasty javascript.
+A page object is a wrapper around a html page. Its goal is to act as a high-level abstraction of the underlying page, thereby allowing you to write code that interacts with the elements on the page without you having to be aware of the page's html. Page objects are going to form the very core of our tests, so let's take some time to get acquainted with them. This is why we'll be writing some simple tests that interact with [CrunchBase](https://www.crunchbase.com). This site is part Ruby on Rails, part Ember.js, and part jQuery. In other words, it has plenty of nasty javascript.
 
-  that could easily trip up our tests.
+We're going to use [SitePrism](https://github.com/natritmeyer/site_prism) to help us create page objects in Ruby. SitePrism is a concise and well-written DSL for describing page objects; it relies on [Capybara](https://github.com/jnicklas/capybara) to interact with the html of the underlying page.
+
+- introduce elements and sections
+- start writing code for crunchbase
+- point out javascript race condition
+- downplay Capybara setup for now. Mention we'll come back to it later
+
+
+
 
 
 
@@ -34,7 +42,7 @@ I am going to talk about all aspects related to dealing with this onslaught of j
 - talks to the page through Capybara
 - is great: if all our tests are driven through page objects, then the vast majority from our test suite to Capybara will go through Site Prism. This means we just need to figure out which Capybara methods are being used by SitePrism, and ensure that these will function correctly when dealing with large amounts of javascript. Don't worry if this sounds confusing, we will go into detail into this in the next section.
 
-https://github.com/natritmeyer/site_prism
+
 
 
 ### Choosing and configuring libraries
