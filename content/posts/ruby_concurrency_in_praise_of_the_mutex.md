@@ -49,7 +49,7 @@ The reason for this unexpected output is that `counters.map! { |counter| counter
 
 We have a problem because the first thread got interrupted before it had a chance to write its incremented value to the array. When the first thread resumes, it will end up overwriting the value that the second thread just placed in the array. This will cause us to essentially lose an increment operation, which explains why our program output has entries in it that are less than 500.000.
 
-It should hopefully be clear that none of this would have happened if we had made sure that `counters.map! { |counter| counter + 1 }` was atomic. This would have made it impossible for the second thread to just come in and modify the intermediate state of the array that was in the middle of being modified by the first thread.
+It should hopefully be clear that none of this would have happened if we had made sure that `counters.map! { |counter| counter + 1 }` was atomic. This would have made it impossible for the second thread to just come in and modify the intermediate state of the `counters` array.
 
 ```ruby
 # atomicity.rb
