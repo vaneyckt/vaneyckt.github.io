@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>General on vaneyckt.io</title>
+    <link>https://vaneyckt.io/topics/general/</link>
+    <description>Recent content in General on vaneyckt.io</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Sun, 12 Jan 2014 19:35:25 +0000</lastBuildDate>
+    <atom:link href="https://vaneyckt.io/topics/general/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>The amazing bitwise XOR operator</title>
+      <link>https://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</link>
+      <pubDate>Sun, 12 Jan 2014 19:35:25 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</guid>
+      <description>
+
+&lt;p&gt;One of my colleagues recently mentioned this interview question to me.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Imagine there is an array which contains 2n+1 elements, n of which have exactly one duplicate. Can you find the one unique element in this array?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This seemed simple enough and I quickly came up with the Ruby solution below.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;&amp;gt; array = [3, 5, 4, 5, 3]
+# =&amp;gt; [3, 5, 4, 5, 3]
+&amp;gt; count = array.each_with_object(Hash.new(0)) { |number, hash| hash[number] += 1 }
+# =&amp;gt; {3=&amp;gt;2, 5=&amp;gt;2, 4=&amp;gt;1}
+&amp;gt; count.key(1)
+# =&amp;gt; 4
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I thought that would be the end of it, but instead I was asked if I could see a way to solve the problem in a significantly more performant way using the XOR operator.&lt;/p&gt;
+
+&lt;h3 id=&#34;xor-characteristics:3b1479834de8b2716c6d36848e7cf887&#34;&gt;XOR characteristics&lt;/h3&gt;
+
+&lt;p&gt;In order to solve this problem with the XOR operator, we first need to understand some of its characteristics. This operator obeys the following rules:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;commutativity: &lt;code&gt;A^B=B^A&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;associativity: &lt;code&gt;(A^B)^C=A^(B^C)&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;the identity element is 0: &lt;code&gt;A^0=A&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;each element is its own inverse: &lt;code&gt;A^A=0&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Now imagine an array with the elements &lt;code&gt;[3, 5, 4, 5, 3]&lt;/code&gt;. Using the above rules, we can show that XORing all these elements will leave us with the array&amp;rsquo;s unique element.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;accum = 3 ^ 5 ^ 4 ^ 5 ^ 3
+accum = 0 ^ 3 ^ 5 ^ 4 ^ 5 ^ 3    # 0 is the identity element
+accum = 0 ^ 3 ^ 3 ^ 4 ^ 5 ^ 5    # commutativity and associativity rules
+accum = 0 ^ 0 ^ 4 ^ 0            # A^A = 0
+accum = 4                        # 0 is the identity element
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Putting this approach in code would give us something like this.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;&amp;gt; array = [3, 5, 4, 5, 3]
+# =&amp;gt; [3, 5, 4, 5, 3]
+&amp;gt; accum = 0
+# =&amp;gt; 0
+&amp;gt; array.each { |number| accum = accum ^ number }
+# =&amp;gt; [3, 5, 4, 5, 3]
+&amp;gt; accum
+# =&amp;gt; 4
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;benchmarks:3b1479834de8b2716c6d36848e7cf887&#34;&gt;Benchmarks&lt;/h3&gt;
+
+&lt;p&gt;Let&amp;rsquo;s use Ruby&amp;rsquo;s &lt;code&gt;Benchmark&lt;/code&gt; module to do a comparison of both approaches.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;require &#39;benchmark&#39;
+
+array = [-1]
+1000000.times do |t|
+  array &amp;lt;&amp;lt; t
+  array &amp;lt;&amp;lt; t
+end
+
+Benchmark.measure do
+  count = array.each_with_object(Hash.new(0)) { |number, hash| hash[number] += 1 }
+  count.key(1)
+end
+# =&amp;gt; #&amp;lt;Benchmark::Tms:0x007f83fa0279e0 @label=&amp;quot;&amp;quot;, @real=0.83534, @cstime=0.0, @cutime=0.0, @stime=0.010000000000000009, @utime=0.8300000000000005, @total=0.8400000000000005&amp;gt;
+
+Benchmark.measure do
+  accum = 0
+  array.each { |number| accum = accum ^ number }
+  accum
+end
+# =&amp;gt; #&amp;lt;Benchmark::Tms:0x007f83fa240ba0 @label=&amp;quot;&amp;quot;, @real=0.136726, @cstime=0.0, @cutime=0.0, @stime=0.0, @utime=0.13999999999999968, @total=0.13999999999999968&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So there you have it. Given an array that contains two million elements, the XOR operator approach turns out to be more than 6 times faster than utilizing a hashmap. That&amp;rsquo;s quite a nice performance improvement!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>GET vs POST</title>
+      <link>https://vaneyckt.io/posts/get_vs_post/</link>
+      <pubDate>Wed, 09 Oct 2013 16:09:32 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/get_vs_post/</guid>
+      <description>
+
+&lt;p&gt;Today I was looking into why a particular GET request was failing on IE. As it turned out this was due to IE not appreciating long query strings. While going through our nginx logs, we also found nginx had a default query string limit that was being hit sporadically by some other customers as well. The solution in both cases was to move the affected calls from GET to POST.&lt;/p&gt;
+
+&lt;p&gt;The above problem prompted me to take a closer look at the differences between GET and POST requests. You probably use these all the time, but do you know how each of them functions?&lt;/p&gt;
+
+&lt;h4 id=&#34;get-requests:4d95a9bef13dce29490ef41cb06ad212&#34;&gt;GET requests&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;can be bookmarked&lt;/li&gt;
+&lt;li&gt;can be cached for faster response time on subsequent request&lt;/li&gt;
+&lt;li&gt;request is stored in browser history&lt;/li&gt;
+&lt;li&gt;uses query strings to send data. There is a limit to the allowable length of a query string.&lt;/li&gt;
+&lt;li&gt;have their url and query strings stored in plaintext in server logs. This is why you should never send passwords over GET requests!&lt;/li&gt;
+&lt;li&gt;use these for actions that retrieve data. For example, you don&amp;rsquo;t want to use GET requests for posting comments on your blog. Otherwise an attacker could copy a url that posts a specific comment and put it on twitter. Every time someone were to click this link, a comment would now be posted on your blog.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;post-requests:4d95a9bef13dce29490ef41cb06ad212&#34;&gt;POST requests&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;cannot be bookmarked&lt;/li&gt;
+&lt;li&gt;cannot be cached&lt;/li&gt;
+&lt;li&gt;request will not be stored in browser history&lt;/li&gt;
+&lt;li&gt;uses POST body to send data. There is no limit to the amount of data sent due to the multipart content-type spreading your data across multiple messages when necessary.&lt;/li&gt;
+&lt;li&gt;have their url stored in plaintext in server logs. The data itself will not be logged though.&lt;/li&gt;
+&lt;li&gt;use these for actions that alter data&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

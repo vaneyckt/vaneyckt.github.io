@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Git on vaneyckt.io</title>
+    <link>https://vaneyckt.io/topics/git/</link>
+    <description>Recent content in Git on vaneyckt.io</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Fri, 18 Jul 2014 19:32:12 +0000</lastBuildDate>
+    <atom:link href="https://vaneyckt.io/topics/git/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Finding and deleting old tags in a Github repository</title>
+      <link>https://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</link>
+      <pubDate>Fri, 18 Jul 2014 19:32:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</guid>
+      <description>
+
+&lt;p&gt;It&amp;rsquo;s very easy for a Github repository to accumulate lots of tags over time. This onslaught of tags tends to be tolerated until it starts impacting git performance. It is at this point, when you have well in excess of tens of thousands of tags, that a call to action tends to be made. In this article, we&amp;rsquo;ll look at two approaches to rid yourself of these old tags.&lt;/p&gt;
+
+&lt;h3 id=&#34;the-cut-off-tag-approach:257dca9811faca70d0b7c4cba16ee1c1&#34;&gt;The cut-off tag approach&lt;/h3&gt;
+
+&lt;p&gt;This approach has us specify a cut-off tag. All tags that can trace their ancestry back to this cut-off tag will be allowed to remain. All others will get deleted. This is especially useful for when you have just merged a new feature, and now you want to delete all tags that were created before this merge. In this scenario, all you have to do is tag the merge commit and then use this as the cut-off tag.&lt;/p&gt;
+
+&lt;p&gt;The sequence of commands below deletes all tags that do not have the release-5 tag as an ancestor. Most of these commands are pretty self-explanatory, except for the one in the middle. The remainder of this section will focus on explaining this command.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# fetch all tags from the remote
+git fetch
+
+# delete all tags on the remote that do not have the release-5 tag as an ancestor
+comm -23 &amp;lt;(git tag | sort) &amp;lt;(git tag --contains release-5 | sort) | xargs git push --delete origin
+
+# delete all local tags that are no longer present on the remote
+git fetch --prune origin +refs/tags/*:refs/tags/*
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;a href=&#34;http://linux.die.net/man/1/comm&#34;&gt;comm command&lt;/a&gt; is used to &lt;a href=&#34;http://www.unixcl.com/2009/08/linux-comm-command-brief-tutorial.html&#34;&gt;compare two sorted files line by line&lt;/a&gt;. Luckily, we can avoid having to create any actual files by relying on process substitution instead.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;comm -23 &amp;lt;(command to act as file 1) &amp;lt;(command to act as file 2) | xargs git push --delete origin
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;-23&lt;/code&gt; flag tells &lt;code&gt;comm&lt;/code&gt; to suppress any lines that are unique to file 2, as well as any lines that appear in both files. In other words, it causes &lt;code&gt;comm&lt;/code&gt; to return just those lines that only appear in file 1. Looking back at our sequence of commands above, it should be clear that this will cause us to obtain all tags that do not have the release-5 tag as an ancestor. Piping this output to &lt;code&gt;xargs git push --delete origin&lt;/code&gt; will then remove these tags from Github.&lt;/p&gt;
+
+&lt;h3 id=&#34;the-cut-off-date-approach:257dca9811faca70d0b7c4cba16ee1c1&#34;&gt;The cut-off date approach&lt;/h3&gt;
+
+&lt;p&gt;While the cut-off tag approach works great in a lot of scenarios, sometimes you just want to delete all tags that were created before a given cut-off date instead. Unfortunately, git doesn&amp;rsquo;t have any built-in functionality for accomplishing this. This is why we are going to make use of a Ruby script here.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;# CUT_OFF_DATE needs to be of YYYY-MM-DD format
+CUT_OFF_DATE = &amp;quot;2015-05-10&amp;quot;
+
+def get_old_tags(cut_off_date)  
+  `git log --tags --simplify-by-decoration --pretty=&amp;quot;format:%ai %d&amp;quot;`
+  .split(&amp;quot;\n&amp;quot;)
+  .each_with_object([]) do |line, old_tags|
+    if line.include?(&amp;quot;tag: &amp;quot;)
+      date = line[0..9]
+      tags = line[28..-2].gsub(&amp;quot;,&amp;quot;, &amp;quot;&amp;quot;).concat(&amp;quot; &amp;quot;).scan(/tag: (.*?) /).flatten
+      old_tags.concat(tags) if date &amp;lt; cut_off_date
+    end
+  end
+end
+
+# fetch all tags from the remote
+`git fetch`
+
+# delete all tags on the remote that were created before the CUT_OFF_DATE
+get_old_tags(CUT_OFF_DATE).each_slice(100) do |batch|
+  system(&amp;quot;git&amp;quot;, &amp;quot;push&amp;quot;, &amp;quot;--delete&amp;quot;, &amp;quot;origin&amp;quot;, *batch)
+end
+
+# delete all local tags that are no longer present on the remote
+`git fetch --prune origin +refs/tags/*:refs/tags/*`
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This Ruby script should be pretty straightforward. The &lt;code&gt;get_old_tags&lt;/code&gt; method might stand out a bit here. It can look pretty complex, but most of it is just string manipulation to get the date and tags of each line outputted by the &lt;code&gt;git log&lt;/code&gt; command, and storing old tags in the &lt;code&gt;old_tags&lt;/code&gt; array. Note how we invoke the &lt;code&gt;system&lt;/code&gt; method with an array of arguments for those calls that require input. This protects us against possible shell injection.&lt;/p&gt;
+
+&lt;p&gt;Be careful, as running this exact script inside your repository will delete all tags created before 2015-05-10. Also, be sure to specify your cut-off date in YYYY-MM-DD format!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Some lesser known Github API functionality</title>
+      <link>https://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</link>
+      <pubDate>Sat, 08 Feb 2014 18:05:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</guid>
+      <description>
+
+&lt;p&gt;One of our automation tools occasionally needs to interact with our Github repositories. Unfortunately, the current implementation of this tool leaves something to be desired as it requires cloning these repositories to local disk. Changes against these local repositories are then made on local branches, after which these branches get pushed to Github.&lt;/p&gt;
+
+&lt;p&gt;However, in order to save on disk space this tool will only ever create a single local copy of each repository. This makes it unsafe to run multiple instances of this tool as multiple instances simultaneously executing sequences of git commands against the same local repositories might lead to these commands inadvertently getting interpolated, thereby leaving the local repositories in an undefined state.&lt;/p&gt;
+
+&lt;p&gt;The solution to this complexity was to completely remove the need for local repositories and instead aim to have everything done through the wonderful Github API. This article is a reminder to myself about some API functionality that I found while looking into this.&lt;/p&gt;
+
+&lt;h3 id=&#34;checking-if-a-branch-contains-a-commit:ebeddf967e2b970d374ec29d22d794b8&#34;&gt;Checking if a branch contains a commit&lt;/h3&gt;
+
+&lt;p&gt;While the Github API does not have an explicit call to check whether a given commit is included in a branch, we can nevertheless use the &lt;a href=&#34;https://developer.github.com/v3/repos/commits/#compare-two-commits&#34;&gt;compare call&lt;/a&gt; for just this purpose. This call takes two commits as input and returns a large JSON response of comparison data. We can use the &lt;code&gt;status&lt;/code&gt; field of the response to ascertain if a given commit is behind or identical to the HEAD commit of a branch. If so, then the branch contains that commit.&lt;/p&gt;
+
+&lt;p&gt;We can use the &lt;a href=&#34;https://github.com/octokit/octokit.rb&#34;&gt;Ruby octokit gem&lt;/a&gt; to implement this as follows.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;require &#39;octokit&#39;
+
+class GithubClient &amp;lt; Octokit::Client
+  def branch_contains_sha?(repo, branch, sha)
+    [&#39;behind&#39;, &#39;identical&#39;].include?(compare(repo, branch, sha).status)
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;creating-a-remote-branch-from-a-remote-commit:ebeddf967e2b970d374ec29d22d794b8&#34;&gt;Creating a remote branch from a remote commit&lt;/h3&gt;
+
+&lt;p&gt;Sometimes you&amp;rsquo;ll want to create a remote branch by branching from a remote commit. We can use the &lt;a href=&#34;https://developer.github.com/v3/git/refs/#create-a-reference&#34;&gt;create_reference call&lt;/a&gt; to accomplish this. Note that the &lt;code&gt;ref&lt;/code&gt; parameter of this call needs to be set to &lt;code&gt;refs/heads/#{branch}&lt;/code&gt; when creating a remote branch.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;require &#39;octokit&#39;
+
+class GithubClient &amp;lt; Octokit::Client
+  def create_branch_from_sha(repo, branch, sha)
+    # create_ref internally transforms &amp;quot;heads/#{branch}&amp;quot; into &amp;quot;refs/heads/#{branch}&amp;quot;
+    # as mentioned above, this is required by the Github API
+    create_ref(repo, &amp;quot;heads/#{branch}&amp;quot;, sha)
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;setting-the-head-of-a-remote-branch-to-a-specific-remote-commit:ebeddf967e2b970d374ec29d22d794b8&#34;&gt;Setting the HEAD of a remote branch to a specific remote commit&lt;/h3&gt;
+
+&lt;p&gt;You can even forcefully set the HEAD of a remote branch to a specific remote commit by using the &lt;a href=&#34;https://developer.github.com/v3/git/refs/#update-a-reference&#34;&gt;update_reference call&lt;/a&gt;. As mentioned earlier, the &lt;code&gt;ref&lt;/code&gt; parameter needs to be set to &lt;code&gt;refs/heads/#{branch}&lt;/code&gt;. Be careful when using this functionality though as it essentially allows you to overwrite the history of a remote branch!&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;require &#39;octokit&#39;
+
+class GithubClient &amp;lt; Octokit::Client
+  def update_branch_to_sha(repo, branch, sha, force = true)
+    # update_ref internally transforms &amp;quot;heads/#{branch}&amp;quot; into &amp;quot;refs/heads/#{branch}&amp;quot;
+    # as mentioned earlier, this is required by the Github API
+    update_ref(repo, &amp;quot;heads/#{branch}&amp;quot;, sha, force)
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Bug hunting with git bisect</title>
+      <link>https://vaneyckt.io/posts/bug_hunting_with_git_bisect/</link>
+      <pubDate>Mon, 04 Nov 2013 20:02:14 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/bug_hunting_with_git_bisect/</guid>
+      <description>&lt;p&gt;Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.&lt;/p&gt;
+
+&lt;p&gt;It was at this point that I remembered &lt;code&gt;git bisect&lt;/code&gt;. This git command asks you to specify two commits: one where things are working, and another one where things are broken. It then does a binary search across the range of commits in between these two. Each search step asks you whether the current commit contains broken code or not, after which it automatically selects the next commit for you. There&amp;rsquo;s a great tutorial over &lt;a href=&#34;http://webchick.net/node/99&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ git bisect start
+$ git bisect good rj6y4j3
+$ git bisect bad 2q7f529
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It took me all of five minutes to discover the source of the bug this way. I can safely say that it would have taken me ages to track down this particular bit of offending code as it was located in a custom bug fix for a popular third party library (I&amp;rsquo;m looking at you &lt;a href=&#34;https://github.com/getsentry/raven-ruby&#34;&gt;Sentry&lt;/a&gt;).&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

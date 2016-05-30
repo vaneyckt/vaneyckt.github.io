@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="Ruby concurrency: in praise of the mutex" />
+<meta property="og:description" content="" />
+
+<meta property="og:type" content="article" />
+
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_the_mutex/" />
+
+
+  <title> Ruby concurrency: in praise of the mutex  &middot; vaneyckt.io </title>
+
+  
+
+  <link rel="stylesheet" href="/css/monokai.css">
+  <script src="/js/highlight.pack.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  
+  <link rel="stylesheet" href="https://vaneyckt.io/css/poole.css">
+  <link rel="stylesheet" href="https://vaneyckt.io/css/syntax.css">
+  <link rel="stylesheet" href="https://vaneyckt.io/css/hyde.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="vaneyckt.io" />
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+  <link href='https://fonts.googleapis.com/css?family=Raleway:400,300' rel='stylesheet' type='text/css'>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-71853042-1', 'auto');
+    ga('send', 'pageview');
+  </script>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1 class="brand"><a style="text-decoration:none" href="https://vaneyckt.io">vaneyckt</a></h1>
+      <p class="lead">
+         notes to my future self 
+      </p>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li><a href="https://vaneyckt.io">Home</a></li>
+      <li><a href="https://vaneyckt.io/posts">Posts</a></li>
+      <li><a href="https://vaneyckt.io/topics">Tags</a></li>
+      
+      <br/>
+      
+    </ul>
+      
+      
+      
+      <a href="https://github.com/vaneyckt"><i class="fa fa-github-square"></i></a>&nbsp;&nbsp;
+      <a href="mailto:tomvaneyck@gmail.com"><i class="fa fa-envelope-square"></i></a>&nbsp;&nbsp;
+      <a href="https://vaneyckt.io/index.xml"><i class="fa fa-rss-square"></i></a>&nbsp;&nbsp;
+      
+
+    <p class="footnote">powered by <a href="http://hugo.spf13.com">Hugo</a> <br/>
+    &copy; 2016 Tom Van Eyck. All rights reserved.</p>
+  </div>
+</div>
+
+
+  <div class="content container">
+    <div class="post">
+      <h1 class="post-title">Ruby concurrency: in praise of the mutex</h1>
+      <span class="post-date">Mar 17, 2016</span>
+      
+
+<p>When reading about Ruby you will inevitably be introduced to the Global Interpreter Lock. This mechanism tends to come up in explanations of why Ruby threads run concurrently on a single core, rather than being scheduled across multiple cores in true parallel fashion. This single core scheduling approach also explains why adding threads to a Ruby program does not necessarily result in faster execution times.</p>
+
+<p>This post will start by explaining some of the details behind the GIL. Next up, we&rsquo;ll take a look at the three crucial concepts of concurrency: atomicity, visibility, and ordering. While most developers are familiar with atomicity, the concept of visibility is often not very well understood. We will be going over these concepts in quite some detail and will illustrate how to address their needs through correct usage of the mutex data structure.</p>
+
+<h3 id="parallelism-and-the-gil:ea5ce71b092b908f8e251c60020af72d">Parallelism and the GIL</h3>
+
+<p>Ruby&rsquo;s Global Interpreter Lock is a global lock around the execution of Ruby code. Before a Ruby thread can execute any code, it first needs to acquire this lock. A thread holding the GIL will be forced to release it after a certain amount of time, at which point the kernel can hand the GIL to another Ruby thread. As the GIL can only be held by one thread at a time, it effectively prevents two Ruby threads from being executed at the same time.</p>
+
+<p>Luckily Ruby comes with an optimization that forces threads to let go off the GIL when they find themselves waiting on blocking IO to complete. Such threads will use the <a href="http://linux.die.net/man/2/ppoll">ppoll system call</a> to be notified when their blocking IO has finished. Only then will they make an attempt to reacquire the GIL again. This type of behavior holds true for all blocking IO calls, as well as backtick and system calls. So even with the Global Interpreter Lock, Ruby is still able to have moments of true parallelism.</p>
+
+<p>Note that the GIL is specific to the default Ruby interpreter (<a href="https://en.wikipedia.org/wiki/Ruby_MRI">MRI</a>) which relies on a global lock to protect its internals from race conditions. The GIL also makes it possible to safely interface the MRI interpreter with C libraries that may not be thread-safe themselves. Other interpreters have taken different approaches to the concept of a global lock; <a href="http://rubinius.com/">Rubinius</a> opts for a collection of fine-grained locks instead of a single global one, whereas <a href="http://jruby.org/">JRuby</a> does not use global locking at all.</p>
+
+<h3 id="concurrency-and-the-mutex:ea5ce71b092b908f8e251c60020af72d">Concurrency and the Mutex</h3>
+
+<p>There are three crucial concepts to concurrency: atomicity, visibility, and ordering. We&rsquo;ll be taking a look at how Ruby&rsquo;s mutex data structure addresses these. It is worth pointing out that different languages tackle these concepts in different ways. As such, the mutex-centric approach described here is only guaranteed to work in Ruby.</p>
+
+<h4 id="atomicity:ea5ce71b092b908f8e251c60020af72d">Atomicity</h4>
+
+<p>Atomicity is probably the best-known concurrency concept. A section of code is said to atomically modify the state of an object if all other threads are unable to see any of the intermediate states of the object being modified. These other threads either see the state as it was before the operation, or they see the state as it is after the operation.</p>
+
+<p>In the example below we have created a <code>counters</code> array that holds ten entries, each of which is set to zero. This array represents an object that we want to modify, and its entries represent its internal state. Let&rsquo;s say we have five threads, each of which executes a loop for 100.000 iterations that increments every entry by one. Intuitively we&rsquo;d expect the output of this to be an array with each entry set to 500.000. However, as we can see below, this is not the case.</p>
+
+<pre><code class="language-ruby"># atomicity.rb
+counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+threads = 5.times.map do
+  Thread.new do
+    100000.times do
+      counters.map! { |counter| counter + 1 }
+    end
+  end
+end
+threads.each(&amp;:join)
+
+puts counters.to_s
+# =&gt; [500000, 447205, 500000, 500000, 500000, 500000, 203656, 500000, 500000, 500000]
+</code></pre>
+
+<p>The reason for this unexpected output is that <code>counters.map! { |counter| counter + 1 }</code> is not atomic. For example, imagine that our first thread has just read the value of the first entry, incremented it by one, and is now getting ready to write this incremented value to the first entry of our array. However, before our thread can write this incremented value, it gets interrupted by the second thread. This second thread then goes on to read the current value of the first entry, increments it by one, and succeeds in writing the result back to the first entry of our array. Now we have a problem!</p>
+
+<p>We have a problem because the first thread got interrupted before it had a chance to write its incremented value to the array. When the first thread resumes, it will end up overwriting the value that the second thread just placed in the array. This will cause us to essentially lose an increment operation, which explains why our program output has entries in it that are less than 500.000.</p>
+
+<p>It should hopefully be clear that none of this would have happened if we had made sure that <code>counters.map! { |counter| counter + 1 }</code> was atomic. This would have made it impossible for the second thread to just come in and modify the intermediate state of the object being modified by the first thread.</p>
+
+<pre><code class="language-ruby"># atomicity.rb
+mutex = Mutex.new
+counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+threads = 5.times.map do
+  Thread.new do
+    100000.times do
+      mutex.synchronize do
+        counters.map! { |counter| counter + 1 }
+      end
+    end
+  end
+end
+threads.each(&amp;:join)
+
+puts counters.to_s
+# =&gt; [500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000]
+</code></pre>
+
+<p>Atomicity can be accomplished by using a mutex as a locking mechanism that ensures no two threads can simultaneously execute the same section of code. The code above shows how we can prevent a thread executing <code>counters.map! { |counter| counter + 1 }</code> from being interrupted by other threads wanting to execute the same code. Also, be sure to note that <code>mutex.synchronize</code> only prevents a thread from being interrupted by others wanting to execute code wrapped inside the same <code>mutex</code> variable!</p>
+
+<h4 id="visibility:ea5ce71b092b908f8e251c60020af72d">Visibility</h4>
+
+<p>Visibility determines when the results of the actions performed by a thread become visible to other threads. For example, when a thread wants to write an updated value to memory, that updated value may end up being put in a cache for a while until the kernel decides to flush it to main memory. Other threads that read from that memory will therefore end up with a stale value!</p>
+
+<p>The code below shows an example of the visibility problem. Here we have several threads flipping the boolean values in the <code>flags</code> array over and over again. The code responsible for changing these values is wrapped inside a mutex, so we know the intermediate states of the <code>flags</code> array won&rsquo;t be visible to other threads. We would thus expect the output of this program to contain the same boolean value for every entry of this array. However, we shall soon see that this does not always hold true.</p>
+
+<pre><code class="language-ruby"># visibility.rb
+mutex = Mutex.new
+flags = [false, false, false, false, false, false, false, false, false, false]
+
+threads = 50.times.map do
+  Thread.new do
+    100000.times do
+      puts flags.to_s
+      mutex.synchronize do
+        flags.map! { |f| !f }
+      end
+    end
+  end
+end
+threads.each(&amp;:join)
+</code></pre>
+
+<pre><code class="language-bash">$ ruby visibility.rb &gt; visibility.log
+$ grep -Hnri 'true, false' visibility.log | wc -l
+    30
+</code></pre>
+
+<p>This code will produce five million lines of output. We&rsquo;ll use the <code>&gt;</code> operator to write all these lines to a file. Having done this, we can then <code>grep</code> for inconsistencies in the output. We would expect every line of the output to contain an array with all its entries set to the same boolean value. However, it turns out that this only holds true for 99.9994% of all lines. Sometimes the flipped boolean values don&rsquo;t get written to memory fast enough, causing other threads to read stale data. This is a great illustration of the visibility problem.</p>
+
+<p>Luckily we can solve this problem by using a <a href="https://en.wikipedia.org/wiki/Memory_barrier">memory barrier</a>. A memory barrier enforces an ordering constraint on memory operations thereby preventing the possibility of reading stale data. In Ruby, a mutex not only acts as an atomic lock, but also functions as a memory barrier. When wanting to read the value of a variable being modified by multiple threads, a memory barrier will effectively tell your program to wait until all in-flight memory writes are complete. In practice this means that if we use a mutex when writing to a variable, we need to use this same mutex when reading from that variable as well.</p>
+
+<pre><code class="language-ruby"># visibility.rb
+mutex = Mutex.new
+flags = [false, false, false, false, false, false, false, false, false, false]
+
+threads = 50.times.map do
+  Thread.new do
+    100000.times do
+      mutex.synchronize do
+        puts flags.to_s
+      end
+      mutex.synchronize do
+        flags.map! { |f| !f }
+      end
+    end
+  end
+end
+threads.each(&amp;:join)
+</code></pre>
+
+<pre><code class="language-bash">$ ruby visibility.rb &gt; visibility.log
+$ grep -Hnri 'true, false' visibility.log | wc -l
+    0
+</code></pre>
+
+<p>As expected, this time we found zero inconsistencies in the output data due to us using the same mutex for both reading and writing the boolean values of the <code>flags</code> array. Do keep in mind that not all languages allow for using a mutex as a memory barrier, so be sure to check the specifics of your favorite language before going off to write concurrent code.</p>
+
+<h3 id="ordering:ea5ce71b092b908f8e251c60020af72d">Ordering</h3>
+
+<p>As if dealing with visibility isn&rsquo;t hard enough, the Ruby interpreter is also allowed to change the order of the instructions in your code in an attempt at optimization. Before I continue I should point out that there is no official specification for the Ruby language. This can make it hard to find information about topics such as this. So I&rsquo;m just going to describe how I <em>think</em> instruction reordering currently works in Ruby.</p>
+
+<p>Your Ruby code gets compiled to bytecode by the Ruby interpreter. The interpreter is free to reorder your code in an attempt to optimize it. This bytecode will then generate a set of CPU instructions, which <a href="https://en.wikipedia.org/wiki/Out-of-order_execution">the CPU is free to reorder</a> as well. I wasn&rsquo;t able to come up with example code that actually showcases this reordering behavior, so this next bit is going to be somewhat hand-wavy. Let&rsquo;s say we were given the code shown below (<a href="http://jeremymanson.blogspot.ie/2007/08/atomicity-visibility-and-ordering.html">original source</a>).</p>
+
+<pre><code class="language-ruby"># ordering.rb
+a = false
+b = false
+threads = []
+
+thr1 = Thread.new do
+  a = true
+  b = true
+end
+
+thr2 = Thread.new do
+  r1 = b # could see true
+  r2 = a # could see false
+  r3 = a # could see true
+  puts (r1 &amp;&amp; !r2) &amp;&amp; r3 # could print true
+end
+
+thr1.join
+thr2.join
+</code></pre>
+
+<p>Since there are a lot of ways for instruction reordering to take place, it is not impossible for <code>b = true</code> to be executed before <code>a = true</code>. In theory, this could therefore allow for <code>thr2</code> to end up outputting <code>true</code>. This is rather counterintuitive, as this would only be possible if the variable <code>b</code> had changed value before the variable <code>a</code>.</p>
+
+<p>Luckily there is no need to worry too much about this. When looking at the code above, it should be obvious that code reordering is going to be the least of its problems. The lack of any kind of synchronization to help deal with atomicity and visibility issues in this threaded program is going to cause way bigger headaches than code reordering ever could.</p>
+
+<p>These synchronization issues can be fixed by using a mutex. By introducing a mutex we are explicitly telling the interpreter and CPU how our code should behave, thus preventing any problematic code reordering from occurring. Dealing with atomicity and visibility issues will therefore implicitly prevent any dangerous code reordering.</p>
+
+<h3 id="conclusion:ea5ce71b092b908f8e251c60020af72d">Conclusion</h3>
+
+<p>I hope this post has helped show just how easy it can be to introduce bugs in concurrent code. In my experience, the concept of memory barriers is often poorly understood, which can result in introducing some incredibly hard to find bugs. Luckily, as we saw in this post, the mutex data structure can be a veritable panacea for addressing these issues in Ruby.</p>
+
+<p>Please feel free to contact me if you think I got anything wrong. While all of the above is correct to the best of my knowledge, the lack of an official Ruby specification can make it hard to locate information that is definitively without error.</p>
+
+    </div>
+  </div>
+
+</body>
+</html>

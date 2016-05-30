@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Aws on vaneyckt.io</title>
+    <link>https://vaneyckt.io/topics/aws/</link>
+    <description>Recent content in Aws on vaneyckt.io</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Sat, 24 Jan 2015 19:17:53 +0000</lastBuildDate>
+    <atom:link href="https://vaneyckt.io/topics/aws/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Unwanted spot instance termination in multi-AZ ASG</title>
+      <link>https://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</link>
+      <pubDate>Sat, 24 Jan 2015 19:17:53 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</guid>
+      <description>&lt;p&gt;An auto scaling group is an AWS abstraction that facilitates increasing or decreasing the number of EC2 instances within your application&amp;rsquo;s architecture. Spot instances are unused AWS servers that are auctioned off for little money. The combination of these two allows for large auto scaling groups at low costs. However, you can lose your spot instances at a moment&amp;rsquo;s notice as soon as someone out there wants to pay more than you do.&lt;/p&gt;
+
+&lt;p&gt;Knowing all this, I recently found myself looking into why AWS was terminating several of our spot instances every day. We were bidding 20% over the average price, so it seemed unlikely that this was being caused by a monetary issue. Nevertheless, we kept noticing multiple spot instances disappearing on a daily basis.&lt;/p&gt;
+
+&lt;p&gt;It took a while to get to the bottom of things, but it turned out that this particular problem was being caused by an unfortunate combination of:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;our auto scaling group spanning multiple availability zones&lt;/li&gt;
+&lt;li&gt;our scaling code making calls to &lt;code&gt;TerminateInstanceInAutoScalingGroup&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The step-by-step explanation of this issue was as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;our scaling code was asking AWS to put 10 instances in our auto scaling group&lt;/li&gt;
+&lt;li&gt;AWS obliged and put 5 instances in availability zone A and another 5 in zone B&lt;/li&gt;
+&lt;li&gt;some time later our scaling code would decide that 2 specific instances were no longer needed. A call would be made to &lt;code&gt;TerminateInstanceInAutoScalingGroup&lt;/code&gt; to have just these 2 specific instances terminated.&lt;/li&gt;
+&lt;li&gt;if these 2 instances happened to be in the same availability zone, then one zone would now have 3 instances, while the other one would now have 5&lt;/li&gt;
+&lt;li&gt;AWS would detect that both zones were no longer balanced and would initiate a rebalancing action. This rebalancing action would terminate one of the instances in the zone with 5 instances, and spin up another instance in the zone with 3 instances.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So while this action did indeed end up rebalancing the instances across the different availability zones, it also inadvertently ended up terminating a running instance.&lt;/p&gt;
+
+&lt;p&gt;The relevant entry from the &lt;a href=&#34;http://awsdocs.s3.amazonaws.com/AutoScaling/latest/as-dg.pdf&#34;&gt;AWS Auto Scaling docs&lt;/a&gt; is shown below.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Instance Distribution and Balance across Multiple Zones&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Auto Scaling attempts to distribute instances evenly between the Availability Zones that are enabled for your Auto Scaling group. Auto Scaling attempts to launch new instances in the Availability Zone with the fewest instances. If the attempt fails, however, Auto Scaling will attempt to launch in other zones until it succeeds.&lt;/p&gt;
+
+&lt;p&gt;Certain operations and conditions can cause your Auto Scaling group to become unbalanced. Auto Scaling compensates by creating a rebalancing activity under any of the following conditions:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;You issue a request to change the Availability Zones for your group.&lt;/li&gt;
+&lt;li&gt;You call &lt;code&gt;TerminateInstanceInAutoScalingGroup&lt;/code&gt;, which causes the group to become unbalanced.&lt;/li&gt;
+&lt;li&gt;An Availability Zone that previously had insufficient capacity recovers and has additional capacity available.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Auto Scaling always launches new instances before attempting to terminate old ones, so a rebalancing activity will not compromise the performance or availability of your application.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Multi-Zone Instance Counts when Approaching Capacity&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Because Auto Scaling always attempts to launch new instances before terminating old ones, being at or near the specified maximum capacity could impede or completely halt rebalancing activities. To avoid this problem, the system can temporarily exceed the specified maximum capacity of a group by a 10 percent margin during a rebalancing activity (or by a 1-instance margin, whichever is greater). The margin is extended only if the group is at or near maximum capacity and needs rebalancing, either as a result of user-requested rezoning or to compensate for zone availability issues. The extension lasts only as long as needed to rebalance the group—typically a few minutes.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;I&amp;rsquo;m not sure about the best way to deal with this behavior. In our case, we just restricted our auto scaling group to one availability zone. This was good enough for us as none of the work done by our spot instances is critical. Going through the &lt;a href=&#34;http://awsdocs.s3.amazonaws.com/AutoScaling/latest/as-dg.pdf&#34;&gt;docs&lt;/a&gt;, it seems one approach might be to disable the &lt;code&gt;AZRebalance&lt;/code&gt; process. However, I have not had the chance to try this, so I cannot guarantee a lack of unexpected side effects.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Creating an EC2 Instance in a VPC with the AWS CLI</title>
+      <link>https://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</link>
+      <pubDate>Wed, 29 Oct 2014 17:36:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</guid>
+      <description>
+
+&lt;p&gt;Setting up an EC2 instance on AWS used to be as straightforward as provisioning a machine and SSHing into it. However, this process has become a bit more complicated now that Amazon VPC has become the standard for managing machines in the cloud.&lt;/p&gt;
+
+&lt;p&gt;So what exactly is a Virtual Private Cloud? Amazon defines a VPC as &amp;lsquo;a logically isolated section of the AWS Cloud&amp;rsquo;. Instances inside a VPC can by default only communicate with other instances in the same VPC and are therefore invisible to the rest of the internet. This means they will not accept SSH connections coming from your computer, nor will they respond to any http requests. In this article we&amp;rsquo;ll look into changing these default settings into something more befitting a general purpose server.&lt;/p&gt;
+
+&lt;h3 id=&#34;setting-up-your-vpc:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Setting up your VPC&lt;/h3&gt;
+
+&lt;p&gt;Start by installing the &lt;a href=&#34;http://aws.amazon.com/cli&#34;&gt;AWS Command Line Interface&lt;/a&gt; on your machine if you haven&amp;rsquo;t done so already. With this done, we can now create our VPC.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ vpcId=`aws ec2 create-vpc --cidr-block 10.0.0.0/28 --query &#39;Vpc.VpcId&#39; --output text`
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There are several interesting things here:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;the &lt;code&gt;--cidr-block&lt;/code&gt; parameter specifies a /28 netmask that allows for 16 IP addresses. This is the smallest supported netmask.&lt;/li&gt;
+&lt;li&gt;the &lt;code&gt;create-vpc&lt;/code&gt; command returns a JSON string. We can filter out specific fields from this string by using the &lt;code&gt;--query&lt;/code&gt; and &lt;code&gt;--output&lt;/code&gt; parameters.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The next step is to overwrite the default VPC DNS settings. As mentioned earlier, instances launched inside a VPC are invisible to the rest of the internet by default. AWS therefore does not bother assigning them a public DNS name. Luckily this can be changed easily.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ aws ec2 modify-vpc-attribute --vpc-id $vpcId --enable-dns-support &amp;quot;{\&amp;quot;Value\&amp;quot;:true}&amp;quot;
+$ aws ec2 modify-vpc-attribute --vpc-id $vpcId --enable-dns-hostnames &amp;quot;{\&amp;quot;Value\&amp;quot;:true}&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;adding-an-internet-gateway:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Adding an Internet Gateway&lt;/h3&gt;
+
+&lt;p&gt;Next we need to connect our VPC to the rest of the internet by attaching an internet gateway. Our VPC would be isolated from the internet without this.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ internetGatewayId=`aws ec2 create-internet-gateway --query &#39;InternetGateway.InternetGatewayId&#39; --output text`
+$ aws ec2 attach-internet-gateway --internet-gateway-id $internetGatewayId --vpc-id $vpcId
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;creating-a-subnet:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Creating a Subnet&lt;/h3&gt;
+
+&lt;p&gt;A VPC can have multiple subnets. Since our use case only requires one, we can reuse the cidr-block specified during VPC creation so as to get a single subnet that spans the entire VPC address space.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ subnetId=`aws ec2 create-subnet --vpc-id $vpcId --cidr-block 10.0.0.0/28 --query &#39;Subnet.SubnetId&#39; --output text`
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;While this &lt;code&gt;--cidr-block&lt;/code&gt; parameter specifies a subnet that can contain 16 IP addresses (10.0.0.1 - 10.0.0.16), AWS will reserve 5 of those for private use. While this doesn&amp;rsquo;t really have an impact on our use case, it is still good to be aware of such things.&lt;/p&gt;
+
+&lt;h3 id=&#34;configuring-the-route-table:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Configuring the Route Table&lt;/h3&gt;
+
+&lt;p&gt;Each subnet needs to have a route table associated with it to specify the routing of its outbound traffic. By default every subnet inherits the default VPC route table which allows for intra-VPC communication only.&lt;/p&gt;
+
+&lt;p&gt;Here we add a route table to our subnet so as to allow traffic not meant for an instance inside the VPC to be routed to the internet through the internet gateway we created earlier.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ routeTableId=`aws ec2 create-route-table --vpc-id $vpcId --query &#39;RouteTable.RouteTableId&#39; --output text`
+$ aws ec2 associate-route-table --route-table-id $routeTableId --subnet-id $subnetId
+$ aws ec2 create-route --route-table-id $routeTableId --destination-cidr-block 0.0.0.0/0 --gateway-id $internetGatewayId
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;adding-a-security-group:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Adding a Security Group&lt;/h3&gt;
+
+&lt;p&gt;Before we can launch an instance, we first need to create a security group that specifies which ports should allow traffic. For now we&amp;rsquo;ll just allow anyone to try and make an SSH connection by opening port 22 to any IP address.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ securityGroupId=`aws ec2 create-security-group --group-name my-security-group --description &amp;quot;my-security-group&amp;quot; --vpc-id $vpcId --query &#39;GroupId&#39; --output text`
+$ aws ec2 authorize-security-group-ingress --group-id $securityGroupId --protocol tcp --port 22 --cidr 0.0.0.0/0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;launching-your-instance:ed16f33dbf5018a09918ad8ef3c5f741&#34;&gt;Launching your Instance&lt;/h3&gt;
+
+&lt;p&gt;All that&amp;rsquo;s left to do is to create an SSH key pair and then launch an instance secured by this. Let&amp;rsquo;s generate this key pair and store it locally with the correct permissions.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ aws ec2 create-key-pair --key-name my-key --query &#39;KeyMaterial&#39; --output text &amp;gt; ~/.ssh/my-key.pem
+$ chmod 400 ~/.ssh/my-key.pem
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We can now launch a single t2.micro instance based on the public AWS Ubuntu image.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ instanceId=`aws ec2 run-instances --image-id ami-9eaa1cf6 --count 1 --instance-type t2.micro --key-name my-key --security-group-ids $securityGroupId --subnet-id $subnetId --associate-public-ip-address --query &#39;Instances[0].InstanceId&#39; --output text`
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After a few minutes your instance should be up and running. You should now be able to obtain the url of your active instance and SSH into it.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ instanceUrl=`aws ec2 describe-instances --instance-ids $instanceId --query &#39;Reservations[0].Instances[0].PublicDnsName&#39; --output text`
+$ ssh -i ~/.ssh/my-key.pem ubuntu@$instanceUrl
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And that&amp;rsquo;s it. It&amp;rsquo;s really not all that hard. There&amp;rsquo;s just an awful lot of concepts that you need to get your head around which can make it a bit daunting at first. Be sure to check out the free &lt;a href=&#34;http://www.amazon.com/gp/product/B007S33NT2/ref=cm_cr_ryp_prd_ttl_sol_0&#34;&gt;Amazon Virtual Private Cloud User Guide&lt;/a&gt; if you want to learn more about VPCs.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>EC2 instance cost comparison</title>
+      <link>https://vaneyckt.io/posts/ec2_instance_cost_comparison/</link>
+      <pubDate>Sun, 11 Aug 2013 21:24:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/ec2_instance_cost_comparison/</guid>
+      <description>&lt;p&gt;Amazon&amp;rsquo;s pricing scheme for its ec2 instances never struck me as particularly transparent. Until recently some of my DevOps colleagues even estimated cost by cross-referencing &lt;a href=&#34;https://aws.amazon.com/ec2/instance-types&#34;&gt;instance details&lt;/a&gt; with &lt;a href=&#34;http://aws.amazon.com/ec2/pricing&#34;&gt;pricing information&lt;/a&gt;. While this approach gives reasonable results for finding the cost of a given instance type, it doesn&amp;rsquo;t lend itself very well to comparing prices across a range of different types.&lt;/p&gt;
+
+&lt;p&gt;When talking to an ex-colleague of mine about the hardships encountered for such a common task, he pointed me to &lt;a href=&#34;http://www.ec2instances.info&#34;&gt;this absolutely brilliant page&lt;/a&gt;. It&amp;rsquo;s so unbelievably simple and well thought-out that I can&amp;rsquo;t help getting ever so slightly annoyed with whomever is in charge of communicating Amazon&amp;rsquo;s pricing structure and the subpar job they are doing.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
