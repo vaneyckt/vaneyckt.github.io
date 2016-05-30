@@ -141,7 +141,7 @@ $ grep -Hnri &#39;true, false&#39; visibility.log | wc -l
 
 &lt;p&gt;As expected, this time we found zero inconsistencies in the output data due to us using the same mutex for both reading and writing the boolean values of the &lt;code&gt;flags&lt;/code&gt; array. Do keep in mind that not all languages allow for using a mutex as a memory barrier, so be sure to check the specifics of your favorite language before going off to write concurrent code.&lt;/p&gt;
 
-&lt;h3 id=&#34;ordering:ea5ce71b092b908f8e251c60020af72d&#34;&gt;Ordering&lt;/h3&gt;
+&lt;h4 id=&#34;ordering:ea5ce71b092b908f8e251c60020af72d&#34;&gt;Ordering&lt;/h4&gt;
 
 &lt;p&gt;As if dealing with visibility isn&amp;rsquo;t hard enough, the Ruby interpreter is also allowed to change the order of the instructions in your code in an attempt at optimization. Before I continue I should point out that there is no official specification for the Ruby language. This can make it hard to find information about topics such as this. So I&amp;rsquo;m just going to describe how I &lt;em&gt;think&lt;/em&gt; instruction reordering currently works in Ruby.&lt;/p&gt;
 
