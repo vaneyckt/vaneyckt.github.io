@@ -87,117 +87,84 @@ Before moving on to the next section, I just want to note that the D scripting l
 
 ### Ruby and DTrace
 
-DTrace probes have been present in Ruby [since Ruby 2.0](https://tenderlovemaking.com/2011/12/05/profiling-rails-startup-with-dtrace.html) came out.
-A list of Ruby probes can be found [here](http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html).
-An interesting thing to note is that DTrace probes come in two flavors: dynamic and static probes. Dynamic
-probes are only found in the `pid` and `fbt` probe providers. This means that the vast majority of
-available probes (including Ruby probes) is static.
+DTrace probes have been supported by Ruby [since Ruby 2.0](https://tenderlovemaking.com/2011/12/05/profiling-rails-startup-with-dtrace.html) came out. A list of supported Ruby probes can be found [here](http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html). Now is a good time to mention that DTrace probes come in two flavors: dynamic probes and static probes. Dynamic probes only appear in the `pid` and `fbt` probe providers. This means that the vast majority of available probes (including Ruby probes) is static.
 
-So what exactly is the difference between static and dynamic probes? In order to explain that
-we first need to take a look at how DTrace works. When you invoke DTrace on a process you are
-effectively giving DTrace permission to patch live instructions in the address space of this
-process with additional DTrace instrumentation. Remember how we had to disable the System Integrity
-Protection check in order to get DTrace to work on El Capitan? This is why.
+So how exactly do dynamic and static probes differ? In order to explain this we first need to take a closer look at just how DTrace works.
+When you invoke DTrace on a process you are effectively giving DTrace permission to patch additional DTrace instrumentation instructions into the process's address space. Remember how we had to disable the System Integrity Protection check in order to get DTrace to work on El Capitan? This is why.
 
-In the case of dynamic probes, DTrace instrumentation only gets added to a process when
-DTrace is invoked on this process. In other words, dynamic probes cause literally
-*zero* overhead when not enabled. On the other hand, static probes have to be compiled
-into the binary that wants to make use of them. A good example of this is [Ruby's
-probes.d file](https://github.com/ruby/ruby/blob/trunk/probes.d). However, when a process
-with static probes does not have DTrace invoked on it, any probe instructions are converted
-into NOP operations. This usually introduces a negligible, but *non-zero*, performance impact.
-More information about DTrace overhead can be found here, here, and here.
-http://dtrace.org/blogs/brendan/2011/02/18/dtrace-pid-provider-overhead/
-http://www.solarisinternals.com/wiki/index.php/DTrace_Topics_Overhead#Dynamic_Probes - dynamic ovhd
-http://www.solarisinternals.com/wiki/index.php/DTrace_Topics_Overhead#Static_Probes - dtrace nop
+In the case of dynamic probes, DTrace instrumentation instructions only get patched into a process when DTrace is invoked on this process. In other words, dynamic probes add zero overhead when not enabled. Static probes on the other hand have to be compiled into the binary that wants to make use of them. This is done through a [probes.d file](https://github.com/ruby/ruby/blob/trunk/probes.d).
 
-Let's start by listing which DTrace probes are available for a Ruby process. We saw earlier
-that Ruby comes with static probes baked in. We can ask DTrace to list these probes for us
-with the following command.
+However, even when probes have been compiled into the binary, this does not necessarily mean that they are getting triggered. When a process with static probes in its binary does not have DTrace invoked on it, any probe instructions get converted into NOP operations.
+This usually introduces a negligible, but nevertheless non-zero, performance impact. More information about DTrace overhead can be found [here](http://dtrace.org/blogs/brendan/2011/02/18/dtrace-pid-provider-overhead/), [here](http://www.solarisinternals.com/wiki/index.php/DTrace_Topics_Overhead#Dynamic_Probes), and [here](http://www.solarisinternals.com/wiki/index.php/DTrace_Topics_Overhead#Static_Probes).
 
+Now that we've immersed ourselves in all things probe-related, let's go ahead and actually list which DTrace probes are available for a Ruby process. We saw earlier that Ruby comes with static probes compiled into the Ruby binary. We can ask DTrace to list these probes for us with the following command.
+
+```bash
 $ sudo dtrace -l -m ruby -c 'ruby -v'
 
-ID   PROVIDER            MODULE                          FUNCTION NAME
-114188  ruby86029              ruby                   empty_ary_alloc array-create
-114189  ruby86029              ruby                           ary_new array-create
-114190  ruby86029              ruby                     vm_call_cfunc cmethod-entry
-114191  ruby86029              ruby                     vm_call0_body cmethod-entry
-114192  ruby86029              ruby                      vm_exec_core cmethod-entry
-114193  ruby86029              ruby                     vm_call_cfunc cmethod-return
-114194  ruby86029              ruby                     vm_call0_body cmethod-return
-114195  ruby86029              ruby                        rb_iterate cmethod-return
-114196  ruby86029              ruby                      vm_exec_core cmethod-return
-114197  ruby86029              ruby                   rb_require_safe find-require-entry
-114198  ruby86029              ruby                   rb_require_safe find-require-return
-114199  ruby86029              ruby                          gc_marks gc-mark-begin
-...
+ID         PROVIDER       MODULE              FUNCTION      NAME
+114188    ruby86029         ruby       empty_ary_alloc      array-create
+114189    ruby86029         ruby               ary_new      array-create
+114190    ruby86029         ruby         vm_call_cfunc      cmethod-entry
+114191    ruby86029         ruby         vm_call0_body      cmethod-entry
+114192    ruby86029         ruby          vm_exec_core      cmethod-entry
+114193    ruby86029         ruby         vm_call_cfunc      cmethod-return
+114194    ruby86029         ruby         vm_call0_body      cmethod-return
+114195    ruby86029         ruby            rb_iterate      cmethod-return
+114196    ruby86029         ruby          vm_exec_core      cmethod-return
+114197    ruby86029         ruby       rb_require_safe      find-require-entry
+114198    ruby86029         ruby       rb_require_safe      find-require-return
+114199    ruby86029         ruby              gc_marks      gc-mark-begin
+```
 
-Let's take a moment to look at the command we entered here. We saw earlier that we
-can use `-l` to have DTrace list its probes. Now we are also using `-m ruby` to
-tell DTrace to limit its listing to probes from the ruby module. However, DTrace
-will only list its Ruby probes if you specifically tell it you are interested in
-invoking DTrace on a Ruby process. This is what `-c 'ruby -v'` is for. The `-c`
-parameter allows us to specify a command that creates a process we want to run
-DTrace against. Here we are using `ruby -v` to spawn a small Ruby process.
+Let's take a moment to look at the command we entered here. We saw earlier that we can use `-l` to have DTrace list its probes. Now we also use `-m ruby` to get DTrace to limit its listing to probes from the ruby module. However, DTrace will only list its Ruby probes if you specifically tell it you are interested in invoking DTrace on a Ruby process. This is what we use `-c 'ruby -v'` for. The `-c` parameter allows us to specify a command that creates a process we want to run DTrace against. Here we are using `ruby -v` to spawn a small Ruby process in order to get DTrace to list its Ruby probes.
 
-But wait, there's more! The `sudo dtrace -l` command will not list any probes from
-the pid provider. This is because the pid provider is a special provider that
-actually defines a [class of providers](http://dtrace.org/guide/chp-pid.html). The
-snippet below shows the easiest way to get the Ruby specific pid provider probes
-listed.
+The above snippet doesn't actually list all Ruby probes, as the `sudo dtrace -l` command will omit any probes from the pid provider. This is because the pid provider actually defines a [class of providers](http://dtrace.org/guide/chp-pid.html). The snippet below shows how we can list the Ruby specific probes of this provider.
 
+```bash
 $ sudo dtrace -l -n 'pid$target:::entry' -c 'ruby -v' | grep 'ruby'
 
-ID   PROVIDER            MODULE                          FUNCTION NAME
-1395302   pid86272              ruby                             start entry
-1395303   pid86272              ruby                              main entry
-1395304   pid86272              ruby                          Init_ext entry
-1395305   pid86272              ruby            X509_STORE_set_ex_data entry
-1395306   pid86272              ruby            X509_STORE_get_ex_data entry
-1395307   pid86272              ruby                        string2hex entry
-1395308   pid86272              ruby                 ossl_x509_ary2sk0 entry
-1395309   pid86272              ruby                        ossl_raise entry
-1395310   pid86272              ruby          ossl_protect_x509_ary2sk entry
-1395311   pid86272              ruby                  ossl_x509_ary2sk entry
-1395312   pid86272              ruby                  ossl_x509_sk2ary entry
-1395313   pid86272              ruby               ossl_x509crl_sk2ary entry
-...
+ID         PROVIDER       MODULE                     FUNCTION      NAME
+1395302    pid86272         ruby                   rb_ary_eql      entry
+1395303    pid86272         ruby                  rb_ary_hash      entry
+1395304    pid86272         ruby                  rb_ary_aset      entry
+1395305    pid86272         ruby                    rb_ary_at      entry
+1395306    pid86272         ruby                 rb_ary_fetch      entry
+1395307    pid86272         ruby                 rb_ary_first      entry
+1395308    pid86272         ruby                rb_ary_push_m      entry
+1395309    pid86272         ruby                 rb_ary_pop_m      entry
+1395310    pid86272         ruby               rb_ary_shift_m      entry
+1395311    pid86272         ruby                rb_ary_insert      entry
+1395312    pid86272         ruby            rb_ary_each_index      entry
+1395313    pid86272         ruby          rb_ary_reverse_each      entry
+```
 
-Every pid entry probe has a corresponding pid return probe. These probes are great
-as they give us insight into which internal functions are getting called, the arguments
-passed to these, as well as their return values, and even the offset in the function
-of the return instruction (useful for when a function has multiple return instructions). More
-information about the pid provider can be found [here](http://dtrace.org/blogs/brendan/2011/02/09/dtrace-pid-provider).
+Here we are only listing the pid entry probes, but keep in mind that every entry probe has a corresponding pid return probe. These probes are great as they provide us with insight into which internal functions are getting called, the arguments passed to these, as well as their return values, and even the offset in the function of the return instruction (useful for when a function has multiple return instructions). Additional information about the pid provider can be found [here](http://dtrace.org/blogs/brendan/2011/02/09/dtrace-pid-provider).
 
+### A first DTrace script for Ruby
 
-A first DTrace script for Ruby
+Let us now have a look at a first DTrace script for Ruby that will tell us when a Ruby method starts and stops executing, along with the method's execution time. We will be running our DTrace script against the simple Ruby program shown below.
 
-Let's have a look at a simple DTrace script for Ruby. Our script will tell us when a
-method starts and stops executing, along with the methods execution time. The Ruby program
-below will be our starting point.
-
+```ruby
 # sleepy.rb
-
 def even(rnd)
-  sleep rnd
+  sleep(rnd)
 end
 
 def odd(rnd)
-  sleep rnd
+  sleep(rnd)
 end
 
 loop do
   rnd = rand(4)
   (rnd % 2 == 0) ? even(rnd) : odd(rnd)
 end
+```
 
+Our simply Ruby program is clearly not going to win any awards. It is just one endless loop, each iteration of which calls a method depending on whether a random number was even or odd. While this is obviously a very contrived example, we can nevertheless make great use of it to illustrate the power of DTrace.
 
-This Ruby program is clearly not going to win any awards. It is just one endless loop, each
-iteration of which calls a method depending on whether a random number was even or odd. While
-this is clearly a very contrived example, we can nevertheless make great use of it to illustrate
-the power of DTrace.
-
-# sleepy.d
+```C
+/* sleepy.d */
 ruby$target:::method-entry
 {
   self->start = timestamp;
@@ -208,30 +175,24 @@ ruby$target:::method-return
 {
   printf("Returning After: %d nanoseconds\n", (timestamp - self->start));
 }
+```
 
-The above snippet introduces quite a few new concepts. Let's start by having a look at the
-`arg0`, `arg1`, ... variables. These are actually just the arguments that Ruby passes to the
-method-entry probe. If we want to know what these arguments represent, all we have to do is
-look at [the documentation for this particular probe](http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html#label-Declared+probes).
+The above DTrace script has us using two Ruby specific DTrace probes. The `method-entry` probe fires whenever a Ruby method is entered; the `method-return` probe fires whenever a Ruby method returns. Each probe can take multiple arguments. A probe's arguments are available in the DTrace script through the `arg0`, `arg1`, `arg2` and `arg3` variables.
 
-*ruby:::method-entry(classname, methodname, filename, lineno);*
+If we want to know what data is contained by a probe's arguments, all we have to do is look at [its documentation](http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html#label-Declared+probes). In this particular case we can see that the `method-entry` probe gets called by the Ruby process with exactly four arguments.
 
-classname: name of the class (a string)
-methodname: name of the method about to be executed (a string)
-filename: the file name where the method is _being called_ (a string)
-lineno: the line number where the method is _being called_ (an int)
+>ruby:::method-entry(classname, methodname, filename, lineno);
+>
+>* classname: name of the class (a string)
+>* methodname: name of the method about to be executed (a string)
+>* filename: the file name where the method is _being called_ (a string)
+>* lineno: the line number where the method is _being called_ (an int)
 
-This tells us that `arg0` represents the class name, `arg1` represents the method name, ...
-Equally important is that the documentation tells us that the first three argumets are strings, while
-the fourth one is an integer. We need this information when we want to use `printf` to print these
-values.
+The documentation tells us that `arg0` holds the class name, `arg1` holds the method name, and so on. Equally important is that the documentation tells us that the first three arguments are strings, while the fourth one is an integer. We'll need this information for when we want to print these arguments with `printf`.
 
-You probably noticed that we are wrapping string variables inside the built-in `copyinstr` method.
-The reason for this is a bit complex. When strings are passed as an arugment to a DTrace probe, we don't
-actually pass the entire string. We just pass the memory address where the string starts. This memory
-address points to a string that is stored in user space. However, DTrace probes are executed in the kernel,
-so in order for the probe to read the string, we need to copy this user process data into the kernel's address space.
-The `copyinstr` is a built-in DTrace function that takes care of this for us.
+You probably noticed that we are wrapping string variables inside the `copyinstr` method. The reason for this is a bit complex. When a string gets passed as an argument to a DTrace probe, we don't actually pass the entire string. Instead, we only pass the memory address where the string begins. This memory address will be specific to the address space of the Ruby process.
+
+However, DTrace probes are executed in the kernel and thus make use of a different address space than our Ruby process. In order for a probe to read a string, we first need to copy the user process data that holds the string into the kernel's address space. The `copyinstr` is a built-in DTrace function that takes care of this for us.
 
 The `self->start` notation is interesting as well. DTrace variables that start with `self->` are thread-local variables
 that can be read from and written to across probes. Each thread of the process that you are calling DTrace on gets its
