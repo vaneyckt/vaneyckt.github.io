@@ -115,6 +115,7 @@ ID         PROVIDER       MODULE              FUNCTION      NAME
 114197    ruby86029         ruby       rb_require_safe      find-require-entry
 114198    ruby86029         ruby       rb_require_safe      find-require-return
 114199    ruby86029         ruby              gc_marks      gc-mark-begin
+...
 ```
 
 Let's take a moment to look at the command we entered here. We saw earlier that we can use `-l` to have DTrace list its probes. Now we also use `-m ruby` to get DTrace to limit its listing to probes from the ruby module. However, DTrace will only list its Ruby probes if you specifically tell it you are interested in invoking DTrace on a Ruby process. This is what we use `-c 'ruby -v'` for. The `-c` parameter allows us to specify a command that creates a process we want to run DTrace against. Here we are using `ruby -v` to spawn a small Ruby process in order to get DTrace to list its Ruby probes.
@@ -137,6 +138,7 @@ ID         PROVIDER       MODULE                     FUNCTION      NAME
 1395311    pid86272         ruby                rb_ary_insert      entry
 1395312    pid86272         ruby            rb_ary_each_index      entry
 1395313    pid86272         ruby          rb_ary_reverse_each      entry
+...
 ```
 
 Here we are only listing the pid entry probes, but keep in mind that every entry probe has a corresponding pid return probe. These probes are great as they provide us with insight into which internal functions are getting called, the arguments passed to these, as well as their return values, and even the offset in the function of the return instruction (useful for when a function has multiple return instructions). Additional information about the pid provider can be found [here](http://dtrace.org/blogs/brendan/2011/02/09/dtrace-pid-provider).
@@ -190,18 +192,15 @@ If we want to know what data is contained by a probe's arguments, all we have to
 
 The documentation tells us that `arg0` holds the class name, `arg1` holds the method name, and so on. Equally important is that the documentation tells us that the first three arguments are strings, while the fourth one is an integer. We'll need this information for when we want to print these arguments with `printf`.
 
-You probably noticed that we are wrapping string variables inside the `copyinstr` method. The reason for this is a bit complex. When a string gets passed as an argument to a DTrace probe, we don't actually pass the entire string. Instead, we only pass the memory address where the string begins. This memory address will be specific to the address space of the Ruby process.
+You probably noticed that we are wrapping string variables inside the `copyinstr` method. The reason for this is a bit complex. When a string gets passed as an argument to a DTrace probe, we don't actually pass the entire string. Instead, we only pass the memory address where the string begins. This memory address will be specific to the address space of the Ruby process. However, DTrace probes are executed in the kernel and thus make use of a different address space than our Ruby process. In order for a probe to read a string residing in user process data, it first needs to copy this string into the kernel's address space. The `copyinstr` method is a built-in DTrace function that takes care of this copying for us.
 
-However, DTrace probes are executed in the kernel and thus make use of a different address space than our Ruby process. In order for a probe to read a string, we first need to copy the user process data that holds the string into the kernel's address space. The `copyinstr` is a built-in DTrace function that takes care of this for us.
+The `self->start` notation is interesting as well. DTrace variables starting with `self->` are thread-local variables. Thread-local variables are useful when you want to tag every thread that fired a probe with some data. In our case we are using `self->start = timestamp;` to tag every thread that triggers the `method-entry` probe with a thread-local `start` variable that contains the time in nanoseconds returned by the built-in `timestamp` method.
 
-The `self->start` notation is interesting as well. DTrace variables that start with `self->` are thread-local variables
-that can be read from and written to across probes. Each thread of the process that you are calling DTrace on gets its
-own thread-local variables. There is no way for these variables to interact across threads. Since our Ruby program is
-single-threaded, we are just using thread-local variables to share the `self->start` variable across the `method-entry`
-and `method-return` probes.
+While it is impossible for one thread to access the thread-local variables of another thread, it is perfectly possible for a given probe to access the thread-local variables that were set on the current thread by a different probe. Looking at our DTrace script, you can see that the thread-local `self->start` variable is being shared between both the `method-entry` and `method-return` probes.
 
-Let's go ahead and run this DTrace script on our Ruby program.
+Let's go ahead and run the above DTrace script on our Ruby program.
 
+```C
 sudo dtrace -q -s sleepy.d -c 'ruby sleepy.rb'
 
 Entering Method: class: RbConfig, method: expand, file: /Users/vaneyckt/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/x86_64-darwin14/rbconfig.rb, line: 241
@@ -217,6 +216,7 @@ Entering Method: class: Object, method: odd, file: sleepy.rb, line: 5
 Returning After: 1003887374 nanoseconds
 Entering Method: class: Object, method: even, file: sleepy.rb, line: 1
 Returning After: 15839 nanoseconds
+```
 
 It's a bit hard to convey in the snippet above, but our DTrace program is generating well over a 1000 lines of output.
 These lines can be divided into two sections: a very large section that lists all the Ruby methods being called as part
