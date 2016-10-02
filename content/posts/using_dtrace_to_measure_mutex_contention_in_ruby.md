@@ -200,8 +200,8 @@ While it is impossible for one thread to access the thread-local variables of an
 
 Let's go ahead and run the above DTrace script on our Ruby program.
 
-```C
-sudo dtrace -q -s sleepy.d -c 'ruby sleepy.rb'
+```bash
+$ sudo dtrace -q -s sleepy.d -c 'ruby sleepy.rb'
 
 Entering Method: class: RbConfig, method: expand, file: /Users/vaneyckt/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/x86_64-darwin14/rbconfig.rb, line: 241
 Returning After: 39393 nanoseconds
@@ -218,82 +218,48 @@ Entering Method: class: Object, method: even, file: sleepy.rb, line: 1
 Returning After: 15839 nanoseconds
 ```
 
-It's a bit hard to convey in the snippet above, but our DTrace program is generating well over a 1000 lines of output.
-These lines can be divided into two sections: a very large section that lists all the Ruby methods being called as part
-of the program getting ready to run, and a much smaller section that lists whether our program is calling the `odd` or
-`even` functions, along with the time spent in each of these function calls.
+It's a bit hard to convey in the snippet above, but our DTrace script is generating well over a thousand lines of output. These lines can be divided into two sections: a first section listing all the Ruby methods being called as part of the program getting ready to run, and a much smaller second section listing whether our program is calling the `even` or `odd` functions, along with the time spent in each of these function calls.
 
-While the above output gives us great detail about what our Ruby program is doing, we really only want to gather
-information about the `odd` and `even` methods being called. DTrace supports predicates to make just these kind
-of things possible. Predicates are `/` wrapped conditions that define whether the code of a particular probe
-should be executed. Shown below is how we can use predicates to limit our output to just the `odd` and `even`
-methods.
+While the above output gives us a great amount of detail about what our Ruby program is doing, we really only want to gather information about the `even` and `odd` methods being called. DTrace uses predicates to make just this type of filtering possible. Predicates are `/` wrapped conditions that define whether a particular probe should be executed. The code below shows the usage of predicates to only have the `method-entry` and `method-return` probes triggered by the `even` and `odd` methods being called.
+
+```C
+/* predicates_sleepy.d */
+ruby$target:::method-entry
+/copyinstr(arg1) == "even" || copyinstr(arg1) == "odd"/
+{
+  self->start = timestamp;
+  printf("Entering Method: class: %s, method: %s, file: %s, line: %d\n", copyinstr(arg0), copyinstr(arg1), copyinstr(arg2), arg3);
+}
+
+ruby$target:::method-return
+/copyinstr(arg1) == "even" || copyinstr(arg1) == "odd"/
+{
+  printf("Returning After: %d nanoseconds\n", (timestamp - self->start));
+}
+```
+
+```bash
+$ sudo dtrace -q -s predictes_sleepy.d -c 'ruby sleepy.rb'
+
+Entering Method: class: Object, method: odd, file: sleepy.rb, line: 5
+Returning After: 3005086754 nanoseconds
+Entering Method: class: Object, method: even, file: sleepy.rb, line: 1
+Returning After: 2004313007 nanoseconds
+Entering Method: class: Object, method: even, file: sleepy.rb, line: 1
+Returning After: 2005076442 nanoseconds
+Entering Method: class: Object, method: even, file: sleepy.rb, line: 1
+Returning After: 21304 nanoseconds
+...
+```
+
+Running our modified DTrace script, we see that this time around we are only triggering our probes when entering into and returning from the `even` and `odd` methods. Now that we have learned a fair few DTrace basics, we can now move on to the more advanced topic of writing a DTrace script that will allow us to measure mutex contention in Ruby programs.
 
 
 
-The abvoe snippet does not quite capture it, but
-Our DTrace program is generating
 
-
-
-
-
-mention the code that gets executed as part of Ruby startup. Use this as way to
-introduce predicates to narrow which information gets shown.
-
-- point out that we can use -p to specify pid directly. This allows us to attach to running Ruby processes
+### Conclusion
+-point out that we can use -p to specify pid directly. This allows us to attach to running Ruby processes
 on productio nmachines
-
-
-
-
-
-
-
-
-
-
-- example of using DTrace with Ruby
-- using -c vs DTracing an already running process
-
-
-sudo dtrace -ln 'pid$target:::entry' -c 'ruby foo.rb' | grep 'utex' | grep ruby
-VS
-sudo dtrace -n 'ruby$target:::cmethod-entry { printf("%s", copyinstr(arg0)); }' -c "ruby foo.rb"
--ttp://dtrace.org/blogs/brendan/2011/02/18/dtrace-pid-provider-overhead/
-- fine-grained information enables the creation absolutely amazing tools.
-
-
-
-
-
-Ruby mutex contention and DTrace
-
-
-
-Additional resources
-
-
-Ruby and DTrace
-
-There are an incredibly amount of probes available
-
-Now to actually run this stuff. The dtrace command needs to be run as root - with superuser privileges. Ordinarily you’d use sudo to run a command as root, but some DTrace behaviors don’t work reliably when run with sudo, so you can start a root shell with sudo -i, or give it a shell, like with sudo bash.
-Use # at the start of commands to indicate a sudo bash session.
-
-describes a function, or a set of functions, to  Probes allow you to hook Probes are small functions that we can hook  fired when a given condition is met.
-Such a condition could be a certain process making a specific system call, or a runtime returning from
-a given method.
-
-
-fine-grained
 https://github.com/opendtrace/toolkit <- how to run. Add example code to run against
-give examples - comment on syntax
-
-sudo dtrace -ln 'pid$target:::entry' -c 'ruby foo.rb' | grep 'utex' | grep ruby
-VS
-sudo dtrace -n 'ruby$target:::cmethod-entry { printf("%s", copyinstr(arg0)); }' -c "ruby foo.rb"
-
-- http://www.tablespace.net/quicksheet/dtrace-quickstart.html
-- probes
-https://github.com/opendtrace/toolkit <- how to run. Add example code to run against
+http://www.tablespace.net/quicksheet/dtrace-quickstart.html
+http://www.brendangregg.com/DTrace/DTrace-cheatsheet.pdf
