@@ -18,7 +18,7 @@ El Capitan comes with a new security feature called [System Integrity Protection
 
 Next, we want to get DTrace working with Ruby. Although Ruby has DTrace support, there is a very good chance that your currently installed Ruby binary does not have this support enabled. This is especially likely to be true if you compiled your Ruby binary locally on an OS X system, as OS X does not allow the Ruby compilation process to access the system DTrace binary, thereby causing the resulting Ruby binary to lack DTrace functionality. More information about this can be found [here](http://stackoverflow.com/a/29232051/1420382).
 
-I've found the easiest way to get a DTrace compatible Ruby on my system was to just go and download a precompiled Ruby binary. Naturally we want to be a bit careful about this, as downloading random binaries from the internet is not the safest thing. Luckily, the good people over at [rvm.io](https://rvm.io/) host DTrace compatible Ruby binaries that we can safely download.
+I've found the easiest way to get a DTrace compatible Ruby on my system was to just go and download a precompiled Ruby binary. Naturally, we want to be a bit careful about this, as downloading random binaries from the internet is not the safest thing. Luckily, the good people over at [rvm.io](https://rvm.io/) host DTrace compatible Ruby binaries that we can safely download.
 
 ```bash
 $ rvm mount -r https://rvm.io/binaries/osx/10.10/x86_64/ruby-2.2.3.tar.bz2
@@ -53,9 +53,9 @@ syscall:*:*:entry
 }
 ```
 
-The first line of our script tells DTrace which probes we want to use. In this particular case we are using `syscall:*:*:entry` to match every single probe associated with initiating a system call. DTrace has individual probes for every possible system call, so if DTrace were to have no built-in functionality for matching multiple probes, I would have been forced to manually specify every single system call probe myself, and our script would have been a whole lot longer.
+The first line of our script tells DTrace which probes we want to use. In this particular case, we are using `syscall:*:*:entry` to match every single probe associated with initiating a system call. DTrace has individual probes for every possible system call, so if DTrace were to have no built-in functionality for matching multiple probes, I would have been forced to manually specify every single system call probe myself, and our script would have been a whole lot longer.
 
-I want to briefly cover some DTrace terminology before continuing on. Every DTrace probe adheres to the `<provider>:<module>:<function>:<name>` description format. In the script above we asked DTrace to match all probes of the `syscall` provider that have `entry` as their name. In this particular example we explicitly used the `*` character to show that we want to match multiple probes. However, keep in mind that the use of the `*` character is optional. Most DTrace documentation would opt for `syscall:::entry` instead.
+I want to briefly cover some DTrace terminology before continuing on. Every DTrace probe adheres to the `<provider>:<module>:<function>:<name>` description format. In the script above we asked DTrace to match all probes of the `syscall` provider that have `entry` as their name. In this particular example, we explicitly used the `*` character to show that we want to match multiple probes. However, keep in mind that the use of the `*` character is optional. Most DTrace documentation would opt for `syscall:::entry` instead.
 
 The rest of the script is rather straightforward. We are basically just telling DTrace to print the `execname` every time a probe fires. The `execname` is a built-in DTrace variable that contains the name of the process that caused the probe to be fired. Let's go ahead and run our simple DTrace script.
 
@@ -181,7 +181,7 @@ ruby$target:::method-return
 
 The above DTrace script has us using two Ruby specific DTrace probes. The `method-entry` probe fires whenever a Ruby method is entered; the `method-return` probe fires whenever a Ruby method returns. Each probe can take multiple arguments. A probe's arguments are available in the DTrace script through the `arg0`, `arg1`, `arg2` and `arg3` variables.
 
-If we want to know what data is contained by a probe's arguments, all we have to do is look at [its documentation](http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html#label-Declared+probes). In this particular case we can see that the `method-entry` probe gets called by the Ruby process with exactly four arguments.
+If we want to know what data is contained by a probe's arguments, all we have to do is look at [its documentation](http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html#label-Declared+probes). In this particular case, we can see that the `method-entry` probe gets called by the Ruby process with exactly four arguments.
 
 >ruby:::method-entry(classname, methodname, filename, lineno);
 >
@@ -239,7 +239,7 @@ ruby$target:::method-return
 ```
 
 ```bash
-$ sudo dtrace -q -s predictes_sleepy.d -c 'ruby sleepy.rb'
+$ sudo dtrace -q -s predicates_sleepy.d -c 'ruby sleepy.rb'
 
 Entering Method: class: Object, method: odd, file: sleepy.rb, line: 5
 Returning After: 3005086754 nanoseconds
@@ -254,7 +254,50 @@ Returning After: 21304 nanoseconds
 
 Running our modified DTrace script, we see that this time around we are only triggering our probes when entering into and returning from the `even` and `odd` methods. Now that we have learned a fair few DTrace basics, we can now move on to the more advanced topic of writing a DTrace script that will allow us to measure mutex contention in Ruby programs.
 
+### Monitoring mutex contention with DTrace
 
+The goal of this section is to come up with a DTrace script that measures mutex contention in a multi-threaded Ruby program. This is far from a trivial undertaking and will require us to go and investigate the source code of the Ruby language itself. However, before we get to that, let's first take a look at the Ruby program that we will analyze with the DTrace script that we are going to write in this section.
+
+```ruby
+mutex = Mutex.new
+threads = []
+
+threads << Thread.new do
+  loop do
+    mutex.synchronize do
+      sleep 2
+    end
+  end
+end
+
+threads << Thread.new do
+  loop do
+    mutex.synchronize do
+      sleep 4
+    end
+  end
+end
+
+threads.each(&:join)
+```
+
+The above Ruby code starts by creating a mutex object, after which it kicks off two threads. Each thread runs an infinite loop that causes the thread to grab the mutex for a short while before releasing it again. Since the second thread is holding onto the mutex for longer than the first thread, it is intuitively obvious that the first thread will spend a fair amount of time waiting for the second thread to release the mutex.
+
+Our goal is to write a DTrace script that tracks when a given thread has to wait for a mutex to become available, as well as which particular thread is holding the mutex at that point in time. To the best of my knowledge, it is impossible to obtain this contention information by monkey patching the Mutex object, which makes this a great showcase for DTrace. Please get in touch if you think I am wrong on this.
+
+In order for us to write a DTrace script that does the above, we first need to figure out what happens when a thread calls `synchronize` on a Mutex object. However, mutexes and their methods are implemented as part of the Ruby language itself. This means we are going to have to go and take a look at the [Ruby MRI source code](https://github.com/ruby/ruby/tree/ruby_2_2) itself, which is written in C. Do not worry if you've never used C. We'll focus on only those parts relevant to our use case.
+
+Let's start at the beginning and look closely at what happens when you call `synchronize` on a Mutex object. We'll take this step by step:
+
+1. `synchronize` ([source](https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L1254)) calls `rb_mutex_synchronize_m`
+2. `rb_mutex_synchronize_m` ([source](https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L502)) checks if `synchronize` was called with a block and then goes on to call `rb_mutex_synchronize`
+3. `rb_mutex_synchronize` ([source](https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L488)) calls `rb_mutex_lock`
+4. `rb_mutex_lock` ([source](https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L241)) is where the currently active Ruby thread that executed the `mutex.synchronize` code will try to grab the mutex
+
+
+There's a lot going on in `rb_mutex_lock`. The one thing that we are especially interested in is the call to `rb_mutex_trylock` ([source](https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L157)) on [line 252](https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L252). This method immediately returns `true` or `false` depending on whether the Ruby thread managed to grab the mutex. By following the code from line 252 onwards, we can see that `rb_mutex_trylock` returning `true` causes `rb_mutex_lock` to immediately return. On the other hand, `rb_mutex_lock` returning `false` causes `rb_mutex_lock` to keep executing (and occasionally blocking) until the Ruby thread has managed to get a hold of the mutex.
+
+This is actually all we needed to know in order to be able to go and write our DTrace script. Our investigation showed that when a thread starts executing `rb_mutex_lock`, this means it wants to acquire a mutex. And when a thread returns from `rb_mutex_lock`, we know that it managed to successfully obtain this lock. In a previous section, we saw how DTrace allows us to set probes that fire upon entering into and returning from particular methods. We can now go ahead and use this to write our DTrace script.
 
 
 ### Conclusion
