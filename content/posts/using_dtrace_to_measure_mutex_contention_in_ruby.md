@@ -299,6 +299,15 @@ There's a lot going on in `rb_mutex_lock`. The one thing that we are especially 
 
 This is actually all we needed to know in order to be able to go and write our DTrace script. Our investigation showed that when a thread starts executing `rb_mutex_lock`, this means it wants to acquire a mutex. And when a thread returns from `rb_mutex_lock`, we know that it managed to successfully obtain this lock. In a previous section, we saw how DTrace allows us to set probes that fire upon entering into and returning from particular methods. We can now go ahead and use this to write our DTrace script.
 
+Let's go over what exactly our DTrace script should do.
+
+1. when our Ruby program calls `mutex.synchronize`, we want to make a note of which particular file and line these instructions appear on. We will see later how this allows us to pinpoint problematic code.
+2. when `rb_mutex_lock` starts executing, we want to write down the current timestamp, as this is when the thread starts trying to acquire the mutex.
+3. when `rb_mutex_lock` returns, we want to compare the current timestamp with the one we wrote down earlier, as this tells us how long the thread had to wait trying to acquire the mutex. We then want to print this duration, along with some information about the location of this particular `mutex.synchronize` call in the code base, to the terminal.
+
+Putting this all together, we end up with a DTrace script like shown below.
+
+
 
 ### Conclusion
 -point out that we can use -p to specify pid directly. This allows us to attach to running Ruby processes
