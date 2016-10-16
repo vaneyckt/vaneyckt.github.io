@@ -26,6 +26,42 @@ can I use this as an intro to explain why cond.wait should be surrounded with a 
 
 
 ### Condition variable
+can condition variables help with nested mutexes? e.g.
+
+line 46 will grab the mutex thereby blocking line 38, but line 46 may need to spend a long time waiting for line 56 to release teh mutex, thereby blocking line 38 for a very long time
+
+mutex =[Mutex.new, Mutex.new]
+threads = []
+
+threads << Thread.new do
+  loop do
+    mutex[0].synchronize do
+      sleep 0.1
+    end
+  end
+end
+
+threads << Thread.new do
+  loop do
+    mutex[0].synchronize do
+      mutex[1].synchronize do
+      sleep 0.1
+    end
+    end
+  end
+end
+
+threads << Thread.new do
+  loop do
+    mutex[1].synchronize do
+      sleep 10
+    end
+  end
+end
+
+
+threads.each(&:join)
+
 
 problems solved by condition variable:
 - Condition variable: mutex is about exlusive access to a critical section, whereas condition variable is about inter-thread communication by putting threads to sleep and waking them back up once a certain condition is met. Condition variables always need to be used in conjunction with mutexes. e.g. a thread can go to sleep, another thread can prepare some work, and then wake up the first thread by signaling it with a condition variable. If we did't do it like this, then the sleepy thread would have to keep polling for work all the time.
