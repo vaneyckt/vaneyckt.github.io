@@ -96,6 +96,648 @@
         
           <div class="post">
             <h1 class="post-title">
+              <a href="https://vaneyckt.io/posts/using_dtrace_to_measure_mutex_contention_in_ruby/">
+                Using DTrace to measure mutex contention in Ruby
+              </a>
+            </h1>
+
+            <span class="post-date">Oct 31, 2016</span>
+
+            
+
+            
+
+<p>I recently found myself working on Ruby code containing a sizable number of threads and mutexes. It wasn&rsquo;t before long that I started wishing for some tool that could tell me which particular mutexes were the most heavily contended. After all, this type of information can be worth its weight in gold when trying to diagnose why your threaded program is running slower than expected.</p>
+
+<p>This is where <a href="http://dtrace.org/guide/preface.html">DTrace</a> enters the picture. DTrace is a tracing framework that enables you to instrument application and system internals, thereby allowing you to measure and collect previously inaccessible metrics. Personally, I think of DTrace as black magic that allows me to gather a ridiculous amount of information about what is happening on my computer. We will see later just how fine-grained this information can get.</p>
+
+<p>DTrace is available on Solaris, OS X, and FreeBSD. There is some Linux support as well, but you might be better off using one of the Linux specific alternatives instead. One of DTrace&rsquo;s authors has published some <a href="http://www.brendangregg.com/dtrace.html">helpful</a> <a href="http://www.brendangregg.com/blog/2015-07-08/choosing-a-linux-tracer.html">articles</a> about this. Please note that all the work for this particular post was done on a MacBook running OS X El Capitan (version 10.11).</p>
+
+<h3 id="enabling-dtrace-for-ruby-on-os-x:60d22c012d1dfaa0ce30f9aac7bf77bb">Enabling DTrace for Ruby on OS X</h3>
+
+<p>El Capitan comes with a new security feature called <a href="https://en.wikipedia.org/wiki/System_Integrity_Protection">System Integrity Protection</a> that helps prevent malicious software from tampering with your system. Regrettably, it also prevents DTrace from working. We will need to disable SIP by following <a href="http://stackoverflow.com/a/33584192/1420382">these instructions</a>. Note that it is possible to only partially disable SIP, although doing so will still leave DTrace unable to attach to restricted processes. Personally, I&rsquo;ve completely disabled SIP on my machine.</p>
+
+<p>Next, we want to get DTrace working with Ruby. Although Ruby has DTrace support, there is a very good chance that your currently installed Ruby binary does not have this support enabled. This is especially likely to be true if you compiled your Ruby binary locally on an OS X system, as OS X does not allow the Ruby compilation process to access the system DTrace binary, thereby causing the resulting Ruby binary to lack DTrace functionality. More information about this can be found <a href="http://stackoverflow.com/a/29232051/1420382">here</a>.</p>
+
+<p>I&rsquo;ve found the easiest way to get a DTrace compatible Ruby on my system was to just go and download a precompiled Ruby binary. Naturally, we want to be a bit careful about this, as downloading random binaries from the internet is not the safest thing. Luckily, the good people over at <a href="https://rvm.io/">rvm.io</a> host DTrace compatible Ruby binaries that we can safely download.</p>
+
+<pre><code class="language-bash">$ rvm mount -r https://rvm.io/binaries/osx/10.10/x86_64/ruby-2.2.3.tar.bz2
+$ rvm use ruby-2.2.3
+</code></pre>
+
+<p>If you do not wish to install rvm, and cannot find a DTrace compatible Ruby through your favorite version manager, then you could do something similar to the snippet shown below.</p>
+
+<pre><code class="language-bash">$ wget https://rvm.io/binaries/osx/10.11/x86_64/ruby-2.2.3.tar.bz2
+$ bunzip2 ruby-2.2.3.tar.bz2
+$ tar xf ruby-2.2.3.tar
+$ mv ruby-2.2.3/bin/ruby /usr/local/bin/druby
+$ rm -r ruby-2.2.3 ruby-2.2.3.tar
+</code></pre>
+
+<p>Running the above snippet will install a DTrace compatible Ruby on our system. Note that we rename the binary to <code>druby</code> so as to prevent conflicts with existing Ruby installations. The above approach should really be treated as a last resort. I strongly urge you to make the effort to find a DTrace compatible Ruby binary through your current version manager.</p>
+
+<p>Now that we&rsquo;ve ensured we&rsquo;ll be able to use DTrace with our installed Ruby, let&rsquo;s move on and start learning some DTrace basics.</p>
+
+<h3 id="dtrace-basics:60d22c012d1dfaa0ce30f9aac7bf77bb">DTrace basics</h3>
+
+<p>DTrace is all about probes. A probe is a piece of code that fires when a specific condition is met. For example, we could ask DTrace to instrument a process with a probe that activates when the process returns from a particular system call. Such a probe would also be able to inspect the value returned by the system call made by this process.</p>
+
+<p>You interact with DTrace by writing scripts in the D scripting language (not related to the D programming language). This language is a mix of C and awk, and has a very low learning curve. Below you can see an example of such a script written in D. This particular script will list all system calls being initiated on my machine along with the name of the process that initiated them. We will save this file as <code>syscall_entry.d</code>.</p>
+
+<pre><code class="language-C">/* syscall_entry.d */
+syscall:*:*:entry
+{
+  printf(&quot;\tprocess_name: %s&quot;, execname);
+}
+</code></pre>
+
+<p>The first line of our script tells DTrace which probes we want to use. In this particular case, we are using <code>syscall:*:*:entry</code> to match every single probe associated with initiating a system call. DTrace has individual probes for every possible system call, so if DTrace were to have no built-in functionality for matching multiple probes, I would have been forced to manually specify every single system call probe myself, and our script would have been a whole lot longer.</p>
+
+<p>I want to briefly cover some DTrace terminology before continuing on. Every DTrace probe adheres to the <code>&lt;provider&gt;:&lt;module&gt;:&lt;function&gt;:&lt;name&gt;</code> description format. In the script above we asked DTrace to match all probes of the <code>syscall</code> provider that have <code>entry</code> as their name. In this particular example, we explicitly used the <code>*</code> character to show that we want to match multiple probes. However, keep in mind that the use of the <code>*</code> character is optional. Most DTrace documentation would opt for <code>syscall:::entry</code> instead.</p>
+
+<p>The rest of the script is rather straightforward. We are basically just telling DTrace to print the <code>execname</code> every time a probe fires. The <code>execname</code> is a built-in DTrace variable that holds the name of the process that caused the probe to be fired. Let us now go ahead and run our simple DTrace script.</p>
+
+<pre><code class="language-bash">$ sudo dtrace -s syscall_entry.d
+
+dtrace: script 'syscall_entry.d' matched 500 probes
+CPU     ID                    FUNCTION:NAME
+  0    249                      ioctl:entry    process_name: dtrace
+  0    373               gettimeofday:entry    process_name: java
+  0    249                      ioctl:entry    process_name: dtrace
+  0    751              psynch_cvwait:entry    process_name: java
+  0    545                     sysctl:entry    process_name: dtrace
+  0    545                     sysctl:entry    process_name: dtrace
+  0    233                  sigaction:entry    process_name: dtrace
+  0    233                  sigaction:entry    process_name: dtrace
+  0    751              psynch_cvwait:entry    process_name: dtrace
+  0    889                 kevent_qos:entry    process_name: Google Chrome Helper
+  0    889                 kevent_qos:entry    process_name: Google Chrome Helper
+  0    877           workq_kernreturn:entry    process_name: notifyd
+  ...
+</code></pre>
+
+<p>The first thing to notice is that <code>syscall:*:*:entry</code> matched 500 different probes. At first glance this might seem like a lot, but on my machine there are well over 330,000 probes available. You can list all DTrace probes on your machine by running <code>sudo dtrace -l</code>.</p>
+
+<p>The second thing to notice is the insane amount of data returned by DTrace. The snippet above really doesn&rsquo;t do the many hundreds of lines of output justice, but going forward we&rsquo;ll see how we can get DTrace to output just those things we are interested in.</p>
+
+<p>Before moving on to the next section, I just want to note that the D scripting language is not Turing complete. It lacks such features as conditional branching and loops. DTrace is built around the ideas of minimal overhead and absolute safety. Giving people the ability to use DTrace to introduce arbitrary overhead on top of system calls does not fit with these ideas.</p>
+
+<h3 id="ruby-and-dtrace:60d22c012d1dfaa0ce30f9aac7bf77bb">Ruby and DTrace</h3>
+
+<p>DTrace probes have been supported by Ruby <a href="https://tenderlovemaking.com/2011/12/05/profiling-rails-startup-with-dtrace.html">since Ruby 2.0</a> came out. A list of supported Ruby probes can be found <a href="http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html">here</a>. Now is a good time to mention that DTrace probes come in two flavors: dynamic probes and static probes. Dynamic probes only appear in the <code>pid</code> and <code>fbt</code> probe providers. This means that the vast majority of available probes (including Ruby probes) is static.</p>
+
+<p>So how exactly do dynamic and static probes differ? In order to explain this, we first need to take a closer look at just how DTrace works. When you invoke DTrace on a process you are effectively giving DTrace permission to patch additional DTrace instrumentation instructions into the process&rsquo;s address space. Remember how we had to disable the System Integrity Protection check in order to get DTrace to work on El Capitan? This is why.</p>
+
+<p>In the case of dynamic probes, DTrace instrumentation instructions only get patched into a process when DTrace is invoked on this process. In other words, dynamic probes add zero overhead when not enabled. Static probes on the other hand have to be compiled into the binary that wants to make use of them. This is done through a <a href="https://github.com/ruby/ruby/blob/trunk/probes.d">probes.d file</a>.</p>
+
+<p>However, even when probes have been compiled into the binary, this does not necessarily mean that they are getting triggered. When a process with static probes in its binary does not have DTrace invoked on it, any probe instructions get converted into NOP operations.
+This usually introduces a negligible, but nevertheless non-zero, performance impact. More information about DTrace overhead can be found <a href="http://dtrace.org/blogs/brendan/2011/02/18/dtrace-pid-provider-overhead/">here</a>, <a href="http://www.solarisinternals.com/wiki/index.php/DTrace_Topics_Overhead#Dynamic_Probes">here</a>, and <a href="http://www.solarisinternals.com/wiki/index.php/DTrace_Topics_Overhead#Static_Probes">here</a>.</p>
+
+<p>Now that we&rsquo;ve immersed ourselves in all things probe-related, let&rsquo;s go ahead and actually list which DTrace probes are available for a Ruby process. We saw earlier that Ruby comes with static probes compiled into the Ruby binary. We can ask DTrace to list these probes for us with the following command.</p>
+
+<pre><code class="language-bash">$ sudo dtrace -l -m ruby -c 'ruby -v'
+
+ID         PROVIDER       MODULE              FUNCTION      NAME
+114188    ruby86029         ruby       empty_ary_alloc      array-create
+114189    ruby86029         ruby               ary_new      array-create
+114190    ruby86029         ruby         vm_call_cfunc      cmethod-entry
+114191    ruby86029         ruby         vm_call0_body      cmethod-entry
+114192    ruby86029         ruby          vm_exec_core      cmethod-entry
+114193    ruby86029         ruby         vm_call_cfunc      cmethod-return
+114194    ruby86029         ruby         vm_call0_body      cmethod-return
+114195    ruby86029         ruby            rb_iterate      cmethod-return
+114196    ruby86029         ruby          vm_exec_core      cmethod-return
+114197    ruby86029         ruby       rb_require_safe      find-require-entry
+114198    ruby86029         ruby       rb_require_safe      find-require-return
+114199    ruby86029         ruby              gc_marks      gc-mark-begin
+...
+</code></pre>
+
+<p>Let&rsquo;s take a moment to look at the command we entered here. We saw earlier that we can use <code>-l</code> to have DTrace list its probes. Now we also use <code>-m ruby</code> to get DTrace to limit its listing to probes from the ruby module. However, DTrace will only list its Ruby probes if you specifically tell it you are interested in invoking DTrace on a Ruby process. This is what we use <code>-c 'ruby -v'</code> for. The <code>-c</code> parameter allows us to specify a command that creates a process we want to run DTrace against. Here we are using <code>ruby -v</code> to spawn a small Ruby process in order to get DTrace to list its Ruby probes.</p>
+
+<p>The above snippet doesn&rsquo;t actually list all Ruby probes, as the <code>sudo dtrace -l</code> command will omit any probes from the pid provider. This is because the pid provider actually defines a <a href="http://dtrace.org/guide/chp-pid.html">class of providers</a>, each of which gets its own set of probes depending on which process you are tracing. Each pid probe corresponds to an internal C function that can be called by that particular process. Below we show how to list the Ruby specific probes of this provider.</p>
+
+<pre><code class="language-bash">$ sudo dtrace -l -n 'pid$target:::entry' -c 'ruby -v' | grep 'ruby'
+
+ID         PROVIDER       MODULE                     FUNCTION      NAME
+1395302    pid86272         ruby                   rb_ary_eql      entry
+1395303    pid86272         ruby                  rb_ary_hash      entry
+1395304    pid86272         ruby                  rb_ary_aset      entry
+1395305    pid86272         ruby                    rb_ary_at      entry
+1395306    pid86272         ruby                 rb_ary_fetch      entry
+1395307    pid86272         ruby                 rb_ary_first      entry
+1395308    pid86272         ruby                rb_ary_push_m      entry
+1395309    pid86272         ruby                 rb_ary_pop_m      entry
+1395310    pid86272         ruby               rb_ary_shift_m      entry
+1395311    pid86272         ruby                rb_ary_insert      entry
+1395312    pid86272         ruby            rb_ary_each_index      entry
+1395313    pid86272         ruby          rb_ary_reverse_each      entry
+...
+</code></pre>
+
+<p>Here we are only listing the pid entry probes, but keep in mind that every entry probe has a corresponding pid return probe. These probes are great as they provide us with insight into which internal functions are getting called, the arguments passed to these, as well as their return values, and even the offset in the function of the return instruction (useful for when a function has multiple return instructions). Additional information about the pid provider can be found <a href="http://dtrace.org/blogs/brendan/2011/02/09/dtrace-pid-provider">here</a>.</p>
+
+<h3 id="a-first-dtrace-script-for-ruby:60d22c012d1dfaa0ce30f9aac7bf77bb">A first DTrace script for Ruby</h3>
+
+<p>Let us now have a look at a first DTrace script for Ruby that will tell us when a Ruby method starts and stops executing, along with the method&rsquo;s execution time. We will be running our DTrace script against the simple Ruby program shown below.</p>
+
+<pre><code class="language-ruby"># sleepy.rb
+def even(rnd)
+  sleep(rnd)
+end
+
+def odd(rnd)
+  sleep(rnd)
+end
+
+loop do
+  rnd = rand(4)
+  (rnd % 2 == 0) ? even(rnd) : odd(rnd)
+end
+</code></pre>
+
+<p>Our simple Ruby program is clearly not going to win any awards. It is just one endless loop, each iteration of which calls a method depending on whether a random number was even or odd. While this is obviously a very contrived example, we can nevertheless make great use of it to illustrate the power of DTrace.</p>
+
+<pre><code class="language-C">/* sleepy.d */
+ruby$target:::method-entry
+{
+  self-&gt;start = timestamp;
+  printf(&quot;Entering Method: class: %s, method: %s, file: %s, line: %d\n&quot;, copyinstr(arg0), copyinstr(arg1), copyinstr(arg2), arg3);
+}
+
+ruby$target:::method-return
+{
+  printf(&quot;Returning After: %d nanoseconds\n&quot;, (timestamp - self-&gt;start));
+}
+</code></pre>
+
+<p>The above DTrace script has us using two Ruby specific DTrace probes. The <code>method-entry</code> probe fires whenever a Ruby method is entered; the <code>method-return</code> probe fires whenever a Ruby method returns. Each probe can take multiple arguments. A probe&rsquo;s arguments are available in the DTrace script through the <code>arg0</code>, <code>arg1</code>, <code>arg2</code> and <code>arg3</code> variables.</p>
+
+<p>If we want to know what data is contained by a probe&rsquo;s arguments, all we have to do is look at <a href="http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html#label-Declared+probes">its documentation</a>. In this particular case, we can see that the <code>method-entry</code> probe gets called by the Ruby process with exactly four arguments.</p>
+
+<blockquote>
+<p>ruby:::method-entry(classname, methodname, filename, lineno);</p>
+
+<ul>
+<li>classname: name of the class (a string)</li>
+<li>methodname: name of the method about to be executed (a string)</li>
+<li>filename: the file name where the method is <em>being called</em> (a string)</li>
+<li>lineno: the line number where the method is <em>being called</em> (an int)</li>
+</ul>
+</blockquote>
+
+<p>The documentation tells us that <code>arg0</code> holds the class name, <code>arg1</code> holds the method name, and so on. Equally important is that it tells us the first three arguments are strings, while the fourth one is an integer. We&rsquo;ll need this information for when we want to print any of these arguments with <code>printf</code>.</p>
+
+<p>You probably noticed that we are wrapping string variables inside the <code>copyinstr</code> method. The reason for this is a bit complex. When a string gets passed as an argument to a DTrace probe, we don&rsquo;t actually pass the entire string. Instead, we only pass the memory address where the string begins. This memory address will be specific to the address space of the Ruby process. However, DTrace probes are executed in the kernel and thus make use of a different address space than our Ruby process. In order for a probe to read a string residing in user process data, it first needs to copy this string into the kernel&rsquo;s address space. The <code>copyinstr</code> method is a built-in DTrace function that takes care of this copying for us.</p>
+
+<p>The <code>self-&gt;start</code> notation is interesting as well. DTrace variables starting with <code>self-&gt;</code> are thread-local variables. Thread-local variables are useful when you want to tag every thread that fired a probe with some data. In our case we are using <code>self-&gt;start = timestamp;</code> to tag every thread that triggers the <code>method-entry</code> probe with a thread-local <code>start</code> variable that contains the time in nanoseconds returned by the built-in <code>timestamp</code> method.</p>
+
+<p>While it is impossible for one thread to access the thread-local variables of another thread, it is perfectly possible for a given probe to access the thread-local variables that were set on the current thread by a different probe. Looking at our DTrace script, you can see that the thread-local <code>self-&gt;start</code> variable is being shared between both the <code>method-entry</code> and <code>method-return</code> probes.</p>
+
+<p>Let&rsquo;s go ahead and run the above DTrace script on our Ruby program.</p>
+
+<pre><code class="language-bash">$ sudo dtrace -q -s sleepy.d -c 'ruby sleepy.rb'
+
+Entering Method: class: RbConfig, method: expand, file: /Users/vaneyckt/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/x86_64-darwin14/rbconfig.rb, line: 241
+Returning After: 39393 nanoseconds
+Entering Method: class: RbConfig, method: expand, file: /Users/vaneyckt/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/x86_64-darwin14/rbconfig.rb, line: 241
+Returning After: 12647 nanoseconds
+Entering Method: class: RbConfig, method: expand, file: /Users/vaneyckt/.rvm/rubies/ruby-2.2.3/lib/ruby/2.2.0/x86_64-darwin14/rbconfig.rb, line: 241
+Returning After: 11584 nanoseconds
+...
+Entering Method: class: Object, method: odd, file: sleepy.rb, line: 5
+Returning After: 1003988894 nanoseconds
+Entering Method: class: Object, method: odd, file: sleepy.rb, line: 5
+Returning After: 1003887374 nanoseconds
+Entering Method: class: Object, method: even, file: sleepy.rb, line: 1
+Returning After: 15839 nanoseconds
+</code></pre>
+
+<p>It&rsquo;s a bit hard to convey in the snippet above, but our DTrace script is generating well over a thousand lines of output. These lines can be divided into two sections: a first section listing all the Ruby methods being called as part of the program getting ready to run, and a much smaller second section listing whether our program is calling the <code>even</code> or <code>odd</code> functions, along with the time spent in each of these function calls.</p>
+
+<p>While the above output gives us a great amount of detail about what our Ruby program is doing, we really only want to gather information about the <code>even</code> and <code>odd</code> methods being called. DTrace uses predicates to make just this type of filtering possible. Predicates are <code>/</code> wrapped conditions that define whether a particular probe should be executed. The code below shows the usage of predicates to only have the <code>method-entry</code> and <code>method-return</code> probes triggered by the <code>even</code> and <code>odd</code> methods being called.</p>
+
+<pre><code class="language-C">/* predicates_sleepy.d */
+ruby$target:::method-entry
+/copyinstr(arg1) == &quot;even&quot; || copyinstr(arg1) == &quot;odd&quot;/
+{
+  self-&gt;start = timestamp;
+  printf(&quot;Entering Method: class: %s, method: %s, file: %s, line: %d\n&quot;, copyinstr(arg0), copyinstr(arg1), copyinstr(arg2), arg3);
+}
+
+ruby$target:::method-return
+/copyinstr(arg1) == &quot;even&quot; || copyinstr(arg1) == &quot;odd&quot;/
+{
+  printf(&quot;Returning After: %d nanoseconds\n&quot;, (timestamp - self-&gt;start));
+}
+</code></pre>
+
+<pre><code class="language-bash">$ sudo dtrace -q -s predicates_sleepy.d -c 'ruby sleepy.rb'
+
+Entering Method: class: Object, method: odd, file: sleepy.rb, line: 5
+Returning After: 3005086754 nanoseconds
+Entering Method: class: Object, method: even, file: sleepy.rb, line: 1
+Returning After: 2004313007 nanoseconds
+Entering Method: class: Object, method: even, file: sleepy.rb, line: 1
+Returning After: 2005076442 nanoseconds
+Entering Method: class: Object, method: even, file: sleepy.rb, line: 1
+Returning After: 21304 nanoseconds
+...
+</code></pre>
+
+<p>Running our modified DTrace script, we see that this time around we are only triggering our probes when entering into and returning from the <code>even</code> and <code>odd</code> methods. Now that we have learned a fair few DTrace basics, we can move on to the more advanced topic of writing a DTrace script that will allow us to measure mutex contention in Ruby programs.</p>
+
+<h3 id="monitoring-mutex-contention-with-dtrace:60d22c012d1dfaa0ce30f9aac7bf77bb">Monitoring mutex contention with DTrace</h3>
+
+<p>The goal of this section is to come up with a DTrace script that measures mutex contention in a multi-threaded Ruby program. This is far from a trivial undertaking and will require us to go and investigate the source code of the Ruby language itself. However, before we get to that, let&rsquo;s first take a look at the Ruby program that we will analyze with the DTrace script that we are going to write in this section.</p>
+
+<pre><code class="language-ruby"># mutex.rb
+mutex = Mutex.new
+threads = []
+
+threads &lt;&lt; Thread.new do
+  loop do
+    mutex.synchronize do
+      sleep 2
+    end
+  end
+end
+
+threads &lt;&lt; Thread.new do
+  loop do
+    mutex.synchronize do
+      sleep 4
+    end
+  end
+end
+
+threads.each(&amp;:join)
+</code></pre>
+
+<p>The above Ruby code starts by creating a mutex object, after which it kicks off two threads. Each thread runs an infinite loop that causes the thread to grab the mutex for a short while before releasing it again. Since the second thread is holding onto the mutex for longer than the first thread, it is intuitively obvious that the first thread will spend a fair amount of time waiting for the second thread to release the mutex.</p>
+
+<p>Our goal is to write a DTrace script that tracks when a given thread has to wait for a mutex to become available, as well as which particular thread is holding the mutex at that point in time. To the best of my knowledge, it is impossible to obtain this contention information by monkey patching the Mutex object, which makes this a great showcase for DTrace. Please get in touch if you think I am wrong on this.</p>
+
+<p>In order for us to write a DTrace script that does the above, we first need to figure out what happens when a thread calls <code>synchronize</code> on a Mutex object. However, mutexes and their methods are implemented as part of the Ruby language itself. This means we are going to have to go and take a look at the <a href="https://github.com/ruby/ruby/tree/ruby_2_2">Ruby MRI source code</a>, which is written in C. Do not worry if you&rsquo;ve never used C. We&rsquo;ll focus on only those parts relevant to our use case.</p>
+
+<p>Let&rsquo;s start at the beginning and look closely at what happens when you call <code>synchronize</code> on a Mutex object. We&rsquo;ll take this step by step:</p>
+
+<ol>
+<li><code>synchronize</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L1254">source</a>) calls <code>rb_mutex_synchronize_m</code></li>
+<li><code>rb_mutex_synchronize_m</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L502">source</a>) checks if <code>synchronize</code> was called with a block and then goes on to call <code>rb_mutex_synchronize</code></li>
+<li><code>rb_mutex_synchronize</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L488">source</a>) calls <code>rb_mutex_lock</code></li>
+<li><code>rb_mutex_lock</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L241">source</a>) is where the currently active Ruby thread that executed the <code>mutex.synchronize</code> code will try to grab the mutex</li>
+</ol>
+
+<p>There&rsquo;s a lot going on in <code>rb_mutex_lock</code>. The one thing that we are especially interested in is the call to <code>rb_mutex_trylock</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L157">source</a>) on <a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L252">line 252</a>. This method immediately returns <code>true</code> or <code>false</code> depending on whether the Ruby thread managed to grab the mutex. By following the code from line 252 onwards, we can see that <code>rb_mutex_trylock</code> returning <code>true</code> causes <code>rb_mutex_lock</code> to immediately return. On the other hand, <code>rb_mutex_lock</code> returning <code>false</code> causes <code>rb_mutex_lock</code> to keep executing (and occasionally blocking) until the Ruby thread has managed to get a hold of the mutex.</p>
+
+<p>This is actually all we needed to know in order to be able to go and write our DTrace script. Our investigation showed that when a thread starts executing <code>rb_mutex_lock</code>, this means it wants to acquire a mutex. And when a thread returns from <code>rb_mutex_lock</code>, we know that it managed to successfully obtain this lock. In a previous section, we saw how DTrace allows us to set probes that fire upon entering into or returning from a particular method. We will now use this to write our DTrace script.</p>
+
+<p>Let&rsquo;s go over what exactly our DTrace script should do:</p>
+
+<ol>
+<li>when our Ruby program calls <code>mutex.synchronize</code>, we want to make a note of which particular file and line these instructions appear on. We will see later how this allows us to pinpoint problematic code.</li>
+<li>when <code>rb_mutex_lock</code> starts executing, we want to write down the current timestamp, as this is when the thread starts trying to acquire the mutex</li>
+<li>when <code>rb_mutex_lock</code> returns, we want to compare the current timestamp with the one we wrote down earlier, as this tells us how long the thread had to wait trying to acquire the mutex. We then want to print this duration, along with some information about the location of this particular <code>mutex.synchronize</code> call, to the terminal.</li>
+</ol>
+
+<p>Putting it all together, we end up with a DTrace script like shown below.</p>
+
+<pre><code class="language-C">/* mutex.d */
+ruby$target:::cmethod-entry
+/copyinstr(arg0) == &quot;Mutex&quot; &amp;&amp; copyinstr(arg1) == &quot;synchronize&quot;/
+{
+  self-&gt;file = copyinstr(arg2);
+  self-&gt;line = arg3;
+}
+
+pid$target:ruby:rb_mutex_lock:entry
+/self-&gt;file != NULL &amp;&amp; self-&gt;line != NULL/
+{
+  self-&gt;mutex_wait_start = timestamp;
+}
+
+pid$target:ruby:rb_mutex_lock:return
+/self-&gt;file != NULL &amp;&amp; self-&gt;line != NULL/
+{
+  mutex_wait_ms = (timestamp - self-&gt;mutex_wait_start) / 1000;
+  printf(&quot;Thread %d acquires mutex %d after %d ms - %s:%d\n&quot;, tid, arg1, mutex_wait_ms, self-&gt;file, self-&gt;line);
+  self-&gt;file = NULL;
+  self-&gt;line = NULL;
+}
+</code></pre>
+
+<p>The snippet above contains three different probes, the first of which is a Ruby probe that fires whenever a C method is entered. Since the Mutex class and its methods have been implemented in C as <a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L1246-L1255">part of the Ruby MRI</a>, it makes sense for us to use a <code>cmethod-entry</code> probe. Note how we use a predicate to ensure this probe only gets triggered when its first two arguments are &ldquo;Mutex&rdquo; and &ldquo;synchronize&rdquo;. We covered earlier how these arguments <a href="https://ruby-doc.org/core-2.1.0/doc/dtrace_probes_rdoc.html">correspond to the class and method name</a> of the Ruby code that triggered the probe. So this predicate guarantees that this particular probe will only fire when our Ruby code calls the <code>synchronize</code> method on a Mutex object.</p>
+
+<p>The rest of this probe is rather straightforward. The only thing we are doing is storing the file and line number of the Ruby code that triggered the probe into thread-local variables. We are using thread-local variables for two reasons. Firstly, thread-local variables make it trivial to share data with other probes. Secondly, Ruby programs that make use of mutexes will generally be running multiple threads. Using thread-local variables ensures that each Ruby thread will get its own set of probe-specific variables.</p>
+
+<p>Our second probe comes from the pid provider. This provider supplies us with probes for every internal method of a process. In this case we want to use it to get notified whenever <code>rb_mutex_lock</code> starts executing. We saw earlier that a thread will invoke this method when starting to acquire a mutex. The probe itself is pretty simple in that it just stores the current time in a thread-local variable, so as to keep track of when a thread started trying to obtain a mutex. We also use a simple predicate that ensures this probe can only be triggered after the previous probe has fired.</p>
+
+<p>The final probe fires whenever <code>rb_mutex_lock</code> finishes executing. It has a similar predicate as the second probe so as to ensure it can only be triggered after the first probe has fired. We saw earlier how <code>rb_mutex_lock</code> returns whenever a thread has successfully obtained a lock. We can easily calculate the time spent waiting on this lock by comparing the current time with the previously stored <code>self-&gt;mutex_wait_start</code> variable. We then print the time spent waiting, along with the IDs of the current thread and mutex, as well as the location of where the call to <code>mutex.synchronize</code> took place. We finish this probe by assigning <code>NULL</code> to the <code>self-&gt;file</code> and <code>self-&gt;line</code> variables, so as to ensure that the second and third probe can only be triggered after the first one has fired again.</p>
+
+<p>In case you are wondering about how exactly the thread and mutex IDs are obtained, <code>tid</code> is a built-in DTrace variable that identifies the current thread. A <code>pid:::return</code> probe stores the return value of the method that triggered it inside its <code>arg1</code> variable. The <code>rb_mutex_lock</code> method just happens to <a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L306">return an identifier for the mutex that was passed to it</a>, so the <code>arg1</code> variable of this probe does in fact contain the mutex ID.</p>
+
+<p>The final result looks a lot like this.</p>
+
+<pre><code class="language-bash">$ sudo dtrace -q -s mutex.d -c 'ruby mutex.rb'
+
+Thread 286592 acquires mutex 4313316240 after 2 ms - mutex.rb:14
+Thread 286591 acquires mutex 4313316240 after 4004183 ms - mutex.rb:6
+Thread 286592 acquires mutex 4313316240 after 2004170 ms - mutex.rb:14
+Thread 286592 acquires mutex 4313316240 after 6 ms - mutex.rb:14
+Thread 286592 acquires mutex 4313316240 after 4 ms - mutex.rb:14
+Thread 286592 acquires mutex 4313316240 after 4 ms - mutex.rb:14
+Thread 286591 acquires mutex 4313316240 after 16012158 ms - mutex.rb:6
+Thread 286592 acquires mutex 4313316240 after 2002593 ms - mutex.rb:14
+Thread 286591 acquires mutex 4313316240 after 4001983 ms - mutex.rb:6
+Thread 286592 acquires mutex 4313316240 after 2004418 ms - mutex.rb:14
+Thread 286591 acquires mutex 4313316240 after 4000407 ms - mutex.rb:6
+Thread 286592 acquires mutex 4313316240 after 2004163 ms - mutex.rb:14
+Thread 286591 acquires mutex 4313316240 after 4003191 ms - mutex.rb:6
+Thread 286591 acquires mutex 4313316240 after 2 ms - mutex.rb:6
+Thread 286592 acquires mutex 4313316240 after 4005587 ms - mutex.rb:14
+...
+</code></pre>
+
+<p>We can get some interesting info about our program just by looking at the above output:</p>
+
+<ol>
+<li>there are two threads: 286591 and 286592</li>
+<li>both threads try to acquire mutex 4313316240</li>
+<li>the mutex acquisition code of the fist thread lives at line 6 of the mutex.rb file</li>
+<li>the acquisition code of the second thread is located at line 14 of the same file</li>
+<li>there is a lot of mutex contention, with threads having to wait several seconds for the mutex to become available</li>
+</ol>
+
+<p>Of course we already knew all of the above was going to happen, as we were familiar with the source code of our Ruby program. The real power of DTrace lies in how we can now go and run our mutex.d script against any Ruby program, no matter how complex, and obtain this level of information without having to read any source code at all. We can even go one step further and run our mutex contention script against an already running Ruby process with <code>sudo dtrace -q -s mutex.d -p &lt;pid&gt;</code>. This can even be run against active production code with minimal overhead.</p>
+
+<p>Before moving on to the next section, I&rsquo;d just like to point out that the above DTrace output actually tells us some cool stuff about how the Ruby MRI schedules threads. If you look at lines 3-6 of the output, you&rsquo;ll notice that the second thread gets scheduled four times in a row. This tells us that when multiple threads are competing for a mutex, the Ruby MRI does not care if a particular thread recently held the mutex.</p>
+
+<h3 id="advanced-mutex-contention-monitoring:60d22c012d1dfaa0ce30f9aac7bf77bb">Advanced mutex contention monitoring</h3>
+
+<p>We can take the above DTrace script one step further by adding an additional probe that triggers whenever a thread releases a mutex. We will also be slightly altering the output of our script so as to print timestamps rather than durations. While this will make the script&rsquo;s output less suitable for direct human consumption, this timestamp information will make it easier to construct a chronological sequence of the goings-on of our mutexes.</p>
+
+<p>Note that the above doesn&rsquo;t mean that we no longer care about producing output suitable for humans. We&rsquo;ll see how we can easily write a Ruby script to aggregate this new output into something a bit more comprehensive. As an aside, DTrace actually has built-in logic for aggregating data, but I personally prefer to focus my DTrace usage on obtaining data that would otherwise be hard to get, while having my aggregation logic live somewhere else.</p>
+
+<p>Let&rsquo;s start by having a look at how to add a probe that can detect a mutex being released. Luckily, this turns out to be relatively straightforward. It turns out there is a C method called <code>rb_mutex_unlock</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L371">source</a>) that releases mutexes. Similarly to <code>rb_mutex_lock</code>, this method returns an identifier to the mutex it acted on. So all we need to do is add a probe that fires whenever <code>rb_mutex_unlock</code> returns. Our final script looks like this.</p>
+
+<pre><code class="language-C">/* mutex.d */
+ruby$target:::cmethod-entry
+/copyinstr(arg0) == &quot;Mutex&quot; &amp;&amp; copyinstr(arg1) == &quot;synchronize&quot;/
+{
+  self-&gt;file = copyinstr(arg2);
+  self-&gt;line = arg3;
+}
+
+pid$target:ruby:rb_mutex_lock:entry
+/self-&gt;file != NULL &amp;&amp; self-&gt;line != NULL/
+{
+  printf(&quot;Thread %d wants to acquire mutex %d at %d - %s:%d\n&quot;, tid, arg1, timestamp, self-&gt;file, self-&gt;line);
+}
+
+pid$target:ruby:rb_mutex_lock:return
+/self-&gt;file != NULL &amp;&amp; self-&gt;line != NULL/
+{
+  printf(&quot;Thread %d has acquired mutex %d at %d - %s:%d\n&quot;, tid, arg1, timestamp, self-&gt;file, self-&gt;line);
+  self-&gt;file = NULL;
+  self-&gt;line = NULL;
+}
+
+pid$target:ruby:rb_mutex_unlock:return
+{
+  printf(&quot;Thread %d has released mutex %d at %d\n&quot;, tid, arg1, timestamp);
+}
+</code></pre>
+
+<pre><code class="language-bash">$ sudo dtrace -q -s mutex.d -c 'ruby mutex.rb'
+
+Thread 500152 wants to acquire mutex 4330240800 at 53341356615492 - mutex.rb:6
+Thread 500152 has acquired mutex 4330240800 at 53341356625449 - mutex.rb:6
+Thread 500153 wants to acquire mutex 4330240800 at 53341356937292 - mutex.rb:14
+Thread 500152 has released mutex 4330240800 at 53343360214311
+Thread 500152 wants to acquire mutex 4330240800 at 53343360266121 - mutex.rb:6
+Thread 500153 has acquired mutex 4330240800 at 53343360301928 - mutex.rb:14
+Thread 500153 has released mutex 4330240800 at 53347365475537
+Thread 500153 wants to acquire mutex 4330240800 at 53347365545277 - mutex.rb:14
+Thread 500152 has acquired mutex 4330240800 at 53347365661847 - mutex.rb:6
+Thread 500152 has released mutex 4330240800 at 53349370397555
+Thread 500152 wants to acquire mutex 4330240800 at 53349370426972 - mutex.rb:6
+Thread 500153 has acquired mutex 4330240800 at 53349370453489 - mutex.rb:14
+Thread 500153 has released mutex 4330240800 at 53353374785751
+Thread 500153 wants to acquire mutex 4330240800 at 53353374834184 - mutex.rb:14
+Thread 500152 has acquired mutex 4330240800 at 53353374868435 - mutex.rb:6
+...
+</code></pre>
+
+<p>The above output is pretty hard to parse for a human reader. The snippet below shows a Ruby program that aggregates this data into a more readable format. I&rsquo;m not going to go into the details of this Ruby program as it is essentially just a fair bit of string filtering with some bookkeeping to help keep track of how each thread interacts with the mutexes and the contention this causes.</p>
+
+<pre><code class="language-ruby"># aggregate.rb
+mutex_owners     = Hash.new
+mutex_queuers    = Hash.new { |h,k| h[k] = Array.new }
+mutex_contention = Hash.new { |h,k| h[k] = Hash.new(0) }
+
+time_of_last_update = Time.now
+update_interval_sec = 1
+
+ARGF.each do |line|
+  # when a thread wants to acquire a mutex
+  if matches = line.match(/^Thread (\d+) wants to acquire mutex (\d+) at (\d+) - (.+)$/)
+    captures  = matches.captures
+    thread_id = captures[0]
+    mutex_id  = captures[1]
+    timestamp = captures[2].to_i
+    location  = captures[3]
+
+    mutex_queuers[mutex_id] &lt;&lt; {
+      thread_id: thread_id,
+      location:  location,
+      timestamp: timestamp
+    }
+  end
+
+  # when a thread has acquired a mutex
+  if matches = line.match(/^Thread (\d+) has acquired mutex (\d+) at (\d+) - (.+)$/)
+    captures  = matches.captures
+    thread_id = captures[0]
+    mutex_id  = captures[1]
+    timestamp = captures[2].to_i
+    location  = captures[3]
+
+    # set new owner
+    mutex_owners[mutex_id] = {
+      thread_id: thread_id,
+      location: location
+    }
+
+    # remove new owner from list of queuers
+    mutex_queuers[mutex_id].delete_if do |queuer|
+      queuer[:thread_id] == thread_id &amp;&amp;
+      queuer[:location] == location
+    end
+  end
+
+  # when a thread has released a mutex
+  if matches = line.match(/^Thread (\d+) has released mutex (\d+) at (\d+)$/)
+    captures  = matches.captures
+    thread_id = captures[0]
+    mutex_id  = captures[1]
+    timestamp = captures[2].to_i
+
+    owner_location = mutex_owners[mutex_id][:location]
+
+    # calculate how long the owner caused each queuer to wait
+    # and change queuer timestamp to the current timestamp in preparation
+    # for the next round of queueing
+    mutex_queuers[mutex_id].each do |queuer|
+      mutex_contention[owner_location][queuer[:location]] += (timestamp - queuer[:timestamp])
+      queuer[:timestamp] = timestamp
+    end
+  end
+
+  # print mutex contention information
+  if Time.now - time_of_last_update &gt; update_interval_sec
+    system('clear')
+    time_of_last_update = Time.now
+
+    puts 'Mutex Contention'
+    puts &quot;================\n\n&quot;
+
+    mutex_contention.each do |owner_location, contention|
+      puts owner_location
+      owner_location.length.times { print '-' }
+      puts &quot;\n&quot;
+
+      total_duration_sec = 0.0
+      contention.sort.each do |queuer_location, queueing_duration|
+        duration_sec = queueing_duration / 1000000000.0
+        total_duration_sec += duration_sec
+        puts &quot;#{queuer_location}\t#{duration_sec}s&quot;
+      end
+      puts &quot;total\t\t#{total_duration_sec}s\n\n&quot;
+    end
+  end
+end
+</code></pre>
+
+<pre><code class="language-bash">$ sudo dtrace -q -s mutex.d -c 'ruby mutex.rb' | ruby aggregate.rb
+
+
+Mutex Contention
+================
+
+mutex.rb:6
+----------
+mutex.rb:14	  10.016301065s
+total		  10.016301065s
+
+mutex.rb:14
+-----------
+mutex.rb:6	  16.019252339s
+total		  16.019252339s
+</code></pre>
+
+<p>The final result looks like shown above. Note that our program will clear the terminal every second before printing summarized contention information. Here we see that after running the program for a bit, <code>mutex.rb:6</code> caused <code>mutex.rb:14</code> to spend about 10 seconds waiting for the mutex to become available. The <code>total</code> field indicates the total amount of waiting across all other threads caused by <code>mutex.rb:6</code>. This number becomes more useful when there are more than two threads competing for a single mutex.</p>
+
+<p>I want to stress that while the example shown here was kept simple on purpose, our code is in fact more than capable of handling more complex scenarios. For example, let&rsquo;s have a look at some Ruby code that uses multiple mutexes, some of which are nested.</p>
+
+<pre><code class="language-ruby"># mutex.rb
+mutexes =[Mutex.new, Mutex.new]
+threads = []
+
+threads &lt;&lt; Thread.new do
+  loop do
+    mutexes[0].synchronize do
+      sleep 2
+    end
+  end
+end
+
+threads &lt;&lt; Thread.new do
+  loop do
+    mutexes[1].synchronize do
+      sleep 2
+    end
+  end
+end
+
+threads &lt;&lt; Thread.new do
+  loop do
+    mutexes[1].synchronize do
+      sleep 1
+    end
+  end
+end
+
+threads &lt;&lt; Thread.new do
+  loop do
+    mutexes[0].synchronize do
+      sleep 1
+      mutexes[1].synchronize do
+        sleep 1
+      end
+    end
+  end
+end
+
+threads.each(&amp;:join)
+</code></pre>
+
+<pre><code class="language-bash">$ sudo dtrace -q -s mutex.d -c 'ruby mutex.rb' | ruby aggregate.rb
+
+
+Mutex Contention
+================
+
+mutex.rb:6
+----------
+mutex.rb:30	  36.0513079s
+total		  36.0513079s
+
+mutex.rb:14
+-----------
+mutex.rb:22	  78.123187353s
+mutex.rb:32	  36.062005125s
+total		  114.185192478s
+
+mutex.rb:22
+-----------
+mutex.rb:14	  38.127435904s
+mutex.rb:32	  19.060814411s
+total		  57.188250315000005s
+
+mutex.rb:32
+-----------
+mutex.rb:14	  24.073966949s
+mutex.rb:22	  24.073383955s
+total		  48.147350904s
+
+mutex.rb:30
+-----------
+mutex.rb:6	  103.274153073s
+total		  103.274153073s
+</code></pre>
+
+<p>The above output tells us very clearly that we should concentrate our efforts on lines 14 and 30 when we want to try to make our program faster. The really cool thing about all this is that this approach will work regardless of the complexity of your program and requires absolutely no familiarity with the source code at all. You can literally run this against code you&rsquo;ve never seen and walk away with a decent idea of where the mutex bottlenecks are located. And on top of that, since we are using DTrace, we don&rsquo;t even have to add any instrumentation code to the program we want to investigate. Instead, we can just run this against an already active process without even having to interrupt it.</p>
+
+<h3 id="conclusion:60d22c012d1dfaa0ce30f9aac7bf77bb">Conclusion</h3>
+
+<p>I hope to have convinced you that DTrace is a pretty amazing tool that can open up whole new ways of trying to approach a problem. There is so so much I haven&rsquo;t even touched on yet. The topic is just too big to cover in a single post. If you&rsquo;re interested in learning DTrace, here are some resources I can recommend:</p>
+
+<ul>
+<li>the <a href="https://github.com/opendtrace/toolkit">DTrace Toolkit</a> is a curated collection of DTrace scripts for various systems</li>
+<li>I often find myself peeking at the <a href="http://www.tablespace.net/quicksheet/dtrace-quickstart.html">DTrace QuickStart</a> and the <a href="http://www.brendangregg.com/DTrace/DTrace-cheatsheet.pdf">DTrace Cheatsheet</a> when I can&rsquo;t quite remember how something works</li>
+<li>the first chapters of <a href="https://www.amazon.com/DTrace-Dynamic-Tracing-Solaris-FreeBSD/dp/0132091518">DTrace: Dynamic Tracing in Oracle Solaris, Mac OS X and FreeBSD</a> act as a DTrace tutorial. The rest of the book is all about how to use DTrace to solve real-life scenarios with tons and tons of examples.</li>
+</ul>
+
+<p>Just one more thing before I finish this. If you&rsquo;re on OS X and encounter DTrace complaining about not being able to control executables signed with restricted entitlements, be aware that you can easily work around this by using the <code>-p</code> parameter to directly specify the pid of the process you want DTrace to run against. Please contact me if you manage to find the proper fix for this.</p>
+
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
               <a href="https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_the_mutex/">
                 Ruby concurrency: in praise of the mutex
               </a>
