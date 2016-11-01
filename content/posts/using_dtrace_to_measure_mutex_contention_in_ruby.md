@@ -10,7 +10,7 @@ I recently found myself working on Ruby code containing a sizable number of thre
 
 This is where [DTrace](http://dtrace.org/guide/preface.html) enters the picture. DTrace is a tracing framework that enables you to instrument application and system internals, thereby allowing you to measure and collect previously inaccessible metrics. Personally, I think of DTrace as black magic that allows me to gather a ridiculous amount of information about what is happening on my computer. We will see later just how fine-grained this information can get.
 
-DTrace is available on Solaris, OS X, and FreeBSD. There is some Linux support as well, but you might be better off using one of the Linux specific alternatives instead. One of DTrace's authors has published some [helpful](http://www.brendangregg.com/dtrace.html) [articles](http://www.brendangregg.com/blog/2015-07-08/choosing-a-linux-tracer.html) about this. Please note that all the work for this particular post was done on a MacBook running OS X El Capitan (version 10.11).
+DTrace is available on Solaris, OS X, and FreeBSD. There is some Linux support as well, but you might be better off using one of the Linux specific alternatives instead. Info about these can be found [here](http://www.brendangregg.com/dtrace.html) and [here](http://www.brendangregg.com/blog/2015-07-08/choosing-a-linux-tracer.html). At the time of writing this, it was also recently announced that [DTrace is making its way to Linux](http://www.brendangregg.com/blog/2016-10-27/dtrace-for-linux-2016.html). Please note that all work for this particular post was done on a MacBook running OS X El Capitan (version 10.11).
 
 ### Enabling DTrace for Ruby on OS X
 
@@ -87,7 +87,7 @@ Before moving on to the next section, I just want to note that the D scripting l
 
 ### Ruby and DTrace
 
-DTrace probes have been supported by Ruby [since Ruby 2.0](https://tenderlovemaking.com/2011/12/05/profiling-rails-startup-with-dtrace.html) came out. A list of supported Ruby probes can be found [here](http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html). Now is a good time to mention that DTrace probes come in two flavors: dynamic probes and static probes. Dynamic probes only appear in the `pid` and `fbt` probe providers. This means that the vast majority of available probes (including Ruby probes) is static.
+DTrace probes have been supported by Ruby [since Ruby 2.0 came out](https://tenderlovemaking.com/2011/12/05/profiling-rails-startup-with-dtrace.html). A list of supported Ruby probes can be found [here](http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html). Now is a good time to mention that DTrace probes come in two flavors: dynamic probes and static probes. Dynamic probes only appear in the `pid` and `fbt` probe providers. This means that the vast majority of available probes (including Ruby probes) is static.
 
 So how exactly do dynamic and static probes differ? In order to explain this, we first need to take a closer look at just how DTrace works. When you invoke DTrace on a process you are effectively giving DTrace permission to patch additional DTrace instrumentation instructions into the process's address space. Remember how we had to disable the System Integrity Protection check in order to get DTrace to work on El Capitan? This is why.
 
@@ -636,5 +636,6 @@ I hope to have convinced you that DTrace is a pretty amazing tool that can open 
 - the [DTrace Toolkit](https://github.com/opendtrace/toolkit) is a curated collection of DTrace scripts for various systems
 - I often find myself peeking at the [DTrace QuickStart](http://www.tablespace.net/quicksheet/dtrace-quickstart.html) and the [DTrace Cheatsheet](http://www.brendangregg.com/DTrace/DTrace-cheatsheet.pdf) when I can't quite remember how something works
 - the first chapters of [DTrace: Dynamic Tracing in Oracle Solaris, Mac OS X and FreeBSD](https://www.amazon.com/DTrace-Dynamic-Tracing-Solaris-FreeBSD/dp/0132091518) act as a DTrace tutorial. The rest of the book is all about how to use DTrace to solve real-life scenarios with tons and tons of examples.
+- I really wish I had come across [Awesome DTrace](https://awesome-dtrace.com/) earlier. It's a curated list about various DTrace topics, some of which I had not been able to find any information about before.
 
 Just one more thing before I finish this. If you're on OS X and encounter DTrace complaining about not being able to control executables signed with restricted entitlements, be aware that you can easily work around this by using the `-p` parameter to directly specify the pid of the process you want DTrace to run against. Please contact me if you manage to find the proper fix for this.
