@@ -8,7 +8,9 @@
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Sat, 12 Oct 2013 15:03:23 +0000</lastBuildDate>
-    <atom:link href="https://vaneyckt.io/topics/css/index.xml" rel="self" type="application/rss+xml" />
+    
+	<atom:link href="https://vaneyckt.io/topics/css/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>The css !important keyword</title>
@@ -16,15 +18,8 @@
       <pubDate>Sat, 12 Oct 2013 15:03:23 +0000</pubDate>
       
       <guid>https://vaneyckt.io/posts/the_css_important_keyword/</guid>
-      <description>&lt;p&gt;Today I learned about the css !important keyword. I was trying to change the way code snippets (gists) were being displayed on a site, but found my css rules being ignored.&lt;/p&gt;
-
-&lt;p&gt;As it turned out, the javascript snippets used for embedding gists were adding an additional css stylesheet to the page. Since this stylesheet was getting added after my own stylesheet, its rules had priority over my own. The solution was to add &lt;code&gt;!important&lt;/code&gt; to my own rules.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-css&#34;&gt;.gist-data {
-  border-bottom: 1px !important;
-}
-&lt;/code&gt;&lt;/pre&gt;
-</description>
+      <description>Today I learned about the css !important keyword. I was trying to change the way code snippets (gists) were being displayed on a site, but found my css rules being ignored.
+As it turned out, the javascript snippets used for embedding gists were adding an additional css stylesheet to the page. Since this stylesheet was getting added after my own stylesheet, its rules had priority over my own. The solution was to add !</description>
     </item>
     
   </channel>

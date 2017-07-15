@@ -98,7 +98,7 @@
 
 <p>Note that any code shown in this post is only guaranteed to work with rspec 3.3. In the past I&rsquo;ve written similar code for other rspec versions as well though. So don&rsquo;t worry, it shouldn&rsquo;t be too hard to get all of this to work on whatever rspec version you find yourself using.</p>
 
-<h3 id="rspec-formatters:827d6d4c89344577730dfb054dfd5b79">Rspec formatters</h3>
+<h3 id="rspec-formatters">Rspec formatters</h3>
 
 <p>Rspec generates its command line output by relying on formatters that receive messages on events like <code>example_passed</code> and <code>example_failed</code>. We can use these hooks to help us keep track of failed tests by having them write the descriptions of failed tests to a text file named <code>tests_failed</code>. Our <code>FailureFormatter</code> class does just that.</p>
 
@@ -165,7 +165,7 @@ my fake tests this scenario should fail
 
 <p>Take a moment to reflect on what we have just done. By writing just a few lines of code we have effectively created a logging mechanism that will help us keep track of failed tests. In the next section we will look at how we can make use of this mechanism to automatically rerun failed tests.</p>
 
-<h3 id="first-pass-at-creating-the-retry-task:827d6d4c89344577730dfb054dfd5b79">First pass at creating the retry task</h3>
+<h3 id="first-pass-at-creating-the-retry-task">First pass at creating the retry task</h3>
 
 <p>In this section we will create a rake task that runs our rspec test suite and automatically retries any failed tests. The finished rake task is shown below. For now, have a look at this code and then we&rsquo;ll go over its details in the next few paragraphs.</p>
 
@@ -298,7 +298,7 @@ rspec ./spec/my_fake_tests_spec.rb:7 # my fake tests this scenario should fail
 
 <p>The goal of this section was to introduce the general idea behind our retry mechanism. There are however several shortcomings in the code that we&rsquo;ve shown here. The next section will focus on identifying and fixing these.</p>
 
-<h3 id="perfecting-the-retry-task:827d6d4c89344577730dfb054dfd5b79">Perfecting the retry task</h3>
+<h3 id="perfecting-the-retry-task">Perfecting the retry task</h3>
 
 <p>The code in the previous section isn&rsquo;t all that bad, but there are a few things related to the <code>bundle exec rspec</code> subprocess that we can improve upon. In particular, using backticks to initiate subprocesses has several downsides:</p>
 
@@ -365,7 +365,7 @@ end
 
 <p>This gem also makes it super easy to inherit the stdout and stderr streams from the parent process (our rake task). This means that anything that gets written to the stdout and stderr streams of the subprocess will now be written directly to the stdout and stderr streams of our rake task. Or in other words, our rspec subprocess is now able to output directly to the rake task&rsquo;s terminal session. Having made these improvements, our <code>rspec_with_retries</code> task is now ready for use in production.</p>
 
-<h3 id="conclusion:827d6d4c89344577730dfb054dfd5b79">Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
 <p>I hope this post helped some people out there who find themselves struggling to deal with flaky tests. Please note that a retry mechanism such as this is really only possible because of rspec&rsquo;s powerful formatters. Get in touch if you have any examples of other cool things built on top of this somewhat underappreciated feature!</p>
 

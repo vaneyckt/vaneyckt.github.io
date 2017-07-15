@@ -96,7 +96,7 @@
 
 <p>So what exactly is a Virtual Private Cloud? Amazon defines a VPC as &lsquo;a logically isolated section of the AWS Cloud&rsquo;. Instances inside a VPC can by default only communicate with other instances in the same VPC and are therefore invisible to the rest of the internet. This means they will not accept SSH connections coming from your computer, nor will they respond to any http requests. In this article we&rsquo;ll look into changing these default settings into something more befitting a general purpose server.</p>
 
-<h3 id="setting-up-your-vpc:ed16f33dbf5018a09918ad8ef3c5f741">Setting up your VPC</h3>
+<h3 id="setting-up-your-vpc">Setting up your VPC</h3>
 
 <p>Start by installing the <a href="http://aws.amazon.com/cli">AWS Command Line Interface</a> on your machine if you haven&rsquo;t done so already. With this done, we can now create our VPC.</p>
 
@@ -116,7 +116,7 @@
 $ aws ec2 modify-vpc-attribute --vpc-id $vpcId --enable-dns-hostnames &quot;{\&quot;Value\&quot;:true}&quot;
 </code></pre>
 
-<h3 id="adding-an-internet-gateway:ed16f33dbf5018a09918ad8ef3c5f741">Adding an Internet Gateway</h3>
+<h3 id="adding-an-internet-gateway">Adding an Internet Gateway</h3>
 
 <p>Next we need to connect our VPC to the rest of the internet by attaching an internet gateway. Our VPC would be isolated from the internet without this.</p>
 
@@ -124,7 +124,7 @@ $ aws ec2 modify-vpc-attribute --vpc-id $vpcId --enable-dns-hostnames &quot;{\&q
 $ aws ec2 attach-internet-gateway --internet-gateway-id $internetGatewayId --vpc-id $vpcId
 </code></pre>
 
-<h3 id="creating-a-subnet:ed16f33dbf5018a09918ad8ef3c5f741">Creating a Subnet</h3>
+<h3 id="creating-a-subnet">Creating a Subnet</h3>
 
 <p>A VPC can have multiple subnets. Since our use case only requires one, we can reuse the cidr-block specified during VPC creation so as to get a single subnet that spans the entire VPC address space.</p>
 
@@ -133,7 +133,7 @@ $ aws ec2 attach-internet-gateway --internet-gateway-id $internetGatewayId --vpc
 
 <p>While this <code>--cidr-block</code> parameter specifies a subnet that can contain 16 IP addresses (10.0.0.1 - 10.0.0.16), AWS will reserve 5 of those for private use. While this doesn&rsquo;t really have an impact on our use case, it is still good to be aware of such things.</p>
 
-<h3 id="configuring-the-route-table:ed16f33dbf5018a09918ad8ef3c5f741">Configuring the Route Table</h3>
+<h3 id="configuring-the-route-table">Configuring the Route Table</h3>
 
 <p>Each subnet needs to have a route table associated with it to specify the routing of its outbound traffic. By default every subnet inherits the default VPC route table which allows for intra-VPC communication only.</p>
 
@@ -144,7 +144,7 @@ $ aws ec2 associate-route-table --route-table-id $routeTableId --subnet-id $subn
 $ aws ec2 create-route --route-table-id $routeTableId --destination-cidr-block 0.0.0.0/0 --gateway-id $internetGatewayId
 </code></pre>
 
-<h3 id="adding-a-security-group:ed16f33dbf5018a09918ad8ef3c5f741">Adding a Security Group</h3>
+<h3 id="adding-a-security-group">Adding a Security Group</h3>
 
 <p>Before we can launch an instance, we first need to create a security group that specifies which ports should allow traffic. For now we&rsquo;ll just allow anyone to try and make an SSH connection by opening port 22 to any IP address.</p>
 
@@ -152,7 +152,7 @@ $ aws ec2 create-route --route-table-id $routeTableId --destination-cidr-block 0
 $ aws ec2 authorize-security-group-ingress --group-id $securityGroupId --protocol tcp --port 22 --cidr 0.0.0.0/0
 </code></pre>
 
-<h3 id="launching-your-instance:ed16f33dbf5018a09918ad8ef3c5f741">Launching your Instance</h3>
+<h3 id="launching-your-instance">Launching your Instance</h3>
 
 <p>All that&rsquo;s left to do is to create an SSH key pair and then launch an instance secured by this. Let&rsquo;s generate this key pair and store it locally with the correct permissions.</p>
 

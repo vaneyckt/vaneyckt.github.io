@@ -94,7 +94,7 @@
 
 <p>It&rsquo;s very easy for a Github repository to accumulate lots of tags over time. This onslaught of tags tends to be tolerated until it starts impacting git performance. It is at this point, when you have well in excess of tens of thousands of tags, that a call to action tends to be made. In this article, we&rsquo;ll look at two approaches to rid yourself of these old tags.</p>
 
-<h3 id="the-cut-off-tag-approach:257dca9811faca70d0b7c4cba16ee1c1">The cut-off tag approach</h3>
+<h3 id="the-cut-off-tag-approach">The cut-off tag approach</h3>
 
 <p>This approach has us specify a cut-off tag. All tags that can trace their ancestry back to this cut-off tag will be allowed to remain. All others will get deleted. This is especially useful for when you have just merged a new feature, and now you want to delete all tags that were created before this merge. In this scenario, all you have to do is tag the merge commit and then use this as the cut-off tag.</p>
 
@@ -117,7 +117,7 @@ git fetch --prune origin +refs/tags/*:refs/tags/*
 
 <p>The <code>-23</code> flag tells <code>comm</code> to suppress any lines that are unique to file 2, as well as any lines that appear in both files. In other words, it causes <code>comm</code> to return just those lines that only appear in file 1. Looking back at our sequence of commands above, it should be clear that this will cause us to obtain all tags that do not have the release-5 tag as an ancestor. Piping this output to <code>xargs git push --delete origin</code> will then remove these tags from Github.</p>
 
-<h3 id="the-cut-off-date-approach:257dca9811faca70d0b7c4cba16ee1c1">The cut-off date approach</h3>
+<h3 id="the-cut-off-date-approach">The cut-off date approach</h3>
 
 <p>While the cut-off tag approach works great in a lot of scenarios, sometimes you just want to delete all tags that were created before a given cut-off date instead. Unfortunately, git doesn&rsquo;t have any built-in functionality for accomplishing this. This is why we are going to make use of a Ruby script here.</p>
 

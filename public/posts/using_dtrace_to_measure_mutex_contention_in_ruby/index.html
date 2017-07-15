@@ -96,9 +96,9 @@
 
 <p>This is where <a href="http://dtrace.org/guide/preface.html">DTrace</a> enters the picture. DTrace is a tracing framework that enables you to instrument application and system internals, thereby allowing you to measure and collect previously inaccessible metrics. Personally, I think of DTrace as black magic that allows me to gather a ridiculous amount of information about what is happening on my computer. We will see later just how fine-grained this information can get.</p>
 
-<p>DTrace is available on Solaris, OS X, and FreeBSD. There is some Linux support as well, but you might be better off using one of the Linux specific alternatives instead. One of DTrace&rsquo;s authors has published some <a href="http://www.brendangregg.com/dtrace.html">helpful</a> <a href="http://www.brendangregg.com/blog/2015-07-08/choosing-a-linux-tracer.html">articles</a> about this. Please note that all the work for this particular post was done on a MacBook running OS X El Capitan (version 10.11).</p>
+<p>DTrace is available on Solaris, OS X, and FreeBSD. There is some Linux support as well, but you might be better off using one of the Linux specific alternatives instead. Info about these can be found <a href="http://www.brendangregg.com/dtrace.html">here</a> and <a href="http://www.brendangregg.com/blog/2015-07-08/choosing-a-linux-tracer.html">here</a>. At the time of writing this, it was also recently announced that <a href="http://www.brendangregg.com/blog/2016-10-27/dtrace-for-linux-2016.html">DTrace is making its way to Linux</a>. Please note that all work for this particular post was done on a MacBook running OS X El Capitan (version 10.11).</p>
 
-<h3 id="enabling-dtrace-for-ruby-on-os-x:60d22c012d1dfaa0ce30f9aac7bf77bb">Enabling DTrace for Ruby on OS X</h3>
+<h3 id="enabling-dtrace-for-ruby-on-os-x">Enabling DTrace for Ruby on OS X</h3>
 
 <p>El Capitan comes with a new security feature called <a href="https://en.wikipedia.org/wiki/System_Integrity_Protection">System Integrity Protection</a> that helps prevent malicious software from tampering with your system. Regrettably, it also prevents DTrace from working. We will need to disable SIP by following <a href="http://stackoverflow.com/a/33584192/1420382">these instructions</a>. Note that it is possible to only partially disable SIP, although doing so will still leave DTrace unable to attach to restricted processes. Personally, I&rsquo;ve completely disabled SIP on my machine.</p>
 
@@ -123,7 +123,7 @@ $ rm -r ruby-2.2.3 ruby-2.2.3.tar
 
 <p>Now that we&rsquo;ve ensured we&rsquo;ll be able to use DTrace with our installed Ruby, let&rsquo;s move on and start learning some DTrace basics.</p>
 
-<h3 id="dtrace-basics:60d22c012d1dfaa0ce30f9aac7bf77bb">DTrace basics</h3>
+<h3 id="dtrace-basics">DTrace basics</h3>
 
 <p>DTrace is all about probes. A probe is a piece of code that fires when a specific condition is met. For example, we could ask DTrace to instrument a process with a probe that activates when the process returns from a particular system call. Such a probe would also be able to inspect the value returned by the system call made by this process.</p>
 
@@ -167,9 +167,9 @@ CPU     ID                    FUNCTION:NAME
 
 <p>Before moving on to the next section, I just want to note that the D scripting language is not Turing complete. It lacks such features as conditional branching and loops. DTrace is built around the ideas of minimal overhead and absolute safety. Giving people the ability to use DTrace to introduce arbitrary overhead on top of system calls does not fit with these ideas.</p>
 
-<h3 id="ruby-and-dtrace:60d22c012d1dfaa0ce30f9aac7bf77bb">Ruby and DTrace</h3>
+<h3 id="ruby-and-dtrace">Ruby and DTrace</h3>
 
-<p>DTrace probes have been supported by Ruby <a href="https://tenderlovemaking.com/2011/12/05/profiling-rails-startup-with-dtrace.html">since Ruby 2.0</a> came out. A list of supported Ruby probes can be found <a href="http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html">here</a>. Now is a good time to mention that DTrace probes come in two flavors: dynamic probes and static probes. Dynamic probes only appear in the <code>pid</code> and <code>fbt</code> probe providers. This means that the vast majority of available probes (including Ruby probes) is static.</p>
+<p>DTrace probes have been supported by Ruby <a href="https://tenderlovemaking.com/2011/12/05/profiling-rails-startup-with-dtrace.html">since Ruby 2.0 came out</a>. A list of supported Ruby probes can be found <a href="http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html">here</a>. Now is a good time to mention that DTrace probes come in two flavors: dynamic probes and static probes. Dynamic probes only appear in the <code>pid</code> and <code>fbt</code> probe providers. This means that the vast majority of available probes (including Ruby probes) is static.</p>
 
 <p>So how exactly do dynamic and static probes differ? In order to explain this, we first need to take a closer look at just how DTrace works. When you invoke DTrace on a process you are effectively giving DTrace permission to patch additional DTrace instrumentation instructions into the process&rsquo;s address space. Remember how we had to disable the System Integrity Protection check in order to get DTrace to work on El Capitan? This is why.</p>
 
@@ -222,7 +222,7 @@ ID         PROVIDER       MODULE                     FUNCTION      NAME
 
 <p>Here we are only listing the pid entry probes, but keep in mind that every entry probe has a corresponding pid return probe. These probes are great as they provide us with insight into which internal functions are getting called, the arguments passed to these, as well as their return values, and even the offset in the function of the return instruction (useful for when a function has multiple return instructions). Additional information about the pid provider can be found <a href="http://dtrace.org/blogs/brendan/2011/02/09/dtrace-pid-provider">here</a>.</p>
 
-<h3 id="a-first-dtrace-script-for-ruby:60d22c012d1dfaa0ce30f9aac7bf77bb">A first DTrace script for Ruby</h3>
+<h3 id="a-first-dtrace-script-for-ruby">A first DTrace script for Ruby</h3>
 
 <p>Let us now have a look at a first DTrace script for Ruby that will tell us when a Ruby method starts and stops executing, along with the method&rsquo;s execution time. We will be running our DTrace script against the simple Ruby program shown below.</p>
 
@@ -332,7 +332,7 @@ Returning After: 21304 nanoseconds
 
 <p>Running our modified DTrace script, we see that this time around we are only triggering our probes when entering into and returning from the <code>even</code> and <code>odd</code> methods. Now that we have learned a fair few DTrace basics, we can move on to the more advanced topic of writing a DTrace script that will allow us to measure mutex contention in Ruby programs.</p>
 
-<h3 id="monitoring-mutex-contention-with-dtrace:60d22c012d1dfaa0ce30f9aac7bf77bb">Monitoring mutex contention with DTrace</h3>
+<h3 id="monitoring-mutex-contention-with-dtrace">Monitoring mutex contention with DTrace</h3>
 
 <p>The goal of this section is to come up with a DTrace script that measures mutex contention in a multi-threaded Ruby program. This is far from a trivial undertaking and will require us to go and investigate the source code of the Ruby language itself. However, before we get to that, let&rsquo;s first take a look at the Ruby program that we will analyze with the DTrace script that we are going to write in this section.</p>
 
@@ -374,7 +374,7 @@ threads.each(&amp;:join)
 <li><code>rb_mutex_lock</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L241">source</a>) is where the currently active Ruby thread that executed the <code>mutex.synchronize</code> code will try to grab the mutex</li>
 </ol>
 
-<p>There&rsquo;s a lot going on in <code>rb_mutex_lock</code>. The one thing that we are especially interested in is the call to <code>rb_mutex_trylock</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L157">source</a>) on <a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L252">line 252</a>. This method immediately returns <code>true</code> or <code>false</code> depending on whether the Ruby thread managed to grab the mutex. By following the code from line 252 onwards, we can see that <code>rb_mutex_trylock</code> returning <code>true</code> causes <code>rb_mutex_lock</code> to immediately return. On the other hand, <code>rb_mutex_lock</code> returning <code>false</code> causes <code>rb_mutex_lock</code> to keep executing (and occasionally blocking) until the Ruby thread has managed to get a hold of the mutex.</p>
+<p>There&rsquo;s a lot going on in <code>rb_mutex_lock</code>. The one thing that we are especially interested in is the call to <code>rb_mutex_trylock</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L157">source</a>) on <a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L252">line 252</a>. This method immediately returns <code>true</code> or <code>false</code> depending on whether the Ruby thread managed to grab the mutex. By following the code from line 252 onwards, we can see that <code>rb_mutex_trylock</code> returning <code>true</code> causes <code>rb_mutex_lock</code> to immediately return. On the other hand, <code>rb_mutex_trylock</code> returning <code>false</code> causes <code>rb_mutex_lock</code> to keep executing (and occasionally blocking) until the Ruby thread has managed to get a hold of the mutex.</p>
 
 <p>This is actually all we needed to know in order to be able to go and write our DTrace script. Our investigation showed that when a thread starts executing <code>rb_mutex_lock</code>, this means it wants to acquire a mutex. And when a thread returns from <code>rb_mutex_lock</code>, we know that it managed to successfully obtain this lock. In a previous section, we saw how DTrace allows us to set probes that fire upon entering into or returning from a particular method. We will now use this to write our DTrace script.</p>
 
@@ -458,7 +458,7 @@ Thread 286592 acquires mutex 4313316240 after 4005587 ms - mutex.rb:14
 
 <p>Before moving on to the next section, I&rsquo;d just like to point out that the above DTrace output actually tells us some cool stuff about how the Ruby MRI schedules threads. If you look at lines 3-6 of the output, you&rsquo;ll notice that the second thread gets scheduled four times in a row. This tells us that when multiple threads are competing for a mutex, the Ruby MRI does not care if a particular thread recently held the mutex.</p>
 
-<h3 id="advanced-mutex-contention-monitoring:60d22c012d1dfaa0ce30f9aac7bf77bb">Advanced mutex contention monitoring</h3>
+<h3 id="advanced-mutex-contention-monitoring">Advanced mutex contention monitoring</h3>
 
 <p>We can take the above DTrace script one step further by adding an additional probe that triggers whenever a thread releases a mutex. We will also be slightly altering the output of our script so as to print timestamps rather than durations. While this will make the script&rsquo;s output less suitable for direct human consumption, this timestamp information will make it easier to construct a chronological sequence of the goings-on of our mutexes.</p>
 
@@ -704,7 +704,7 @@ total		  103.274153073s
 
 <p>The above output tells us very clearly that we should concentrate our efforts on lines 14 and 30 when we want to try to make our program faster. The really cool thing about all this is that this approach will work regardless of the complexity of your program and requires absolutely no familiarity with the source code at all. You can literally run this against code you&rsquo;ve never seen and walk away with a decent idea of where the mutex bottlenecks are located. And on top of that, since we are using DTrace, we don&rsquo;t even have to add any instrumentation code to the program we want to investigate. Instead, we can just run this against an already active process without even having to interrupt it.</p>
 
-<h3 id="conclusion:60d22c012d1dfaa0ce30f9aac7bf77bb">Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
 <p>I hope to have convinced you that DTrace is a pretty amazing tool that can open up whole new ways of trying to approach a problem. There is so so much I haven&rsquo;t even touched on yet. The topic is just too big to cover in a single post. If you&rsquo;re interested in learning DTrace, here are some resources I can recommend:</p>
 
@@ -712,6 +712,7 @@ total		  103.274153073s
 <li>the <a href="https://github.com/opendtrace/toolkit">DTrace Toolkit</a> is a curated collection of DTrace scripts for various systems</li>
 <li>I often find myself peeking at the <a href="http://www.tablespace.net/quicksheet/dtrace-quickstart.html">DTrace QuickStart</a> and the <a href="http://www.brendangregg.com/DTrace/DTrace-cheatsheet.pdf">DTrace Cheatsheet</a> when I can&rsquo;t quite remember how something works</li>
 <li>the first chapters of <a href="https://www.amazon.com/DTrace-Dynamic-Tracing-Solaris-FreeBSD/dp/0132091518">DTrace: Dynamic Tracing in Oracle Solaris, Mac OS X and FreeBSD</a> act as a DTrace tutorial. The rest of the book is all about how to use DTrace to solve real-life scenarios with tons and tons of examples.</li>
+<li>I really wish I had come across <a href="https://awesome-dtrace.com/">Awesome DTrace</a> earlier. It&rsquo;s a curated list about various DTrace topics, some of which I had not been able to find any information about before.</li>
 </ul>
 
 <p>Just one more thing before I finish this. If you&rsquo;re on OS X and encounter DTrace complaining about not being able to control executables signed with restricted entitlements, be aware that you can easily work around this by using the <code>-p</code> parameter to directly specify the pid of the process you want DTrace to run against. Please contact me if you manage to find the proper fix for this.</p>

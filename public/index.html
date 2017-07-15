@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
 <head>
+	<meta name="generator" content="Hugo 0.20.7" />
   <link href="http://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 
@@ -96,6 +97,478 @@
         
           <div class="post">
             <h1 class="post-title">
+              <a href="https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_condition_variables/">
+                Ruby concurrency: in praise of condition variables
+              </a>
+            </h1>
+
+            <span class="post-date">Jul 17, 2017</span>
+
+            
+
+            
+
+<p>In a previous post, we talked about the benefits conferred by <a href="https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_the_mutex/">Ruby mutexes</a>. While a programmer&rsquo;s familiarity with mutexes is likely to depend on what kind of programs she usually writes, most developers tend to be at least somewhat familiar with these particular synchronization primitives. This article, however, is going to focus on a much lesser-known synchronization construct: the condition variable.</p>
+
+<p>Condition variables are used for putting threads to sleep and waking them back up once a certain condition is met. Don&rsquo;t worry if this sounds a bit vague; we&rsquo;ll go into a lot more detail later. As condition variables always need to be used in conjunction with mutexes, we&rsquo;ll lead with a quick mutex recap. Next, we&rsquo;ll introduce consumer-producer problems and how to elegantly solve them with the aid of condition variables. Then, we&rsquo;ll have a look at how to use these synchronization primitives for implementing blocking method calls. Finishing up, we&rsquo;ll describe some curious condition variable behavior and how to safeguard against it.</p>
+
+<h3 id="a-mutex-recap">A mutex recap</h3>
+
+<p>Mutexes are usually explained as locks that are responsible for ensuring that only one thread at a time can access a particular section of code. While this definition is correct, it has always seemed a bit too mechanical to me. That is to say, it foregoes any explanation of mutexes as a concept and instead focuses wholly on implementation details. There is, however, another way of looking at these data structures.</p>
+
+<p>At their core, mutexes are all about signaling when state changes made by one thread should become visible to others. That sounds super abstract, so now is probably a good time to bring in some code. The code below shows your standard &ldquo;two threads trying to modify the same variable with and without mutexes&rdquo; scenario used by every blog post about mutexes ever.</p>
+
+<pre><code class="language-ruby">def counters_with_mutex
+  mutex = Mutex.new
+  counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+  5.times.map do
+    Thread.new do
+      100000.times do
+        mutex.synchronize do
+          counters.map! { |counter| counter + 1 }
+        end
+      end
+    end
+  end.each(&amp;:join)
+
+  counters.inspect
+end
+
+def counters_without_mutex
+  counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+  5.times.map do
+    Thread.new do
+      100000.times do
+        counters.map! { |counter| counter + 1 }
+      end
+    end
+  end.each(&amp;:join)
+
+  counters.inspect
+end
+
+puts counters_with_mutex
+# =&gt; [500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000]
+
+puts counters_without_mutex
+# =&gt; [500000, 447205, 500000, 500000, 500000, 500000, 203656, 500000, 500000, 500000]
+</code></pre>
+
+<p>Surprising absolutely no one, the code that uses a mutex for dealing with multiple threads modifying the same variable produces the correct answer, whereas the other code seems to have lost some increments (more info <a href="https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_the_mutex/">here</a>). This is often (and quite correctly) explained as the mutex acting as a lock that ensures a second thread won&rsquo;t be able to write to the array that the first thread is busy modifying. This is desirable behavior as the first thread would otherwise just end up overwriting the second thread&rsquo;s changes, thereby making it look like some increments went missing. However, there is another way of looking at this.</p>
+
+<p>From now on, forget about the locking aspects of a mutex. Going forward, think of a mutex as a construct that developers use to indicate to the interpreter which variables are being shared across multiple threads. It is this indicating of shared state that captures what a mutex is really about; the locking is just an implementation detail! Let&rsquo;s have a look at a few scenarios with this new point of view.</p>
+
+<p>Our first scenario has three threads: two threads for incrementing the <code>increment_counters</code> array, and one thread for decrementing the <code>decrement_counters</code> array.</p>
+
+<pre><code class="language-ruby">threads = []
+increment_mutex = Mutex.new
+increment_counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+decrement_counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+# we use a mutex to indicate to the interpreter that the
+# increment_counters array is shared between multiple threads
+threads += 2.times.map do
+  Thread.new do
+    100000.times do
+      increment_mutex.synchronize do
+        puts 'start an increment of increment_counters'
+        increment_counters.map! { |counter| counter + 1 }
+        puts 'finish an increment of increment_counters'
+      end
+    end
+  end
+end
+
+# no need for a mutex here as there is only a single thread, so the
+# decrement_counters array is not shared between multiple threads
+threads += 1.times.map do
+  Thread.new do
+    100000.times do
+      puts '  start a decrement of decrement_counters'
+      decrement_counters.map! { |counter| counter - 1 }
+      puts '  finish a decrement of decrement_counters'
+    end
+  end
+end
+
+threads.each(&amp;:join)
+
+puts increment_counters.inspect
+# =&gt; [200000, 200000, 200000, 200000, 200000, 200000, 200000, 200000, 200000, 200000]
+
+puts decrement_counters.inspect
+# =&gt; [-100000, -100000, -100000, -100000, -100000, -100000, -100000, -100000, -100000, -100000]
+</code></pre>
+
+<p>If we forget everything we know about mutexes and consider them to be purely indicators of shared state, then the only thing the <code>increment_mutex.synchronize do</code> block really does is tell the interpreter that the variable <code>increment_counters</code> is shared between multiple threads. The interpreter receives this information and now knows to never interleave the first two threads with each other.</p>
+
+<p>Moving on, we notice that the second half of our program has no mutex in it. This lack indicates to the interpreter that our third thread can be interleaved with any other thread without this causing any nasty side effects. It is perfectly okay for the interpreter to stop executing the critical section of the first (or second) thread halfway through and start executing the third thread instead. Our program output shows that this is indeed the case as it contains the lines shown below.</p>
+
+<pre><code class="language-bash">...
+start an increment of increment_counters
+  start a decrement of decrement_counters
+  finish a decrement of decrement_counters
+finish an increment of increment_counters
+...
+</code></pre>
+
+<p>In essence, a mutex indicates to the interpreter what state is shared between threads. The interpreter then uses this information to decide which threads can and which threads can&rsquo;t be interleaved. The fact that this logic is usually implemented with some kind of locking is just an implementation detail. The important thing here is that the mutex acts a mechanism that indicates to the interpreter which threads share the same state.</p>
+
+<p>While the above example may have come across as somewhat contrived, this next one seems to elude a lot of programmers that think of mutexes as just locks. Most developers think that the code shown below is without error. There&rsquo;s a rather pervasive misconception that a mutex is only required when writing to a shared variable, and not when reading from it. If that were true, then every line of the output of <code>puts flags.to_s</code> should consist of 10 repetitions of either <code>true</code> or <code>false</code>. As we can see below, this is not the case.</p>
+
+<pre><code class="language-ruby">mutex = Mutex.new
+flags = [false, false, false, false, false, false, false, false, false, false]
+
+threads = 50.times.map do
+  Thread.new do
+    100000.times do
+      puts flags.to_s
+      mutex.synchronize do
+        flags.map! { |f| !f }
+      end
+    end
+  end
+end
+threads.each(&amp;:join)
+</code></pre>
+
+<pre><code class="language-bash">$ ruby flags.rb &gt; output.log
+$ grep -Hnri 'true, false' output.log | wc -l
+    30
+</code></pre>
+
+<p>However, if we think of mutexes as constructs to be used for telling the interpreter about shared state between threads, it becomes immediately obvious that the above program cannot possibly be correct. The <code>flags</code> variable is clearly being shared by multiple threads, and as such all occurrences of it should be wrapped inside a mutex.</p>
+
+<p>By not wrapping <code>puts flags.to_s</code> inside the mutex, the interpreter has no way of knowing that it shouldn&rsquo;t interleave a thread that is executing <code>flags.map! { |f| !f }</code> with another thread wanting to execute <code>puts flags.to_s</code>. This once again showcases the power of not treating mutexes as locks but as indicators of shared state that help the interpreter decide which instructions can be safely interleaved.</p>
+
+<h3 id="consumer-producer-problems">Consumer-producer problems</h3>
+
+<p>With that mutex refresher out of the way, we can now start looking at condition variables. Condition variables are best explained by trying to come up with a practical solution to the <a href="https://en.wikipedia.org/wiki/Producer-consumer_problem">consumer-producer problem</a>. In fact, consumer-producer problems are so common that Ruby already has a data structure aimed at solving these: <a href="https://ruby-doc.org/core-2.3.1/Queue.html">the Queue class</a>. This class uses a condition variable to implement the blocking variant of its <code>shift()</code> method. In this article, we made a conscious decision not to use the <code>Queue</code> class. Instead, we&rsquo;re going to write everything from scratch with the help of condition variables.</p>
+
+<p>Let&rsquo;s have a look at the problem that we&rsquo;re going to solve. Imagine that we have a website where users can generate tasks of varying complexity, e.g. a service that allows users to convert uploaded jpg images to pdf. We can think of these users as producers of a steady stream of tasks of random complexity. These tasks will get stored on a backend server that has several worker processes running on it. Each worker process will grab a task, process it, and then grab the next one. These workers are our task consumers.</p>
+
+<p>With what we know about mutexes, it shouldn&rsquo;t be too hard to write a piece of code that mimics the above scenario. It&rsquo;ll probably end up looking something like this.</p>
+
+<pre><code class="language-ruby">tasks = []
+mutex = Mutex.new
+threads = []
+
+class Task
+  def initialize
+    @duration = rand()
+  end
+
+  def execute
+    sleep @duration
+  end
+end
+
+# producer threads
+threads += 2.times.map do
+  Thread.new do
+    while true
+      mutex.synchronize do
+        tasks &lt;&lt; Task.new
+        puts &quot;Added task: #{tasks.last.inspect}&quot;
+      end
+      # limit task production speed
+      sleep 0.5
+    end
+  end
+end
+
+# consumer threads
+threads += 5.times.map do
+  Thread.new do
+    while true
+      task = nil
+      mutex.synchronize do
+        if tasks.count &gt; 0
+          task = tasks.shift
+          puts &quot;Removed task: #{task.inspect}&quot;
+        end
+      end
+      # execute task outside of mutex so we don't unnecessarily
+      # block other consumer threads
+      task.execute unless task.nil?
+    end
+  end
+end
+
+threads.each(&amp;:join)
+</code></pre>
+
+<p>The above code should be fairly straightforward. There is a <code>Task</code> class for creating tasks that take between 0 and 1 seconds to run. We have 2 producer threads, each running an endless <code>while</code> loop that safely appends a new task to the <code>tasks</code> array every 0.5 seconds with the help of a mutex. Our 5 consumer threads are also running an endless <code>while</code> loop, each iteration grabbing the mutex so as to safely check the <code>tasks</code> array for available tasks. If a consumer thread finds an available task, it removes the task from the array and starts processing it. Once the task had been processed, the thread moves on to its next iteration, thereby repeating the cycle anew.</p>
+
+<p>While the above implementation seems to work just fine, it is not optimal as it requires all consumer threads to constantly poll the <code>tasks</code> array for available work. This polling does not come for free. The Ruby interpreter has to constantly schedule the consumer threads to run, thereby preempting threads that may have actual important work to do. To give an example, the above code will interleave consumer threads that are executing a task with consumer threads that just want to check for newly available tasks. This can become a real problem when there is a large number of consumer threads and only a few tasks.</p>
+
+<p>If you want to see for yourself just how inefficient this approach is, you only need to modify the original code for consumer threads with the code shown below. This modified program prints well over a thousand lines of <code>This thread has nothing to do</code> for every single line of <code>Removed task</code>. Hopefully, this gives you an indication of the general wastefulness of having consumer threads constantly poll the <code>tasks</code> array.</p>
+
+<pre><code class="language-ruby"># modified consumer threads code
+threads += 5.times.map do
+  Thread.new do
+    while true
+      task = nil
+      mutex.synchronize do
+        if tasks.count &gt; 0
+          task = tasks.shift
+          puts &quot;Removed task: #{task.inspect}&quot;
+        else
+          puts 'This thread has nothing to do'
+        end
+      end
+      # execute task outside of mutex so we don't unnecessarily
+      # block other consumer threads
+      task.execute unless task.nil?
+    end
+  end
+end
+</code></pre>
+
+<h3 id="condition-variables">Condition variables</h3>
+
+<p>So how we can create a more efficient solution to the consumer-producer problem? That is where condition variables come into play. Condition variables are used for putting threads to sleep and waking them only once a certain condition is met. Remember that our current solution to the producer-consumer problem is far from ideal because consumer threads need to constantly poll for new tasks to arrive. Things would be much more efficient if our consumer threads could go to sleep and be woken up only when a new task has arrived.</p>
+
+<p>Shown below is a solution to the consumer-producer problem that makes use of condition variables. We&rsquo;ll talk about how this works in a second. For now though, just have a look at the code and perhaps have a go at running it. If you were to run it, you would probably see that <code>This thread has nothing to do</code> does not show up anymore. Our new approach has completely gotten rid of consumer threads busy polling the <code>tasks</code> array.</p>
+
+<pre><code class="language-ruby">tasks = []
+mutex = Mutex.new
+cond_var = ConditionVariable.new
+threads = []
+
+class Task
+  def initialize
+    @duration = rand()
+  end
+
+  def execute
+    sleep @duration
+  end
+end
+
+# producer threads
+threads += 2.times.map do
+  Thread.new do
+    while true
+      mutex.synchronize do
+        tasks &lt;&lt; Task.new
+        cond_var.signal
+        puts &quot;Added task: #{tasks.last.inspect}&quot;
+      end
+      # limit task production speed
+      sleep 0.5
+    end
+  end
+end
+
+# consumer threads
+threads += 5.times.map do
+  Thread.new do
+    while true
+      task = nil
+      mutex.synchronize do
+        while tasks.empty?
+          cond_var.wait(mutex)
+        end
+
+        if tasks.count &gt; 0
+          task = tasks.shift
+          puts &quot;Removed task: #{task.inspect}&quot;
+        else
+          puts 'This thread has nothing to do'
+        end
+      end
+      # execute task outside of mutex so we don't unnecessarily
+      # block other consumer threads
+      task.execute unless task.nil?
+    end
+  end
+end
+
+threads.each(&amp;:join)
+</code></pre>
+
+<p>The first thing to notice is how we only had to write the five lines shown below to improve our previous solution with condition variables. Don&rsquo;t worry if some of the accompanying comments don&rsquo;t quite make sense yet. Now is also a good time to point out that the new code for both the producer and consumer threads was added inside the existing mutex synchronization blocks. Condition variables are not thread-safe and therefore always need to be used in conjunction with a mutex!</p>
+
+<pre><code class="language-ruby"># declaring the condition variable
+cond_var = ConditionVariable.new
+</code></pre>
+
+<pre><code class="language-ruby"># a producer thread now signals the condition variable
+# after adding a new task to the tasks array
+cond_var.signal
+</code></pre>
+
+<pre><code class="language-ruby"># a consumer thread now goes to sleep when it sees that
+# the tasks array is empty. It can get woken up again
+# when a producer thread signals the condition variable.
+while tasks.empty?
+  cond_var.wait(mutex)
+end
+</code></pre>
+
+<p>Let&rsquo;s talk about the new code now. We&rsquo;ll start with the consumer threads snippet. There&rsquo;s actually so much going on in these three lines that we&rsquo;ll limit ourselves to covering what <code>cond_var.wait(mutex)</code> does for now. We&rsquo;ll explain the need for the <code>while tasks.empty?</code> loop later. The first thing to notice about the <code>wait</code> method is the parameter that&rsquo;s being passed to it. Remember how a condition variable is not thread-safe and therefore should only have its methods called inside a mutex synchronization block? It is that mutex that needs to be passed as a parameter to the <code>wait</code> method.</p>
+
+<p>Calling <code>wait</code> on a condition variable causes two things to happen. First of all, it causes the thread that calls <code>wait</code> to go to sleep. That is to say, the thread will tell the interpreter that it no longer wants to be scheduled. However, this thread still has ownership of the mutex as it&rsquo;s going to sleep. We need to ensure that the thread relinquishes this mutex because otherwise all other threads waiting for this mutex will be blocked. By passing this mutex to the <code>wait</code> method, the <code>wait</code> method internals will ensure that the mutex gets released as the thread goes to sleep.</p>
+
+<p>Let&rsquo;s move on to the producer threads. These threads are now calling <code>cond_var.signal</code>. The <code>signal</code> method is pretty straightforward in that it wakes up exactly one of the threads that were put to sleep by the <code>wait</code> method. This newly awoken thread will indicate to the interpreter that it is ready to start getting scheduled again and then wait for its turn.</p>
+
+<p>So what code does our newly awoken thread start executing once it gets scheduled again? It starts executing from where it left off. Essentially, a newly awoken thread will return from its call to <code>cond_var.wait(mutex)</code> and resume from there. Personally, I like to think of calling <code>wait</code> as creating a save point inside a thread from which work can resume once the thread gets woken up and rescheduled again. Please note that since the thread wants to resume from where it originally left off, it&rsquo;ll need to reacquire the mutex in order to get scheduled. This mutex reacquisition is very important, so be sure to remember it.</p>
+
+<p>This segues nicely into why we need to use <code>while tasks.empty?</code> when calling <code>wait</code> in a consumer thread. When our newly awoken thread resumes execution by returning from <code>cond_var.wait</code>, the first thing it&rsquo;ll do is complete its previously interrupted iteration through the <code>while</code> loop, thereby evaluating <code>while tasks.empty?</code> again. This actually causes us to neatly avoid a possible race condition.</p>
+
+<p>Let&rsquo;s say we don&rsquo;t use a <code>while</code> loop and use an <code>if</code> statement instead. The resulting code would then look like shown below. Unfortunately, there is a very hard to find problem with this code.</p>
+
+<pre><code class="language-ruby"># consumer threads
+threads += 5.times.map do
+  Thread.new do
+    while true
+      task = nil
+      mutex.synchronize do
+        cond_var.wait(mutex) if tasks.empty?
+
+        if tasks.count &gt; 0
+          task = tasks.shift
+          puts &quot;Removed task: #{task.inspect}&quot;
+        else
+          puts 'This thread has nothing to do'
+        end
+      end
+      # execute task outside of mutex so we don't unnecessarily
+      # block other consumer threads
+      task.execute unless task.nil?
+    end
+  end
+end
+</code></pre>
+
+<p>Imagine a scenario where we have:</p>
+
+<ul>
+<li>two producer threads</li>
+<li>one consumer thread that&rsquo;s awake</li>
+<li>four consumer threads that are asleep</li>
+</ul>
+
+<p>A consumer thread that&rsquo;s awake will go back to sleep only when there are no more tasks in the <code>tasks</code> array. That is to say, a single consumer thread will keep processing tasks until no more tasks are available. Now, let&rsquo;s say one of our producer threads adds a new task to the currently empty <code>tasks</code> array before calling <code>cond_var.signal</code> at roughly the same time as our active consumer thread is finishing its current task. This <code>signal</code> call will awaken one of our sleeping consumer threads, which will then try to get itself scheduled. This is where a race condition is likely to happen!</p>
+
+<p>We&rsquo;re now in a position where two consumer threads are competing for ownership of the mutex in order to get scheduled. Let&rsquo;s say our first consumer thread wins this competition. This thread will now go and grab the task from the <code>tasks</code> array before relinquishing the mutex. Our second consumer thread then grabs the mutex and gets to run. However, as the <code>tasks</code> array is empty now, there is nothing for this second consumer thread to work on. So this second consumer thread now has to do an entire iteration of its <code>while true</code> loop for no real purpose at all.</p>
+
+<p>We can make our code more efficient by forcing each newly awakened consumer thread to check for available tasks and having it put itself to sleep again if no tasks are available. This behavior can be easily accomplished by replacing the <code>if tasks.empty?</code> statement with a <code>while tasks.empty?</code> loop. If tasks are available, a newly awoken thread will exit the loop and execute the rest of its code. However, if no tasks are found, then the loop is repeated, thereby causing the thread to put itself to sleep again by executing <code>cond_var.wait</code>. We&rsquo;ll see in a later section that there is yet another benefit to using this <code>while</code> loop.</p>
+
+<h3 id="building-our-own-queue-class">Building our own Queue class</h3>
+
+<p>At the beginning of a previous section, we touched on how condition variables are used by the <code>Queue</code> class to implement blocking behavior. The previous section taught us enough about condition variables for us to go and implement a basic <code>Queue</code> class ourselves. We&rsquo;re going to create a thread-safe <code>SimpleQueue</code> class that is capable of:</p>
+
+<ul>
+<li>having data appended to it with the <code>&lt;&lt;</code> operator</li>
+<li>having data retrieved from it with a non-blocking <code>shift</code> method</li>
+<li>having data retrieved from it with a blocking <code>shift</code> method</li>
+</ul>
+
+<p>It&rsquo;s easy enough to write code that meets these first two criteria. It will probably end up looking something like the code shown below. Note that our <code>SimpleQueue</code> class is using a mutex as we want this class to be thread-safe, just like the original <code>Queue</code> class.</p>
+
+<pre><code class="language-ruby">class SimpleQueue
+  def initialize
+    @elems = []
+    @mutex = Mutex.new
+  end
+
+  def &lt;&lt;(elem)
+    @mutex.synchronize do
+      @elems &lt;&lt; elem
+    end
+  end
+
+  def shift(blocking = true)
+    @mutex.synchronize do
+      if blocking
+        raise 'yet to be implemented'
+      end
+      @elems.shift
+    end
+  end
+end
+
+simple_queue = SimpleQueue.new
+simple_queue &lt;&lt; 'foo'
+
+simple_queue.shift(false)
+# =&gt; &quot;foo&quot;
+
+simple_queue.shift(false)
+# =&gt; nil
+</code></pre>
+
+<p>Now let&rsquo;s have a look at what&rsquo;s needed to implement the blocking <code>shift</code> behavior. As it turns out, this is actually very easy. We only want the thread to block if the <code>shift</code> method is called when the <code>@elems</code> array is empty. This is all the information we need to determine where we need to place our condition variable&rsquo;s call to <code>wait</code>. Similarly, we want the thread to stop blocking once the <code>&lt;&lt;</code> operator appends a new element, thereby causing <code>@elems</code> to no longer be empty. This tells us exactly where we need to place our call to <code>signal</code>.</p>
+
+<p>In the end, we just need to create a condition variable that makes the thread go to sleep when a blocking <code>shift</code> is called on an empty <code>SimpleQueue</code>. Likewise, the <code>&lt;&lt;</code> operator just needs to signal the condition variable when a new element is added, thereby causing the sleeping thread to be woken up. The takeaway from this is that blocking methods work by causing their calling thread to fall asleep. Also, please note that the call to <code>@cond_var.wait</code> takes place inside a <code>while @elems.empty?</code> loop. Always use a <code>while</code> loop when calling <code>wait</code> on a condition variable! Never use an <code>if</code> statement!</p>
+
+<pre><code class="language-ruby">class SimpleQueue
+  def initialize
+    @elems = []
+    @mutex = Mutex.new
+    @cond_var = ConditionVariable.new
+  end
+
+  def &lt;&lt;(elem)
+    @mutex.synchronize do
+      @elems &lt;&lt; elem
+      @cond_var.signal
+    end
+  end
+
+  def shift(blocking = true)
+    @mutex.synchronize do
+      if blocking
+        while @elems.empty?
+          @cond_var.wait(@mutex)
+        end
+      end
+      @elems.shift
+    end
+  end
+end
+
+simple_queue = SimpleQueue.new
+
+# this will print &quot;blocking shift returned with: foo&quot; after 5 seconds
+# that is to say, the first thread will go to sleep until the second
+# thread adds an element to the queue, thereby causing the first thread
+# to be woken up again
+threads = []
+threads &lt;&lt; Thread.new { puts &quot;blocking shift returned with: #{simple_queue.shift}&quot; }
+threads &lt;&lt; Thread.new { sleep 5; simple_queue &lt;&lt; 'foo' }
+threads.each(&amp;:join)
+</code></pre>
+
+<p>One thing to point out in the above code is that <code>@cond_var.signal</code> can get called even when there are no sleeping threads around. This is a perfectly okay thing to do. In these types of scenarios calling <code>@cond_var.signal</code> will just do nothing.</p>
+
+<h3 id="spurious-wakeups">Spurious wakeups</h3>
+
+<p>Spurious wakeups are an impossible to avoid edge-case in condition variables. The term refers to a sleeping thread getting woken up without any <code>signal</code> call having been made. It&rsquo;s important to point out that this is not being caused by a bug in the Ruby interpreter or anything like that. Instead, the designers of the threading libraries used by your OS found that allowing for the occasional spurious wakeup <a href="https://stackoverflow.com/a/8594644/1420382">greatly improves the speed of condition variable operations</a>. As such, any code that uses condition variables needs to take spurious wakeups into account.</p>
+
+<p>So does this mean that we need to rewrite all the code that we&rsquo;ve written in this article in an attempt to make it resistant to possible bugs introduced by spurious wakeups? You&rsquo;ll be glad to know that this isn&rsquo;t the case as all code snippets in this article have always wrapped the <code>cond_var.wait</code> statement inside a <code>while</code> loop!</p>
+
+<p>We covered earlier how using a <code>while</code> loop makes our code more efficient when dealing with certain race conditions as it causes a newly awakened thread to check whether there is actually anything to do for it, and if not, the thread goes back to sleep. This same <code>while</code> loop helps us deal with spurious wakeups as well.</p>
+
+<p>When a thread gets woken up by a spurious wakeup and there is nothing for it to do, our usage of a <code>while</code> loop will cause the thread to detect this and go back to sleep. From the thread&rsquo;s point of view, being awakened by a spurious wakeup isn&rsquo;t any different than being woken up with no available tasks to do. So the same mechanism that helps us deal with race conditions solves our spurious wakeup problem as well. It should be obvious by now that <code>while</code> loops play a very important role when working with condition variables.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>Ruby&rsquo;s condition variables are somewhat notorious for their poor documentation. That&rsquo;s a shame, because they are wonderful data structures for efficiently solving a very specific set of problems. Although, as we&rsquo;ve seen, using them isn&rsquo;t without pitfalls. I hope that this post will go some way towards making them (and their pitfalls) a bit better understood in the wider Ruby community.</p>
+
+<p>I also feel like I should point out that while everything mentioned above is correct to the best of my knowledge, I&rsquo;m unable to guarantee that absolutely no mistakes snuck in while writing this. As always, please feel free to contact me if you think I got anything wrong, or even if you just want to say hello.</p>
+
+            <hr>
+          </div>
+        
+      
+        
+          <div class="post">
+            <h1 class="post-title">
               <a href="https://vaneyckt.io/posts/using_dtrace_to_measure_mutex_contention_in_ruby/">
                 Using DTrace to measure mutex contention in Ruby
               </a>
@@ -111,9 +584,9 @@
 
 <p>This is where <a href="http://dtrace.org/guide/preface.html">DTrace</a> enters the picture. DTrace is a tracing framework that enables you to instrument application and system internals, thereby allowing you to measure and collect previously inaccessible metrics. Personally, I think of DTrace as black magic that allows me to gather a ridiculous amount of information about what is happening on my computer. We will see later just how fine-grained this information can get.</p>
 
-<p>DTrace is available on Solaris, OS X, and FreeBSD. There is some Linux support as well, but you might be better off using one of the Linux specific alternatives instead. One of DTrace&rsquo;s authors has published some <a href="http://www.brendangregg.com/dtrace.html">helpful</a> <a href="http://www.brendangregg.com/blog/2015-07-08/choosing-a-linux-tracer.html">articles</a> about this. Please note that all the work for this particular post was done on a MacBook running OS X El Capitan (version 10.11).</p>
+<p>DTrace is available on Solaris, OS X, and FreeBSD. There is some Linux support as well, but you might be better off using one of the Linux specific alternatives instead. Info about these can be found <a href="http://www.brendangregg.com/dtrace.html">here</a> and <a href="http://www.brendangregg.com/blog/2015-07-08/choosing-a-linux-tracer.html">here</a>. At the time of writing this, it was also recently announced that <a href="http://www.brendangregg.com/blog/2016-10-27/dtrace-for-linux-2016.html">DTrace is making its way to Linux</a>. Please note that all work for this particular post was done on a MacBook running OS X El Capitan (version 10.11).</p>
 
-<h3 id="enabling-dtrace-for-ruby-on-os-x:60d22c012d1dfaa0ce30f9aac7bf77bb">Enabling DTrace for Ruby on OS X</h3>
+<h3 id="enabling-dtrace-for-ruby-on-os-x">Enabling DTrace for Ruby on OS X</h3>
 
 <p>El Capitan comes with a new security feature called <a href="https://en.wikipedia.org/wiki/System_Integrity_Protection">System Integrity Protection</a> that helps prevent malicious software from tampering with your system. Regrettably, it also prevents DTrace from working. We will need to disable SIP by following <a href="http://stackoverflow.com/a/33584192/1420382">these instructions</a>. Note that it is possible to only partially disable SIP, although doing so will still leave DTrace unable to attach to restricted processes. Personally, I&rsquo;ve completely disabled SIP on my machine.</p>
 
@@ -138,7 +611,7 @@ $ rm -r ruby-2.2.3 ruby-2.2.3.tar
 
 <p>Now that we&rsquo;ve ensured we&rsquo;ll be able to use DTrace with our installed Ruby, let&rsquo;s move on and start learning some DTrace basics.</p>
 
-<h3 id="dtrace-basics:60d22c012d1dfaa0ce30f9aac7bf77bb">DTrace basics</h3>
+<h3 id="dtrace-basics">DTrace basics</h3>
 
 <p>DTrace is all about probes. A probe is a piece of code that fires when a specific condition is met. For example, we could ask DTrace to instrument a process with a probe that activates when the process returns from a particular system call. Such a probe would also be able to inspect the value returned by the system call made by this process.</p>
 
@@ -182,9 +655,9 @@ CPU     ID                    FUNCTION:NAME
 
 <p>Before moving on to the next section, I just want to note that the D scripting language is not Turing complete. It lacks such features as conditional branching and loops. DTrace is built around the ideas of minimal overhead and absolute safety. Giving people the ability to use DTrace to introduce arbitrary overhead on top of system calls does not fit with these ideas.</p>
 
-<h3 id="ruby-and-dtrace:60d22c012d1dfaa0ce30f9aac7bf77bb">Ruby and DTrace</h3>
+<h3 id="ruby-and-dtrace">Ruby and DTrace</h3>
 
-<p>DTrace probes have been supported by Ruby <a href="https://tenderlovemaking.com/2011/12/05/profiling-rails-startup-with-dtrace.html">since Ruby 2.0</a> came out. A list of supported Ruby probes can be found <a href="http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html">here</a>. Now is a good time to mention that DTrace probes come in two flavors: dynamic probes and static probes. Dynamic probes only appear in the <code>pid</code> and <code>fbt</code> probe providers. This means that the vast majority of available probes (including Ruby probes) is static.</p>
+<p>DTrace probes have been supported by Ruby <a href="https://tenderlovemaking.com/2011/12/05/profiling-rails-startup-with-dtrace.html">since Ruby 2.0 came out</a>. A list of supported Ruby probes can be found <a href="http://ruby-doc.org/core-2.2.3/doc/dtrace_probes_rdoc.html">here</a>. Now is a good time to mention that DTrace probes come in two flavors: dynamic probes and static probes. Dynamic probes only appear in the <code>pid</code> and <code>fbt</code> probe providers. This means that the vast majority of available probes (including Ruby probes) is static.</p>
 
 <p>So how exactly do dynamic and static probes differ? In order to explain this, we first need to take a closer look at just how DTrace works. When you invoke DTrace on a process you are effectively giving DTrace permission to patch additional DTrace instrumentation instructions into the process&rsquo;s address space. Remember how we had to disable the System Integrity Protection check in order to get DTrace to work on El Capitan? This is why.</p>
 
@@ -237,7 +710,7 @@ ID         PROVIDER       MODULE                     FUNCTION      NAME
 
 <p>Here we are only listing the pid entry probes, but keep in mind that every entry probe has a corresponding pid return probe. These probes are great as they provide us with insight into which internal functions are getting called, the arguments passed to these, as well as their return values, and even the offset in the function of the return instruction (useful for when a function has multiple return instructions). Additional information about the pid provider can be found <a href="http://dtrace.org/blogs/brendan/2011/02/09/dtrace-pid-provider">here</a>.</p>
 
-<h3 id="a-first-dtrace-script-for-ruby:60d22c012d1dfaa0ce30f9aac7bf77bb">A first DTrace script for Ruby</h3>
+<h3 id="a-first-dtrace-script-for-ruby">A first DTrace script for Ruby</h3>
 
 <p>Let us now have a look at a first DTrace script for Ruby that will tell us when a Ruby method starts and stops executing, along with the method&rsquo;s execution time. We will be running our DTrace script against the simple Ruby program shown below.</p>
 
@@ -347,7 +820,7 @@ Returning After: 21304 nanoseconds
 
 <p>Running our modified DTrace script, we see that this time around we are only triggering our probes when entering into and returning from the <code>even</code> and <code>odd</code> methods. Now that we have learned a fair few DTrace basics, we can move on to the more advanced topic of writing a DTrace script that will allow us to measure mutex contention in Ruby programs.</p>
 
-<h3 id="monitoring-mutex-contention-with-dtrace:60d22c012d1dfaa0ce30f9aac7bf77bb">Monitoring mutex contention with DTrace</h3>
+<h3 id="monitoring-mutex-contention-with-dtrace">Monitoring mutex contention with DTrace</h3>
 
 <p>The goal of this section is to come up with a DTrace script that measures mutex contention in a multi-threaded Ruby program. This is far from a trivial undertaking and will require us to go and investigate the source code of the Ruby language itself. However, before we get to that, let&rsquo;s first take a look at the Ruby program that we will analyze with the DTrace script that we are going to write in this section.</p>
 
@@ -389,7 +862,7 @@ threads.each(&amp;:join)
 <li><code>rb_mutex_lock</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L241">source</a>) is where the currently active Ruby thread that executed the <code>mutex.synchronize</code> code will try to grab the mutex</li>
 </ol>
 
-<p>There&rsquo;s a lot going on in <code>rb_mutex_lock</code>. The one thing that we are especially interested in is the call to <code>rb_mutex_trylock</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L157">source</a>) on <a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L252">line 252</a>. This method immediately returns <code>true</code> or <code>false</code> depending on whether the Ruby thread managed to grab the mutex. By following the code from line 252 onwards, we can see that <code>rb_mutex_trylock</code> returning <code>true</code> causes <code>rb_mutex_lock</code> to immediately return. On the other hand, <code>rb_mutex_lock</code> returning <code>false</code> causes <code>rb_mutex_lock</code> to keep executing (and occasionally blocking) until the Ruby thread has managed to get a hold of the mutex.</p>
+<p>There&rsquo;s a lot going on in <code>rb_mutex_lock</code>. The one thing that we are especially interested in is the call to <code>rb_mutex_trylock</code> (<a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L157">source</a>) on <a href="https://github.com/ruby/ruby/blob/325587ee7f76cbcabbc1e6d181cfacb976c39b52/thread_sync.c#L252">line 252</a>. This method immediately returns <code>true</code> or <code>false</code> depending on whether the Ruby thread managed to grab the mutex. By following the code from line 252 onwards, we can see that <code>rb_mutex_trylock</code> returning <code>true</code> causes <code>rb_mutex_lock</code> to immediately return. On the other hand, <code>rb_mutex_trylock</code> returning <code>false</code> causes <code>rb_mutex_lock</code> to keep executing (and occasionally blocking) until the Ruby thread has managed to get a hold of the mutex.</p>
 
 <p>This is actually all we needed to know in order to be able to go and write our DTrace script. Our investigation showed that when a thread starts executing <code>rb_mutex_lock</code>, this means it wants to acquire a mutex. And when a thread returns from <code>rb_mutex_lock</code>, we know that it managed to successfully obtain this lock. In a previous section, we saw how DTrace allows us to set probes that fire upon entering into or returning from a particular method. We will now use this to write our DTrace script.</p>
 
@@ -473,7 +946,7 @@ Thread 286592 acquires mutex 4313316240 after 4005587 ms - mutex.rb:14
 
 <p>Before moving on to the next section, I&rsquo;d just like to point out that the above DTrace output actually tells us some cool stuff about how the Ruby MRI schedules threads. If you look at lines 3-6 of the output, you&rsquo;ll notice that the second thread gets scheduled four times in a row. This tells us that when multiple threads are competing for a mutex, the Ruby MRI does not care if a particular thread recently held the mutex.</p>
 
-<h3 id="advanced-mutex-contention-monitoring:60d22c012d1dfaa0ce30f9aac7bf77bb">Advanced mutex contention monitoring</h3>
+<h3 id="advanced-mutex-contention-monitoring">Advanced mutex contention monitoring</h3>
 
 <p>We can take the above DTrace script one step further by adding an additional probe that triggers whenever a thread releases a mutex. We will also be slightly altering the output of our script so as to print timestamps rather than durations. While this will make the script&rsquo;s output less suitable for direct human consumption, this timestamp information will make it easier to construct a chronological sequence of the goings-on of our mutexes.</p>
 
@@ -719,7 +1192,7 @@ total		  103.274153073s
 
 <p>The above output tells us very clearly that we should concentrate our efforts on lines 14 and 30 when we want to try to make our program faster. The really cool thing about all this is that this approach will work regardless of the complexity of your program and requires absolutely no familiarity with the source code at all. You can literally run this against code you&rsquo;ve never seen and walk away with a decent idea of where the mutex bottlenecks are located. And on top of that, since we are using DTrace, we don&rsquo;t even have to add any instrumentation code to the program we want to investigate. Instead, we can just run this against an already active process without even having to interrupt it.</p>
 
-<h3 id="conclusion:60d22c012d1dfaa0ce30f9aac7bf77bb">Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
 <p>I hope to have convinced you that DTrace is a pretty amazing tool that can open up whole new ways of trying to approach a problem. There is so so much I haven&rsquo;t even touched on yet. The topic is just too big to cover in a single post. If you&rsquo;re interested in learning DTrace, here are some resources I can recommend:</p>
 
@@ -727,6 +1200,7 @@ total		  103.274153073s
 <li>the <a href="https://github.com/opendtrace/toolkit">DTrace Toolkit</a> is a curated collection of DTrace scripts for various systems</li>
 <li>I often find myself peeking at the <a href="http://www.tablespace.net/quicksheet/dtrace-quickstart.html">DTrace QuickStart</a> and the <a href="http://www.brendangregg.com/DTrace/DTrace-cheatsheet.pdf">DTrace Cheatsheet</a> when I can&rsquo;t quite remember how something works</li>
 <li>the first chapters of <a href="https://www.amazon.com/DTrace-Dynamic-Tracing-Solaris-FreeBSD/dp/0132091518">DTrace: Dynamic Tracing in Oracle Solaris, Mac OS X and FreeBSD</a> act as a DTrace tutorial. The rest of the book is all about how to use DTrace to solve real-life scenarios with tons and tons of examples.</li>
+<li>I really wish I had come across <a href="https://awesome-dtrace.com/">Awesome DTrace</a> earlier. It&rsquo;s a curated list about various DTrace topics, some of which I had not been able to find any information about before.</li>
 </ul>
 
 <p>Just one more thing before I finish this. If you&rsquo;re on OS X and encounter DTrace complaining about not being able to control executables signed with restricted entitlements, be aware that you can easily work around this by using the <code>-p</code> parameter to directly specify the pid of the process you want DTrace to run against. Please contact me if you manage to find the proper fix for this.</p>
@@ -753,7 +1227,7 @@ total		  103.274153073s
 
 <p>This post will start by explaining some of the details behind the GIL. Next up, we&rsquo;ll take a look at the three crucial concepts of concurrency: atomicity, visibility, and ordering. While most developers are familiar with atomicity, the concept of visibility is often not very well understood. We will be going over these concepts in quite some detail and will illustrate how to address their needs through correct usage of the mutex data structure.</p>
 
-<h3 id="parallelism-and-the-gil:ea5ce71b092b908f8e251c60020af72d">Parallelism and the GIL</h3>
+<h3 id="parallelism-and-the-gil">Parallelism and the GIL</h3>
 
 <p>Ruby&rsquo;s Global Interpreter Lock is a global lock around the execution of Ruby code. Before a Ruby thread can execute any code, it first needs to acquire this lock. A thread holding the GIL will be forced to release it after a certain amount of time, at which point the kernel can hand the GIL to another Ruby thread. As the GIL can only be held by one thread at a time, it effectively prevents two Ruby threads from being executed at the same time.</p>
 
@@ -761,11 +1235,11 @@ total		  103.274153073s
 
 <p>Note that the GIL is specific to the default Ruby interpreter (<a href="https://en.wikipedia.org/wiki/Ruby_MRI">MRI</a>) which relies on a global lock to protect its internals from race conditions. The GIL also makes it possible to safely interface the MRI interpreter with C libraries that may not be thread-safe themselves. Other interpreters have taken different approaches to the concept of a global lock; <a href="http://rubinius.com/">Rubinius</a> opts for a collection of fine-grained locks instead of a single global one, whereas <a href="http://jruby.org/">JRuby</a> does not use global locking at all.</p>
 
-<h3 id="concurrency-and-the-mutex:ea5ce71b092b908f8e251c60020af72d">Concurrency and the Mutex</h3>
+<h3 id="concurrency-and-the-mutex">Concurrency and the Mutex</h3>
 
 <p>There are three crucial concepts to concurrency: atomicity, visibility, and ordering. We&rsquo;ll be taking a look at how Ruby&rsquo;s mutex data structure addresses these. It is worth pointing out that different languages tackle these concepts in different ways. As such, the mutex-centric approach described here is only guaranteed to work in Ruby.</p>
 
-<h4 id="atomicity:ea5ce71b092b908f8e251c60020af72d">Atomicity</h4>
+<h4 id="atomicity">Atomicity</h4>
 
 <p>Atomicity is probably the best-known concurrency concept. A section of code is said to atomically modify the state of an object if all other threads are unable to see any of the intermediate states of the object being modified. These other threads either see the state as it was before the operation, or they see the state as it is after the operation.</p>
 
@@ -814,7 +1288,7 @@ puts counters.to_s
 
 <p>Atomicity can be accomplished by using a mutex as a locking mechanism that ensures no two threads can simultaneously execute the same section of code. The code above shows how we can prevent a thread executing <code>counters.map! { |counter| counter + 1 }</code> from being interrupted by other threads wanting to execute the same code. Also, be sure to note that <code>mutex.synchronize</code> only prevents a thread from being interrupted by others wanting to execute code wrapped inside the same <code>mutex</code> variable!</p>
 
-<h4 id="visibility:ea5ce71b092b908f8e251c60020af72d">Visibility</h4>
+<h4 id="visibility">Visibility</h4>
 
 <p>Visibility determines when the results of the actions performed by a thread become visible to other threads. For example, when a thread wants to write an updated value to memory, that updated value may end up being put in a cache for a while until the kernel decides to flush it to main memory. Other threads that read from that memory will therefore end up with a stale value!</p>
 
@@ -872,7 +1346,7 @@ $ grep -Hnri 'true, false' visibility.log | wc -l
 
 <p>As expected, this time we found zero inconsistencies in the output data due to us using the same mutex for both reading and writing the boolean values of the <code>flags</code> array. Do keep in mind that not all languages allow for using a mutex as a memory barrier, so be sure to check the specifics of your favorite language before going off to write concurrent code.</p>
 
-<h4 id="ordering:ea5ce71b092b908f8e251c60020af72d">Ordering</h4>
+<h4 id="ordering">Ordering</h4>
 
 <p>As if dealing with visibility isn&rsquo;t hard enough, the Ruby interpreter is also allowed to change the order of the instructions in your code in an attempt at optimization. Before I continue I should point out that there is no official specification for the Ruby language. This can make it hard to find information about topics such as this. So I&rsquo;m just going to describe how I <em>think</em> instruction reordering currently works in Ruby.</p>
 
@@ -905,7 +1379,7 @@ thr2.join
 
 <p>Those synchronization issues can be fixed by using a mutex. By introducing a mutex we are explicitly telling the interpreter and CPU how our code should behave, thus preventing any problematic code reordering from occurring. Dealing with atomicity and visibility issues will therefore implicitly prevent any dangerous code reordering.</p>
 
-<h3 id="conclusion:ea5ce71b092b908f8e251c60020af72d">Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
 <p>I hope this post has helped show just how easy it can be to introduce bugs in concurrent code. In my experience, the concept of memory barriers is often poorly understood, which can result in introducing some incredibly hard to find bugs. Luckily, as we saw in this post, the mutex data structure can be a veritable panacea for addressing these issues in Ruby.</p>
 
@@ -935,7 +1409,7 @@ thr2.join
 
 <p>Note that any code shown in this post is only guaranteed to work with rspec 3.3. In the past I&rsquo;ve written similar code for other rspec versions as well though. So don&rsquo;t worry, it shouldn&rsquo;t be too hard to get all of this to work on whatever rspec version you find yourself using.</p>
 
-<h3 id="rspec-formatters:827d6d4c89344577730dfb054dfd5b79">Rspec formatters</h3>
+<h3 id="rspec-formatters">Rspec formatters</h3>
 
 <p>Rspec generates its command line output by relying on formatters that receive messages on events like <code>example_passed</code> and <code>example_failed</code>. We can use these hooks to help us keep track of failed tests by having them write the descriptions of failed tests to a text file named <code>tests_failed</code>. Our <code>FailureFormatter</code> class does just that.</p>
 
@@ -1002,7 +1476,7 @@ my fake tests this scenario should fail
 
 <p>Take a moment to reflect on what we have just done. By writing just a few lines of code we have effectively created a logging mechanism that will help us keep track of failed tests. In the next section we will look at how we can make use of this mechanism to automatically rerun failed tests.</p>
 
-<h3 id="first-pass-at-creating-the-retry-task:827d6d4c89344577730dfb054dfd5b79">First pass at creating the retry task</h3>
+<h3 id="first-pass-at-creating-the-retry-task">First pass at creating the retry task</h3>
 
 <p>In this section we will create a rake task that runs our rspec test suite and automatically retries any failed tests. The finished rake task is shown below. For now, have a look at this code and then we&rsquo;ll go over its details in the next few paragraphs.</p>
 
@@ -1135,7 +1609,7 @@ rspec ./spec/my_fake_tests_spec.rb:7 # my fake tests this scenario should fail
 
 <p>The goal of this section was to introduce the general idea behind our retry mechanism. There are however several shortcomings in the code that we&rsquo;ve shown here. The next section will focus on identifying and fixing these.</p>
 
-<h3 id="perfecting-the-retry-task:827d6d4c89344577730dfb054dfd5b79">Perfecting the retry task</h3>
+<h3 id="perfecting-the-retry-task">Perfecting the retry task</h3>
 
 <p>The code in the previous section isn&rsquo;t all that bad, but there are a few things related to the <code>bundle exec rspec</code> subprocess that we can improve upon. In particular, using backticks to initiate subprocesses has several downsides:</p>
 
@@ -1202,7 +1676,7 @@ end
 
 <p>This gem also makes it super easy to inherit the stdout and stderr streams from the parent process (our rake task). This means that anything that gets written to the stdout and stderr streams of the subprocess will now be written directly to the stdout and stderr streams of our rake task. Or in other words, our rspec subprocess is now able to output directly to the rake task&rsquo;s terminal session. Having made these improvements, our <code>rspec_with_retries</code> task is now ready for use in production.</p>
 
-<h3 id="conclusion:827d6d4c89344577730dfb054dfd5b79">Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
 <p>I hope this post helped some people out there who find themselves struggling to deal with flaky tests. Please note that a retry mechanism such as this is really only possible because of rspec&rsquo;s powerful formatters. Get in touch if you have any examples of other cool things built on top of this somewhat underappreciated feature!</p>
 
@@ -1235,7 +1709,7 @@ end
 
 <p>There&rsquo;s one thing the documentation doesn&rsquo;t tell you though. If any of the lines in that block of code introduces side effects that rely on the execution of later lines of code to leave things in a stable state, then using the <code>timeout</code> method is a great way to introduce instability in your program. Examples of this include pretty much any program that is not entirely without stateful information. Let&rsquo;s have a closer look at this method to try and figure out what&rsquo;s going on here exactly.</p>
 
-<h3 id="exceptions-absolutely-anywhere:9337c8a75f66f40fb43aecac823e1f80">Exceptions absolutely anywhere</h3>
+<h3 id="exceptions-absolutely-anywhere">Exceptions absolutely anywhere</h3>
 
 <p>The problem with <code>timeout</code> is that it relies upon Ruby&rsquo;s questionable ability to have one thread raise an exception <em>absolutely anywhere</em> in an entirely different thread. The idea is that when you place code inside a <code>timeout</code> block, this code gets wrapped inside a new thread that executes in the background while the main thread goes to sleep for 5 seconds. Upon waking, the main thread grabs the background thread and forcefully stops it by raising a <code>Timeout::Error</code> exception on it (<a href="https://github.com/ruby/ruby/blob/trunk/lib/timeout.rb#L72-L110">actual implementation</a>).</p>
 
@@ -1298,7 +1772,7 @@ sleep 5
 ...started cleaning resource
 </code></pre>
 
-<h3 id="real-world-example:9337c8a75f66f40fb43aecac823e1f80">Real world example</h3>
+<h3 id="real-world-example">Real world example</h3>
 
 <p>Recently, I spent a lot of time working with the <a href="https://github.com/taf2/curb">curb http client</a>. I ended up wrapping quite a few of my curb calls within <code>timeout</code> blocks because of tight time constraints. However, this caused great instability within the system I was working on. Sometimes a call would work, whereas other times that very same call would throw an exception about an invalid handle. It was this that caused me to start investigating the <code>timeout</code> method.</p>
 
@@ -1364,7 +1838,7 @@ end
 
 <p>Running the above program will result in an exception being thrown after a few seconds. At some point, the <code>timeout</code> method is causing a <code>Timeout::Error</code> exception to be raised inside a critical code path of the http client. This badly timed <code>Timeout::Error</code> exception leaves the client in an invalid state, which in turn causes the next page fetch to fail with the exception shown above. Hopefully this illustrates why you should avoid creating programs that can have <code>Timeout::Error</code> exceptions pop up <em>absolutely anywhere</em>.</p>
 
-<h3 id="conclusion:9337c8a75f66f40fb43aecac823e1f80">Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
 <p>I hope this has convinced you there is nothing you can do to prevent <code>timeout</code> from doing whatever it wants to your program&rsquo;s internal state. There is just no way a program can deal with <code>Timeout::Error</code> exceptions being able to potentially pop up <em>absolutely anywhere</em>. The only time you can really get away with using timeouts is when writing functional code that does not rely on any state. In all other cases, it is best to just avoid timeouts entirely.</p>
 
@@ -1390,7 +1864,7 @@ end
 
 <p>There seem to be very few step-by-step overviews of javascript closures. As a matter of fact, I only found two. Luckily they are both absolute gems. You can find them <a href="http://openhome.cc/eGossip/JavaScript/Closures.html">here</a> and <a href="https://web.archive.org/web/20080209105120/http://blog.morrisjohns.com/javascript_closures_for_dummies">here</a>. I heartily recommend both these articles to anyone wanting to gain a more complete understanding of closures.</p>
 
-<h3 id="closure-basics:fd3eb7d414a05af8a77db8210b1ff256">Closure basics</h3>
+<h3 id="closure-basics">Closure basics</h3>
 
 <p>I&rsquo;m going to shamelessly borrow a few lines from the <a href="http://openhome.cc/eGossip/JavaScript/Closures.html">first</a> of the two articles linked above to illustrate the basic concept of a closure.</p>
 
@@ -1414,11 +1888,11 @@ foo(30); // returns 40
 
 <p>This is really all you need to know about closures: they refer to variables declared outside the scope of the function and by doing so keep these variables alive. Closure behavior can be entirely explained just by keeping these two things in mind.</p>
 
-<h3 id="closures-and-primitive-data-types:fd3eb7d414a05af8a77db8210b1ff256">Closures and primitive data types</h3>
+<h3 id="closures-and-primitive-data-types">Closures and primitive data types</h3>
 
 <p>The rest of this post will go over some code examples to illustrate the behavior of closures for both primitive and object params. In this section, we&rsquo;ll have a look at the behavior of a closure with a primitive data type param.</p>
 
-<h4 id="example-1:fd3eb7d414a05af8a77db8210b1ff256">Example 1</h4>
+<h4 id="example-1">Example 1</h4>
 
 <p>The code below will be our starting point for studying closures. Be sure to take a good look at it, as all our examples will be a variation of this code. Throughout this post, we are going to try and understand closures by examining the values returned by the <code>foo()</code> function.</p>
 
@@ -1438,7 +1912,7 @@ foo();    // returns 1
 
 <p>When the javascript runtime wants to resolve the value returned by <code>return p;</code>, it finds that this p variable is the same as the p variable from <code>var foo = function(p) {</code>. In other words, there is no direct link between the p from <code>return p;</code> and the variable prim from <code>var prim = 1;</code>. We see this is true because assigning a new value to prim does not cause the value returned by <code>foo()</code> to change.</p>
 
-<h4 id="example-2:fd3eb7d414a05af8a77db8210b1ff256">Example 2</h4>
+<h4 id="example-2">Example 2</h4>
 
 <p>Now let&rsquo;s have a look at what happens when we make a small change to the previous code sample by adding the line <code>p = 2;</code> to it.</p>
 
@@ -1459,7 +1933,7 @@ foo();    // returns 2
 
 <p>The code above is interesting in that it shows that the p variable from <code>return p;</code> is indeed the same as the p variable from <code>var foo = function(p) {</code>. Even though the variable f gets created at a time when p is set to 1, the act of setting p to 2 does indeed cause the value returned by <code>foo()</code> to change. This is a great example of a closure keeping a closed variable alive.</p>
 
-<h4 id="example-3:fd3eb7d414a05af8a77db8210b1ff256">Example 3</h4>
+<h4 id="example-3">Example 3</h4>
 
 <p>This sample shows code similar to the first, but this time we made the closure close over the prim variable.</p>
 
@@ -1476,11 +1950,11 @@ foo();    // returns 3
 
 <p>Here too we can make a similar deduction as we did for the previous samples. When the javascript runtime wants to resolve the value returned by <code>return prim;</code>, it finds that this prim variable is the same as the prim variable from <code>var prim = 1;</code>. This explains why setting prim to 3 causes the value returned by <code>foo()</code> to change.</p>
 
-<h3 id="closures-and-objects:fd3eb7d414a05af8a77db8210b1ff256">Closures and objects</h3>
+<h3 id="closures-and-objects">Closures and objects</h3>
 
 <p>In this section we&rsquo;ll see what happens when we take our code samples and change the param from a primitive data type to an object.</p>
 
-<h4 id="example-1-a:fd3eb7d414a05af8a77db8210b1ff256">Example 1.a</h4>
+<h4 id="example-1-a">Example 1.a</h4>
 
 <p>The code below is interesting because in the previous section we saw that a similar example using a primitive param had both calls to <code>foo()</code> return the same value. So what&rsquo;s different here? Let&rsquo;s inspect how the runtime resolves the variables involved.</p>
 
@@ -1508,7 +1982,7 @@ foo();        // returns 3
 <li><strong>if a closed variable contains a reference to an object, then the closure links to that object, and will pick up on any changes made to it</strong></li>
 </ul>
 
-<h4 id="example-1-b:fd3eb7d414a05af8a77db8210b1ff256">Example 1.b</h4>
+<h4 id="example-1-b">Example 1.b</h4>
 
 <p>Note that the closure will only pick up on changes made to the particular object that was present when the closure was created. Assigning a new object to the obj variable after the closure was created will have no effect. The code below illustrates this.</p>
 
@@ -1528,7 +2002,7 @@ foo();                 // returns 1
 
 <p>In fact, this code is practically identical to the code from Example 1 of the previous section.</p>
 
-<h4 id="example-2-1:fd3eb7d414a05af8a77db8210b1ff256">Example 2</h4>
+<h4 id="example-2-1">Example 2</h4>
 
 <p>We&rsquo;ll now modify the previous code sample a bit. This time we&rsquo;ll take a look at what happens when we add the line <code>o[1] = &quot;b&quot;;</code>.</p>
 
@@ -1550,7 +2024,7 @@ foo();        // returns 3
 
 <p>Once again, we can start by reasoning about how the runtime resolves the variable o from <code>return o.length;</code>. As you probably know by now, this variable o is the same as the variable o from <code>var foo = function(o) {</code>. And since it contains a reference to an object, any changes to this object will get reflected in the output of <code>foo()</code>. This explains why the first call to <code>foo()</code> now returns 2, whereas previously it was returning 1.</p>
 
-<h4 id="example-3-1:fd3eb7d414a05af8a77db8210b1ff256">Example 3</h4>
+<h4 id="example-3-1">Example 3</h4>
 
 <p>If you managed to make it this far, this last bit of code should hold no surprises for you.</p>
 
@@ -1568,7 +2042,7 @@ foo();        // returns 3
 
 <p>The runtime will resolve the variable obj from <code>return obj.length;</code> to be the same as the variable obj from <code>var obj = [&quot;a&quot;];</code>. As a result, any changes to the obj variable will have an effect on the output of <code>foo()</code>.</p>
 
-<h3 id="conclusion:fd3eb7d414a05af8a77db8210b1ff256">Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
 <p>Hopefully this post has demystified closures a bit. Time and time again, we&rsquo;ve shown how following a few simple steps will lead you to understand their behavior. Just keep in mind these rules of thumb and you should be good to go:</p>
 
@@ -1612,7 +2086,7 @@ foo();        // returns 3
 
 <p>The <code>iostat</code> command can display both basic and extended metrics. We&rsquo;ll take a look at the basic metrics first before moving on to extended metrics in the remainder of this post. Note that this post will not go into detail about every last metric. Instead, I have decided to focus on just those metrics that I found to be especially useful, as well as those that seem to be often misunderstood.</p>
 
-<h3 id="basic-iostat-metrics:e3bfd6583e1363a6dd96b0cce07a2f7c">Basic iostat metrics</h3>
+<h3 id="basic-iostat-metrics">Basic iostat metrics</h3>
 
 <p>The <code>iostat</code> command lists basic metrics by default. The <code>-m</code> parameter causes metrics to be displayed in megabytes per second instead of blocks or kilobytes per second. Using the <code>5</code> parameter causes <code>iostat</code> to recalculate metrics every 5 seconds, thereby making the numbers an average over this interval.</p>
 
@@ -1635,7 +2109,7 @@ xvdh             51.16         0.64         1.43    5301463   11806257
 
 <p>For example, consider a system with just two processes: the first one heavily I/O intensive, the second one heavily CPU intensive. As the second process will prevent the CPU from going idle, the <code>%iowait</code> metric will stay low despite the first process&rsquo;s high I/O utilization. Other examples illustrating the deceptive nature of <code>%iowait</code> can be found <a href="https://blog.pregos.info/wp-content/uploads/2010/09/iowait.txt">here</a> (<a href="https://gist.github.com/vaneyckt/58028fb0ddbdbf561e60">mirror</a>). The only thing <code>%iowait</code> really tells us is that the CPU occasionally idles while there is an outstanding I/O request, and could thus be made to handle more computational work.</p>
 
-<h3 id="extended-iostat-metrics:e3bfd6583e1363a6dd96b0cce07a2f7c">Extended iostat metrics</h3>
+<h3 id="extended-iostat-metrics">Extended iostat metrics</h3>
 
 <p>Let&rsquo;s now take a look at the extended metrics by calling the <code>iostat -x</code> command.</p>
 
@@ -1670,7 +2144,7 @@ xvdh              0.00     4.54   15.54   35.63     0.64     1.43    83.04     0
 
 <p>It’s common to assume that the closer a device gets to 100% utilization, the more saturated it becomes. This is true when the storage device corresponds to a single magnetic disk as such a device can only serve one request at a time. However, a single SSD or a RAID array consisting of multiple disks can serve multiple requests simultaneously. For such devices, <code>%util</code> essentially indicates the percentage of time that the device was busy serving one or more requests. Unfortunately, this value tells us absolutely nothing about the maximum number of simultaneous requests such a device can handle. This metric should therefore not be treated as a saturation indicator for either SSDs or RAID arrays.</p>
 
-<h3 id="conclusion:e3bfd6583e1363a6dd96b0cce07a2f7c">Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
 <p>By now it should be clear that <code>iostat</code> is an incredibly powerful tool, the metrics of which can take some experience to interpret correctly. In a perfect world your machines should regularly be writing these metrics to a monitoring service, so you&rsquo;ll always have access to good baseline numbers. In an imperfect world, just knowing your baseline IOPS values will already go a long way when trying to diagnose whether a slowdown is I/O related.</p>
 
@@ -1696,11 +2170,11 @@ xvdh              0.00     4.54   15.54   35.63     0.64     1.43    83.04     0
 
 <p>The bash shell comes with several builtin commands for modifying the behavior of the shell itself. We are particularly interested in the <a href="https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html">set builtin</a>, as this command has several options that will help us write safer scripts. I hope to convince you that it&rsquo;s a really good idea to add <code>set -euxo pipefail</code> to the beginning of all your future bash scripts.</p>
 
-<h3 id="set-e:d0406b09675b080255aad6f1a20a9332">set -e</h3>
+<h3 id="set-e">set -e</h3>
 
 <p>The <code>-e</code> option will cause a bash script to exit immediately when a command fails. This is generally a vast improvement upon the default behavior where the script just ignores the failing command and continues with the next line. This option is also smart enough to not react on failing commands that are part of conditional statements. Moreover, you can append a command with <code>|| true</code> for those rare cases where you don&rsquo;t want a failing command to trigger an immediate exit.</p>
 
-<h4 id="before:d0406b09675b080255aad6f1a20a9332">Before</h4>
+<h4 id="before">Before</h4>
 
 <pre><code class="language-bash">#!/bin/bash
 
@@ -1714,7 +2188,7 @@ echo &quot;bar&quot;
 # bar
 </code></pre>
 
-<h4 id="after:d0406b09675b080255aad6f1a20a9332">After</h4>
+<h4 id="after">After</h4>
 
 <pre><code class="language-bash">#!/bin/bash
 set -e
@@ -1728,7 +2202,7 @@ echo &quot;bar&quot;
 # line 5: foo: command not found
 </code></pre>
 
-<h4 id="prevent-immediate-exit:d0406b09675b080255aad6f1a20a9332">Prevent immediate exit</h4>
+<h4 id="prevent-immediate-exit">Prevent immediate exit</h4>
 
 <pre><code class="language-bash">#!/bin/bash
 set -e
@@ -1743,11 +2217,11 @@ echo &quot;bar&quot;
 # bar
 </code></pre>
 
-<h3 id="set-o-pipefail:d0406b09675b080255aad6f1a20a9332">set -o pipefail</h3>
+<h3 id="set-o-pipefail">set -o pipefail</h3>
 
 <p>The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the <code>-e</code> option to only be able to act on the exit code of a pipeline&rsquo;s last command. This is where <code>-o pipefail</code> comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or zero if all commands of the pipeline exit successfully.</p>
 
-<h4 id="before-1:d0406b09675b080255aad6f1a20a9332">Before</h4>
+<h4 id="before-1">Before</h4>
 
 <pre><code class="language-bash">#!/bin/bash
 set -e
@@ -1763,7 +2237,7 @@ echo &quot;bar&quot;
 # bar
 </code></pre>
 
-<h4 id="after-1:d0406b09675b080255aad6f1a20a9332">After</h4>
+<h4 id="after-1">After</h4>
 
 <pre><code class="language-bash">#!/bin/bash
 set -eo pipefail
@@ -1778,11 +2252,11 @@ echo &quot;bar&quot;
 # line 5: foo: command not found
 </code></pre>
 
-<h3 id="set-u:d0406b09675b080255aad6f1a20a9332">set -u</h3>
+<h3 id="set-u">set -u</h3>
 
 <p>This option causes the bash shell to treat unset variables as an error and exit immediately. This brings us much closer to the behavior of higher-level languages.</p>
 
-<h4 id="before-2:d0406b09675b080255aad6f1a20a9332">Before</h4>
+<h4 id="before-2">Before</h4>
 
 <pre><code class="language-bash">#!/bin/bash
 set -eo pipefail
@@ -1796,7 +2270,7 @@ echo &quot;bar&quot;
 # bar
 </code></pre>
 
-<h4 id="after-2:d0406b09675b080255aad6f1a20a9332">After</h4>
+<h4 id="after-2">After</h4>
 
 <pre><code class="language-bash">#!/bin/bash
 set -euo pipefail
@@ -1809,7 +2283,7 @@ echo &quot;bar&quot;
 # line 5: a: unbound variable
 </code></pre>
 
-<h3 id="set-x:d0406b09675b080255aad6f1a20a9332">set -x</h3>
+<h3 id="set-x">set -x</h3>
 
 <p>The <code>-x</code> option causes bash to print each command before executing it. This can be of great help when you have to try and debug a bash script failure through its logs. Note that arguments get expanded before a command gets printed. This causes our logs to display the actual argument values at the time of execution!</p>
 
@@ -1851,7 +2325,7 @@ echo &quot;bar&quot;
 
 <p>I recently had to write some javascript code that required the sequential execution of half a dozen asynchronous requests. I figured this was the perfect time to learn a bit more about javascript promises. This post is a recap of what I read in these <a href="http://www.html5rocks.com/en/tutorials/es6/promises/">three</a> <a href="http://www.mullie.eu/how-javascript-promises-work/">amazing</a> <a href="http://www.sitepoint.com/overview-javascript-promises/">write-ups</a>.</p>
 
-<h3 id="what-are-promises:e45390df332d7d109b53a5ac1df46eec">What are promises?</h3>
+<h3 id="what-are-promises">What are promises?</h3>
 
 <p>A Promise object represents a value that may not be available yet, but will be resolved at some point in future. This abstraction allows you to write asynchronous code in a more synchronous fashion. For example, you can use a Promise object to represent data that will eventually be returned by a call to a remote web service. The <code>then</code> and <code>catch</code> methods can be used to attach callbacks that will be triggered once the data arrives. We&rsquo;ll take a closer look at these two methods in the next sections. For now, let&rsquo;s write a simple AJAX request example that prints a random joke.</p>
 
@@ -1901,7 +2375,7 @@ promise.then(function(result) {
 
 <p>We can test whether a Promise only ever executes once by adding a second callback to the previous example. In this case, we see that only one AJAX request gets made and that the same joke gets printed to the console twice. This clearly shows that our Promise was only executed once.</p>
 
-<h3 id="the-then-method-and-chaining:e45390df332d7d109b53a5ac1df46eec">The <code>then</code> method and chaining</h3>
+<h3 id="the-then-method-and-chaining">The <code>then</code> method and chaining</h3>
 
 <p>The <code>then</code> method takes two arguments: a mandatory success callback and an optional failure callback. These callbacks are called when the Promise is settled (i.e. either fulfilled or rejected). If the Promise was fulfilled, the success callback will be fired with the data you passed to <code>resolve</code>. If the Promise was rejected, the failure callback will be called with the data you passed to <code>reject</code>. We&rsquo;ve already covered most of this in the previous section.</p>
 
@@ -1955,7 +2429,7 @@ getJokePromise().then(function(result) {
 
 <p>The takeaway from all this is that calling <code>return</code> in a <code>then</code> callback will always result in returning a Promise object. It is this that allows for <code>then</code> chaining!</p>
 
-<h3 id="error-handling:e45390df332d7d109b53a5ac1df46eec">Error handling</h3>
+<h3 id="error-handling">Error handling</h3>
 
 <p>We mentioned in the previous section how the <code>then</code> method can take an optional failure callback that gets triggered when <code>reject</code> is called. It is customary to reject with an Error object as they capture a stack trace, thereby facilitating debugging.</p>
 
@@ -2109,7 +2583,7 @@ promise.then(function(result) {
 
 <p>So what exactly is a Virtual Private Cloud? Amazon defines a VPC as &lsquo;a logically isolated section of the AWS Cloud&rsquo;. Instances inside a VPC can by default only communicate with other instances in the same VPC and are therefore invisible to the rest of the internet. This means they will not accept SSH connections coming from your computer, nor will they respond to any http requests. In this article we&rsquo;ll look into changing these default settings into something more befitting a general purpose server.</p>
 
-<h3 id="setting-up-your-vpc:ed16f33dbf5018a09918ad8ef3c5f741">Setting up your VPC</h3>
+<h3 id="setting-up-your-vpc">Setting up your VPC</h3>
 
 <p>Start by installing the <a href="http://aws.amazon.com/cli">AWS Command Line Interface</a> on your machine if you haven&rsquo;t done so already. With this done, we can now create our VPC.</p>
 
@@ -2129,7 +2603,7 @@ promise.then(function(result) {
 $ aws ec2 modify-vpc-attribute --vpc-id $vpcId --enable-dns-hostnames &quot;{\&quot;Value\&quot;:true}&quot;
 </code></pre>
 
-<h3 id="adding-an-internet-gateway:ed16f33dbf5018a09918ad8ef3c5f741">Adding an Internet Gateway</h3>
+<h3 id="adding-an-internet-gateway">Adding an Internet Gateway</h3>
 
 <p>Next we need to connect our VPC to the rest of the internet by attaching an internet gateway. Our VPC would be isolated from the internet without this.</p>
 
@@ -2137,7 +2611,7 @@ $ aws ec2 modify-vpc-attribute --vpc-id $vpcId --enable-dns-hostnames &quot;{\&q
 $ aws ec2 attach-internet-gateway --internet-gateway-id $internetGatewayId --vpc-id $vpcId
 </code></pre>
 
-<h3 id="creating-a-subnet:ed16f33dbf5018a09918ad8ef3c5f741">Creating a Subnet</h3>
+<h3 id="creating-a-subnet">Creating a Subnet</h3>
 
 <p>A VPC can have multiple subnets. Since our use case only requires one, we can reuse the cidr-block specified during VPC creation so as to get a single subnet that spans the entire VPC address space.</p>
 
@@ -2146,7 +2620,7 @@ $ aws ec2 attach-internet-gateway --internet-gateway-id $internetGatewayId --vpc
 
 <p>While this <code>--cidr-block</code> parameter specifies a subnet that can contain 16 IP addresses (10.0.0.1 - 10.0.0.16), AWS will reserve 5 of those for private use. While this doesn&rsquo;t really have an impact on our use case, it is still good to be aware of such things.</p>
 
-<h3 id="configuring-the-route-table:ed16f33dbf5018a09918ad8ef3c5f741">Configuring the Route Table</h3>
+<h3 id="configuring-the-route-table">Configuring the Route Table</h3>
 
 <p>Each subnet needs to have a route table associated with it to specify the routing of its outbound traffic. By default every subnet inherits the default VPC route table which allows for intra-VPC communication only.</p>
 
@@ -2157,7 +2631,7 @@ $ aws ec2 associate-route-table --route-table-id $routeTableId --subnet-id $subn
 $ aws ec2 create-route --route-table-id $routeTableId --destination-cidr-block 0.0.0.0/0 --gateway-id $internetGatewayId
 </code></pre>
 
-<h3 id="adding-a-security-group:ed16f33dbf5018a09918ad8ef3c5f741">Adding a Security Group</h3>
+<h3 id="adding-a-security-group">Adding a Security Group</h3>
 
 <p>Before we can launch an instance, we first need to create a security group that specifies which ports should allow traffic. For now we&rsquo;ll just allow anyone to try and make an SSH connection by opening port 22 to any IP address.</p>
 
@@ -2165,7 +2639,7 @@ $ aws ec2 create-route --route-table-id $routeTableId --destination-cidr-block 0
 $ aws ec2 authorize-security-group-ingress --group-id $securityGroupId --protocol tcp --port 22 --cidr 0.0.0.0/0
 </code></pre>
 
-<h3 id="launching-your-instance:ed16f33dbf5018a09918ad8ef3c5f741">Launching your Instance</h3>
+<h3 id="launching-your-instance">Launching your Instance</h3>
 
 <p>All that&rsquo;s left to do is to create an SSH key pair and then launch an instance secured by this. Let&rsquo;s generate this key pair and store it locally with the correct permissions.</p>
 
@@ -2206,7 +2680,7 @@ $ ssh -i ~/.ssh/my-key.pem ubuntu@$instanceUrl
 
 <p>It&rsquo;s very easy for a Github repository to accumulate lots of tags over time. This onslaught of tags tends to be tolerated until it starts impacting git performance. It is at this point, when you have well in excess of tens of thousands of tags, that a call to action tends to be made. In this article, we&rsquo;ll look at two approaches to rid yourself of these old tags.</p>
 
-<h3 id="the-cut-off-tag-approach:257dca9811faca70d0b7c4cba16ee1c1">The cut-off tag approach</h3>
+<h3 id="the-cut-off-tag-approach">The cut-off tag approach</h3>
 
 <p>This approach has us specify a cut-off tag. All tags that can trace their ancestry back to this cut-off tag will be allowed to remain. All others will get deleted. This is especially useful for when you have just merged a new feature, and now you want to delete all tags that were created before this merge. In this scenario, all you have to do is tag the merge commit and then use this as the cut-off tag.</p>
 
@@ -2229,7 +2703,7 @@ git fetch --prune origin +refs/tags/*:refs/tags/*
 
 <p>The <code>-23</code> flag tells <code>comm</code> to suppress any lines that are unique to file 2, as well as any lines that appear in both files. In other words, it causes <code>comm</code> to return just those lines that only appear in file 1. Looking back at our sequence of commands above, it should be clear that this will cause us to obtain all tags that do not have the release-5 tag as an ancestor. Piping this output to <code>xargs git push --delete origin</code> will then remove these tags from Github.</p>
 
-<h3 id="the-cut-off-date-approach:257dca9811faca70d0b7c4cba16ee1c1">The cut-off date approach</h3>
+<h3 id="the-cut-off-date-approach">The cut-off date approach</h3>
 
 <p>While the cut-off tag approach works great in a lot of scenarios, sometimes you just want to delete all tags that were created before a given cut-off date instead. Unfortunately, git doesn&rsquo;t have any built-in functionality for accomplishing this. This is why we are going to make use of a Ruby script here.</p>
 
@@ -2480,7 +2954,7 @@ adb shell sendevent /dev/input/event7: 0 0 0
 
 <p>The solution to this complexity was to completely remove the need for local repositories and instead aim to have everything done through the wonderful Github API. This article is a reminder to myself about some API functionality that I found while looking into this.</p>
 
-<h3 id="checking-if-a-branch-contains-a-commit:ebeddf967e2b970d374ec29d22d794b8">Checking if a branch contains a commit</h3>
+<h3 id="checking-if-a-branch-contains-a-commit">Checking if a branch contains a commit</h3>
 
 <p>While the Github API does not have an explicit call to check whether a given commit is included in a branch, we can nevertheless use the <a href="https://developer.github.com/v3/repos/commits/#compare-two-commits">compare call</a> for just this purpose. This call takes two commits as input and returns a large JSON response of comparison data. We can use the <code>status</code> field of the response to ascertain if a given commit is behind or identical to the HEAD commit of a branch. If so, then the branch contains that commit.</p>
 
@@ -2495,7 +2969,7 @@ class GithubClient &lt; Octokit::Client
 end
 </code></pre>
 
-<h3 id="creating-a-remote-branch-from-a-remote-commit:ebeddf967e2b970d374ec29d22d794b8">Creating a remote branch from a remote commit</h3>
+<h3 id="creating-a-remote-branch-from-a-remote-commit">Creating a remote branch from a remote commit</h3>
 
 <p>Sometimes you&rsquo;ll want to create a remote branch by branching from a remote commit. We can use the <a href="https://developer.github.com/v3/git/refs/#create-a-reference">create_reference call</a> to accomplish this. Note that the <code>ref</code> parameter of this call needs to be set to <code>refs/heads/#{branch}</code> when creating a remote branch.</p>
 
@@ -2510,7 +2984,7 @@ class GithubClient &lt; Octokit::Client
 end
 </code></pre>
 
-<h3 id="setting-the-head-of-a-remote-branch-to-a-specific-remote-commit:ebeddf967e2b970d374ec29d22d794b8">Setting the HEAD of a remote branch to a specific remote commit</h3>
+<h3 id="setting-the-head-of-a-remote-branch-to-a-specific-remote-commit">Setting the HEAD of a remote branch to a specific remote commit</h3>
 
 <p>You can even forcefully set the HEAD of a remote branch to a specific remote commit by using the <a href="https://developer.github.com/v3/git/refs/#update-a-reference">update_reference call</a>. As mentioned earlier, the <code>ref</code> parameter needs to be set to <code>refs/heads/#{branch}</code>. Be careful when using this functionality though as it essentially allows you to overwrite the history of a remote branch!</p>
 
@@ -2561,7 +3035,7 @@ end
 
 <p>I thought that would be the end of it, but instead I was asked if I could see a way to solve the problem in a significantly more performant way using the XOR operator.</p>
 
-<h3 id="xor-characteristics:3b1479834de8b2716c6d36848e7cf887">XOR characteristics</h3>
+<h3 id="xor-characteristics">XOR characteristics</h3>
 
 <p>In order to solve this problem with the XOR operator, we first need to understand some of its characteristics. This operator obeys the following rules:</p>
 
@@ -2593,7 +3067,7 @@ accum = 4                        # 0 is the identity element
 # =&gt; 4
 </code></pre>
 
-<h3 id="benchmarks:3b1479834de8b2716c6d36848e7cf887">Benchmarks</h3>
+<h3 id="benchmarks">Benchmarks</h3>
 
 <p>Let&rsquo;s use Ruby&rsquo;s <code>Benchmark</code> module to do a comparison of both approaches.</p>
 
@@ -2835,7 +3309,7 @@ end
 
 <p>Some useful commands:</p>
 
-<h4 id="list-all-network-connections:af3807b2c0cfda8f5c0a92778b96cb1b">List all network connections</h4>
+<h4 id="list-all-network-connections">List all network connections</h4>
 
 <pre><code class="language-bash">$ lsof -i
 
@@ -2849,7 +3323,7 @@ Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168
 Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
 </code></pre>
 
-<h4 id="list-all-network-connections-on-port-4381:af3807b2c0cfda8f5c0a92778b96cb1b">List all network connections on port 4381</h4>
+<h4 id="list-all-network-connections-on-port-4381">List all network connections on port 4381</h4>
 
 <pre><code class="language-bash">$ lsof -i :4381
 
@@ -2857,7 +3331,7 @@ COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 Spotify 36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
 </code></pre>
 
-<h4 id="find-ports-listening-for-connections:af3807b2c0cfda8f5c0a92778b96cb1b">Find ports listening for connections</h4>
+<h4 id="find-ports-listening-for-connections">Find ports listening for connections</h4>
 
 <pre><code class="language-bash">$ lsof -i | grep -i LISTEN
 
@@ -2866,14 +3340,14 @@ Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:
 Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cf      0t0  TCP *:57621 (LISTEN)
 </code></pre>
 
-<h4 id="find-established-connections:af3807b2c0cfda8f5c0a92778b96cb1b">Find established connections</h4>
+<h4 id="find-established-connections">Find established connections</h4>
 
 <pre><code class="language-bash">$ lsof -i | grep -i ESTABLISHED
 
 Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
 </code></pre>
 
-<h4 id="show-all-files-opened-by-a-given-process:af3807b2c0cfda8f5c0a92778b96cb1b">Show all files opened by a given process</h4>
+<h4 id="show-all-files-opened-by-a-given-process">Show all files opened by a given process</h4>
 
 <pre><code class="language-bash">$ lsof -p 36908
 
@@ -3259,7 +3733,7 @@ model = str.constantize.table_name.classify.constantize
 
 <p>The above problem prompted me to take a closer look at the differences between GET and POST requests. You probably use these all the time, but do you know how each of them functions?</p>
 
-<h4 id="get-requests:4d95a9bef13dce29490ef41cb06ad212">GET requests</h4>
+<h4 id="get-requests">GET requests</h4>
 
 <ul>
 <li>can be bookmarked</li>
@@ -3270,7 +3744,7 @@ model = str.constantize.table_name.classify.constantize
 <li>use these for actions that retrieve data. For example, you don&rsquo;t want to use GET requests for posting comments on your blog. Otherwise an attacker could copy a url that posts a specific comment and put it on twitter. Every time someone were to click this link, a comment would now be posted on your blog.</li>
 </ul>
 
-<h4 id="post-requests:4d95a9bef13dce29490ef41cb06ad212">POST requests</h4>
+<h4 id="post-requests">POST requests</h4>
 
 <ul>
 <li>cannot be bookmarked</li>

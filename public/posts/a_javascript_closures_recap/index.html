@@ -96,7 +96,7 @@
 
 <p>There seem to be very few step-by-step overviews of javascript closures. As a matter of fact, I only found two. Luckily they are both absolute gems. You can find them <a href="http://openhome.cc/eGossip/JavaScript/Closures.html">here</a> and <a href="https://web.archive.org/web/20080209105120/http://blog.morrisjohns.com/javascript_closures_for_dummies">here</a>. I heartily recommend both these articles to anyone wanting to gain a more complete understanding of closures.</p>
 
-<h3 id="closure-basics:fd3eb7d414a05af8a77db8210b1ff256">Closure basics</h3>
+<h3 id="closure-basics">Closure basics</h3>
 
 <p>I&rsquo;m going to shamelessly borrow a few lines from the <a href="http://openhome.cc/eGossip/JavaScript/Closures.html">first</a> of the two articles linked above to illustrate the basic concept of a closure.</p>
 
@@ -120,11 +120,11 @@ foo(30); // returns 40
 
 <p>This is really all you need to know about closures: they refer to variables declared outside the scope of the function and by doing so keep these variables alive. Closure behavior can be entirely explained just by keeping these two things in mind.</p>
 
-<h3 id="closures-and-primitive-data-types:fd3eb7d414a05af8a77db8210b1ff256">Closures and primitive data types</h3>
+<h3 id="closures-and-primitive-data-types">Closures and primitive data types</h3>
 
 <p>The rest of this post will go over some code examples to illustrate the behavior of closures for both primitive and object params. In this section, we&rsquo;ll have a look at the behavior of a closure with a primitive data type param.</p>
 
-<h4 id="example-1:fd3eb7d414a05af8a77db8210b1ff256">Example 1</h4>
+<h4 id="example-1">Example 1</h4>
 
 <p>The code below will be our starting point for studying closures. Be sure to take a good look at it, as all our examples will be a variation of this code. Throughout this post, we are going to try and understand closures by examining the values returned by the <code>foo()</code> function.</p>
 
@@ -144,7 +144,7 @@ foo();    // returns 1
 
 <p>When the javascript runtime wants to resolve the value returned by <code>return p;</code>, it finds that this p variable is the same as the p variable from <code>var foo = function(p) {</code>. In other words, there is no direct link between the p from <code>return p;</code> and the variable prim from <code>var prim = 1;</code>. We see this is true because assigning a new value to prim does not cause the value returned by <code>foo()</code> to change.</p>
 
-<h4 id="example-2:fd3eb7d414a05af8a77db8210b1ff256">Example 2</h4>
+<h4 id="example-2">Example 2</h4>
 
 <p>Now let&rsquo;s have a look at what happens when we make a small change to the previous code sample by adding the line <code>p = 2;</code> to it.</p>
 
@@ -165,7 +165,7 @@ foo();    // returns 2
 
 <p>The code above is interesting in that it shows that the p variable from <code>return p;</code> is indeed the same as the p variable from <code>var foo = function(p) {</code>. Even though the variable f gets created at a time when p is set to 1, the act of setting p to 2 does indeed cause the value returned by <code>foo()</code> to change. This is a great example of a closure keeping a closed variable alive.</p>
 
-<h4 id="example-3:fd3eb7d414a05af8a77db8210b1ff256">Example 3</h4>
+<h4 id="example-3">Example 3</h4>
 
 <p>This sample shows code similar to the first, but this time we made the closure close over the prim variable.</p>
 
@@ -182,11 +182,11 @@ foo();    // returns 3
 
 <p>Here too we can make a similar deduction as we did for the previous samples. When the javascript runtime wants to resolve the value returned by <code>return prim;</code>, it finds that this prim variable is the same as the prim variable from <code>var prim = 1;</code>. This explains why setting prim to 3 causes the value returned by <code>foo()</code> to change.</p>
 
-<h3 id="closures-and-objects:fd3eb7d414a05af8a77db8210b1ff256">Closures and objects</h3>
+<h3 id="closures-and-objects">Closures and objects</h3>
 
 <p>In this section we&rsquo;ll see what happens when we take our code samples and change the param from a primitive data type to an object.</p>
 
-<h4 id="example-1-a:fd3eb7d414a05af8a77db8210b1ff256">Example 1.a</h4>
+<h4 id="example-1-a">Example 1.a</h4>
 
 <p>The code below is interesting because in the previous section we saw that a similar example using a primitive param had both calls to <code>foo()</code> return the same value. So what&rsquo;s different here? Let&rsquo;s inspect how the runtime resolves the variables involved.</p>
 
@@ -214,7 +214,7 @@ foo();        // returns 3
 <li><strong>if a closed variable contains a reference to an object, then the closure links to that object, and will pick up on any changes made to it</strong></li>
 </ul>
 
-<h4 id="example-1-b:fd3eb7d414a05af8a77db8210b1ff256">Example 1.b</h4>
+<h4 id="example-1-b">Example 1.b</h4>
 
 <p>Note that the closure will only pick up on changes made to the particular object that was present when the closure was created. Assigning a new object to the obj variable after the closure was created will have no effect. The code below illustrates this.</p>
 
@@ -234,7 +234,7 @@ foo();                 // returns 1
 
 <p>In fact, this code is practically identical to the code from Example 1 of the previous section.</p>
 
-<h4 id="example-2-1:fd3eb7d414a05af8a77db8210b1ff256">Example 2</h4>
+<h4 id="example-2-1">Example 2</h4>
 
 <p>We&rsquo;ll now modify the previous code sample a bit. This time we&rsquo;ll take a look at what happens when we add the line <code>o[1] = &quot;b&quot;;</code>.</p>
 
@@ -256,7 +256,7 @@ foo();        // returns 3
 
 <p>Once again, we can start by reasoning about how the runtime resolves the variable o from <code>return o.length;</code>. As you probably know by now, this variable o is the same as the variable o from <code>var foo = function(o) {</code>. And since it contains a reference to an object, any changes to this object will get reflected in the output of <code>foo()</code>. This explains why the first call to <code>foo()</code> now returns 2, whereas previously it was returning 1.</p>
 
-<h4 id="example-3-1:fd3eb7d414a05af8a77db8210b1ff256">Example 3</h4>
+<h4 id="example-3-1">Example 3</h4>
 
 <p>If you managed to make it this far, this last bit of code should hold no surprises for you.</p>
 
@@ -274,7 +274,7 @@ foo();        // returns 3
 
 <p>The runtime will resolve the variable obj from <code>return obj.length;</code> to be the same as the variable obj from <code>var obj = [&quot;a&quot;];</code>. As a result, any changes to the obj variable will have an effect on the output of <code>foo()</code>.</p>
 
-<h3 id="conclusion:fd3eb7d414a05af8a77db8210b1ff256">Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
 <p>Hopefully this post has demystified closures a bit. Time and time again, we&rsquo;ve shown how following a few simple steps will lead you to understand their behavior. Just keep in mind these rules of thumb and you should be good to go:</p>
 

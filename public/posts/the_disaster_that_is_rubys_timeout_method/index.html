@@ -103,7 +103,7 @@ end
 
 <p>There&rsquo;s one thing the documentation doesn&rsquo;t tell you though. If any of the lines in that block of code introduces side effects that rely on the execution of later lines of code to leave things in a stable state, then using the <code>timeout</code> method is a great way to introduce instability in your program. Examples of this include pretty much any program that is not entirely without stateful information. Let&rsquo;s have a closer look at this method to try and figure out what&rsquo;s going on here exactly.</p>
 
-<h3 id="exceptions-absolutely-anywhere:9337c8a75f66f40fb43aecac823e1f80">Exceptions absolutely anywhere</h3>
+<h3 id="exceptions-absolutely-anywhere">Exceptions absolutely anywhere</h3>
 
 <p>The problem with <code>timeout</code> is that it relies upon Ruby&rsquo;s questionable ability to have one thread raise an exception <em>absolutely anywhere</em> in an entirely different thread. The idea is that when you place code inside a <code>timeout</code> block, this code gets wrapped inside a new thread that executes in the background while the main thread goes to sleep for 5 seconds. Upon waking, the main thread grabs the background thread and forcefully stops it by raising a <code>Timeout::Error</code> exception on it (<a href="https://github.com/ruby/ruby/blob/trunk/lib/timeout.rb#L72-L110">actual implementation</a>).</p>
 
@@ -166,7 +166,7 @@ sleep 5
 ...started cleaning resource
 </code></pre>
 
-<h3 id="real-world-example:9337c8a75f66f40fb43aecac823e1f80">Real world example</h3>
+<h3 id="real-world-example">Real world example</h3>
 
 <p>Recently, I spent a lot of time working with the <a href="https://github.com/taf2/curb">curb http client</a>. I ended up wrapping quite a few of my curb calls within <code>timeout</code> blocks because of tight time constraints. However, this caused great instability within the system I was working on. Sometimes a call would work, whereas other times that very same call would throw an exception about an invalid handle. It was this that caused me to start investigating the <code>timeout</code> method.</p>
 
@@ -232,7 +232,7 @@ end
 
 <p>Running the above program will result in an exception being thrown after a few seconds. At some point, the <code>timeout</code> method is causing a <code>Timeout::Error</code> exception to be raised inside a critical code path of the http client. This badly timed <code>Timeout::Error</code> exception leaves the client in an invalid state, which in turn causes the next page fetch to fail with the exception shown above. Hopefully this illustrates why you should avoid creating programs that can have <code>Timeout::Error</code> exceptions pop up <em>absolutely anywhere</em>.</p>
 
-<h3 id="conclusion:9337c8a75f66f40fb43aecac823e1f80">Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
 <p>I hope this has convinced you there is nothing you can do to prevent <code>timeout</code> from doing whatever it wants to your program&rsquo;s internal state. There is just no way a program can deal with <code>Timeout::Error</code> exceptions being able to potentially pop up <em>absolutely anywhere</em>. The only time you can really get away with using timeouts is when writing functional code that does not rely on any state. In all other cases, it is best to just avoid timeouts entirely.</p>
 

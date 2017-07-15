@@ -94,7 +94,7 @@
 
 <p>I recently had to write some javascript code that required the sequential execution of half a dozen asynchronous requests. I figured this was the perfect time to learn a bit more about javascript promises. This post is a recap of what I read in these <a href="http://www.html5rocks.com/en/tutorials/es6/promises/">three</a> <a href="http://www.mullie.eu/how-javascript-promises-work/">amazing</a> <a href="http://www.sitepoint.com/overview-javascript-promises/">write-ups</a>.</p>
 
-<h3 id="what-are-promises:e45390df332d7d109b53a5ac1df46eec">What are promises?</h3>
+<h3 id="what-are-promises">What are promises?</h3>
 
 <p>A Promise object represents a value that may not be available yet, but will be resolved at some point in future. This abstraction allows you to write asynchronous code in a more synchronous fashion. For example, you can use a Promise object to represent data that will eventually be returned by a call to a remote web service. The <code>then</code> and <code>catch</code> methods can be used to attach callbacks that will be triggered once the data arrives. We&rsquo;ll take a closer look at these two methods in the next sections. For now, let&rsquo;s write a simple AJAX request example that prints a random joke.</p>
 
@@ -144,7 +144,7 @@ promise.then(function(result) {
 
 <p>We can test whether a Promise only ever executes once by adding a second callback to the previous example. In this case, we see that only one AJAX request gets made and that the same joke gets printed to the console twice. This clearly shows that our Promise was only executed once.</p>
 
-<h3 id="the-then-method-and-chaining:e45390df332d7d109b53a5ac1df46eec">The <code>then</code> method and chaining</h3>
+<h3 id="the-then-method-and-chaining">The <code>then</code> method and chaining</h3>
 
 <p>The <code>then</code> method takes two arguments: a mandatory success callback and an optional failure callback. These callbacks are called when the Promise is settled (i.e. either fulfilled or rejected). If the Promise was fulfilled, the success callback will be fired with the data you passed to <code>resolve</code>. If the Promise was rejected, the failure callback will be called with the data you passed to <code>reject</code>. We&rsquo;ve already covered most of this in the previous section.</p>
 
@@ -198,7 +198,7 @@ getJokePromise().then(function(result) {
 
 <p>The takeaway from all this is that calling <code>return</code> in a <code>then</code> callback will always result in returning a Promise object. It is this that allows for <code>then</code> chaining!</p>
 
-<h3 id="error-handling:e45390df332d7d109b53a5ac1df46eec">Error handling</h3>
+<h3 id="error-handling">Error handling</h3>
 
 <p>We mentioned in the previous section how the <code>then</code> method can take an optional failure callback that gets triggered when <code>reject</code> is called. It is customary to reject with an Error object as they capture a stack trace, thereby facilitating debugging.</p>
 

@@ -96,7 +96,7 @@
 
 <p>Some useful commands:</p>
 
-<h4 id="list-all-network-connections:af3807b2c0cfda8f5c0a92778b96cb1b">List all network connections</h4>
+<h4 id="list-all-network-connections">List all network connections</h4>
 
 <pre><code class="language-bash">$ lsof -i
 
@@ -110,7 +110,7 @@ Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168
 Spotify   36908 vaneyckt   91u  IPv4 0x2097c8de8d029f2d      0t0  UDP ip-192-168-0-101.ec2.internal:52706
 </code></pre>
 
-<h4 id="list-all-network-connections-on-port-4381:af3807b2c0cfda8f5c0a92778b96cb1b">List all network connections on port 4381</h4>
+<h4 id="list-all-network-connections-on-port-4381">List all network connections on port 4381</h4>
 
 <pre><code class="language-bash">$ lsof -i :4381
 
@@ -118,7 +118,7 @@ COMMAND   PID     USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 Spotify 36908 vaneyckt   53u  IPv4 0x2097c8deb175c0dd      0t0  TCP localhost:4381 (LISTEN)
 </code></pre>
 
-<h4 id="find-ports-listening-for-connections:af3807b2c0cfda8f5c0a92778b96cb1b">Find ports listening for connections</h4>
+<h4 id="find-ports-listening-for-connections">Find ports listening for connections</h4>
 
 <pre><code class="language-bash">$ lsof -i | grep -i LISTEN
 
@@ -127,14 +127,14 @@ Spotify   36908 vaneyckt   54u  IPv4 0x2097c8deab18027d      0t0  TCP localhost:
 Spotify   36908 vaneyckt   72u  IPv4 0x2097c8deb18ef4cf      0t0  TCP *:57621 (LISTEN)
 </code></pre>
 
-<h4 id="find-established-connections:af3807b2c0cfda8f5c0a92778b96cb1b">Find established connections</h4>
+<h4 id="find-established-connections">Find established connections</h4>
 
 <pre><code class="language-bash">$ lsof -i | grep -i ESTABLISHED
 
 Spotify   36908 vaneyckt   90u  IPv4 0x2097c8dea8c4a66d      0t0  TCP ip-192-168-0-101.ec2.internal:62432-&gt;lon3-accesspoint-a57.lon3.spotify.com:https (ESTABLISHED)
 </code></pre>
 
-<h4 id="show-all-files-opened-by-a-given-process:af3807b2c0cfda8f5c0a92778b96cb1b">Show all files opened by a given process</h4>
+<h4 id="show-all-files-opened-by-a-given-process">Show all files opened by a given process</h4>
 
 <pre><code class="language-bash">$ lsof -p 36908
 

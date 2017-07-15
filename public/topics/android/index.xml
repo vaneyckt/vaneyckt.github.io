@@ -8,7 +8,9 @@
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
     <lastBuildDate>Thu, 20 Mar 2014 20:08:17 +0000</lastBuildDate>
-    <atom:link href="https://vaneyckt.io/topics/android/index.xml" rel="self" type="application/rss+xml" />
+    
+	<atom:link href="https://vaneyckt.io/topics/android/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Programmatically rotating the Android screen</title>
@@ -16,32 +18,7 @@
       <pubDate>Thu, 20 Mar 2014 20:08:17 +0000</pubDate>
       
       <guid>https://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</guid>
-      <description>&lt;p&gt;A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the &lt;code&gt;dumpsys&lt;/code&gt; output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# get current orientation
-adb shell dumpsys input | grep SurfaceOrientation | awk &#39;{print $2}&#39;
-
-# change orientaton to portait
-adb shell content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:0
-adb shell content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:0
-
-# change orientation to landscape
-adb shell content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:0
-adb shell content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:1
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;If you don’t want to use ADB and prefer to change the orientation through an Android app instead, then you can just use these commands.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// get current orientation
-final int orientation = myActivity.getResources().getConfiguration().orientation;
-
-// change orientation to portrait
-myActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-// change orientation to landscape
-myActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-&lt;/code&gt;&lt;/pre&gt;
-</description>
+      <description>A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the dumpsys output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.</description>
     </item>
     
     <item>
@@ -50,40 +27,8 @@ myActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
       <pubDate>Tue, 04 Mar 2014 20:40:56 +0000</pubDate>
       
       <guid>https://vaneyckt.io/posts/programmatically_creating_android_touch_events/</guid>
-      <description>&lt;p&gt;Recent versions of Android have the &lt;code&gt;adb shell input touch&lt;/code&gt; functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running &lt;code&gt;adb shell getevent&lt;/code&gt; to capture events as they are being generated. These events can then later be replayed using the &lt;code&gt;adb shell sendevent&lt;/code&gt; command.&lt;/p&gt;
-
-&lt;p&gt;Running &lt;code&gt;adb shell getevent&lt;/code&gt; when touching the screen might get you something like shown below. Notice how the output is in hexadecimal.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;/dev/input/event7: 0001 014a 00000001
-/dev/input/event7: 0003 003a 00000001
-/dev/input/event7: 0003 0035 000001ce
-/dev/input/event7: 0003 0036 00000382
-/dev/input/event7: 0000 0002 00000000
-/dev/input/event7: 0000 0000 00000000
-/dev/input/event7: 0001 014a 00000000
-/dev/input/event7: 0003 003a 00000000
-/dev/input/event7: 0003 0035 000001ce
-/dev/input/event7: 0003 0036 00000382
-/dev/input/event7: 0000 0002 00000000
-/dev/input/event7: 0000 0000 00000000
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;However, the &lt;code&gt;adb shell sendevent&lt;/code&gt; command expect all of its input to be in decimal. So if we wanted to replay the above events, we&amp;rsquo;d need to do something like shown below. Note that 462 and 898 are the x and y coordinates of this particular touch event.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;adb shell sendevent /dev/input/event7: 1 330 1
-adb shell sendevent /dev/input/event7: 3 58 1
-adb shell sendevent /dev/input/event7: 3 53 462
-adb shell sendevent /dev/input/event7: 3 54 898
-adb shell sendevent /dev/input/event7: 0 2 0
-adb shell sendevent /dev/input/event7: 0 0 0
-adb shell sendevent /dev/input/event7: 1 330 0
-adb shell sendevent /dev/input/event7: 3 58 0
-adb shell sendevent /dev/input/event7: 3 53 462
-adb shell sendevent /dev/input/event7: 3 54 898
-adb shell sendevent /dev/input/event7: 0 2 0
-adb shell sendevent /dev/input/event7: 0 0 0
-&lt;/code&gt;&lt;/pre&gt;
-</description>
+      <description>Recent versions of Android have the adb shell input touch functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running adb shell getevent to capture events as they are being generated. These events can then later be replayed using the adb shell sendevent command.
+Running adb shell getevent when touching the screen might get you something like shown below.</description>
     </item>
     
   </channel>
