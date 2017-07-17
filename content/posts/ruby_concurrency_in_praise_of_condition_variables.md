@@ -115,7 +115,7 @@ finish an increment of increment_counters
 ...
 ```
 
-In essence, a mutex indicates to the interpreter what state is shared between threads. The interpreter then uses this information to decide which threads can and which threads can't be interleaved. The fact that this logic is usually implemented with some kind of locking is just an implementation detail. The important thing here is that the mutex acts a mechanism that indicates to the interpreter which threads share the same state.
+In essence, a mutex indicates to the interpreter what state is shared between threads. The interpreter then uses this information to decide which threads can and which threads can't be interleaved. The fact that this logic is usually implemented with some kind of locking is just an implementation detail. The important thing here is that the mutex acts as a mechanism that indicates to the interpreter which threads share the same state.
 
 While the above example may have come across as somewhat contrived, this next one seems to elude a lot of programmers that think of mutexes as just locks. Most developers think that the code shown below is without error. There's a rather pervasive misconception that a mutex is only required when writing to a shared variable, and not when reading from it. If that were true, then every line of the output of `puts flags.to_s` should consist of 10 repetitions of either `true` or `false`. As we can see below, this is not the case.
 
