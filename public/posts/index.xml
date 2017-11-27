@@ -7,10 +7,19 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
-    <lastBuildDate>Mon, 17 Jul 2017 10:21:34 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 18 Jul 2017 10:21:34 +0000</lastBuildDate>
     
 	<atom:link href="https://vaneyckt.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Buiding a Ruby Queue with timeout functionality</title>
+      <link>https://vaneyckt.io/posts/building_a_ruby_queue_with_timeout_functionality/</link>
+      <pubDate>Tue, 18 Jul 2017 10:21:34 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/building_a_ruby_queue_with_timeout_functionality/</guid>
+      <description>In an earlier post, we explained how condition variables can be used to create your own Queue class. This article will build further on this and show how to add a blocking shift method that supports timeouts to this class. This is a relatively advanced topic, and hence we will assume that the reader has a decent grasp of the intricacies of condition variables. A refresher on this topic, to which I will be referring throughout this text, can be found here.</description>
+    </item>
     
     <item>
       <title>Ruby concurrency: in praise of condition variables</title>
