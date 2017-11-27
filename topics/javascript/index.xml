@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Javascript on vaneyckt.io</title>
+    <link>https://vaneyckt.io/topics/javascript/</link>
+    <description>Recent content in Javascript on vaneyckt.io</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Sat, 26 Sep 2015 17:54:23 +0000</lastBuildDate>
+    
+	<atom:link href="https://vaneyckt.io/topics/javascript/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>A javascript closures recap</title>
+      <link>https://vaneyckt.io/posts/a_javascript_closures_recap/</link>
+      <pubDate>Sat, 26 Sep 2015 17:54:23 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/a_javascript_closures_recap/</guid>
+      <description>Javascript closures have always been one those things that I used to navigate by intuition. Recently however, upon stumbling across some code that I did not quite grok, it became clear I should try and obtain a more formal understanding. This post is mainly intended as a quick recap for my future self. It won&amp;rsquo;t go into all the details about closures; instead it will focus on the bits that I found most helpful.</description>
+    </item>
+    
+    <item>
+      <title>An introduction to javascript promises</title>
+      <link>https://vaneyckt.io/posts/an_introduction_to_javascript_promises/</link>
+      <pubDate>Sat, 07 Feb 2015 18:34:09 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/an_introduction_to_javascript_promises/</guid>
+      <description>I recently had to write some javascript code that required the sequential execution of half a dozen asynchronous requests. I figured this was the perfect time to learn a bit more about javascript promises. This post is a recap of what I read in these three amazing write-ups.
+What are promises? A Promise object represents a value that may not be available yet, but will be resolved at some point in future.</description>
+    </item>
+    
+    <item>
+      <title>The javascript event loop</title>
+      <link>https://vaneyckt.io/posts/the_javascript_event_loop/</link>
+      <pubDate>Sun, 10 Nov 2013 20:50:04 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/the_javascript_event_loop/</guid>
+      <description>Sometimes you come across an article that is so well written you can&amp;rsquo;t do anything but link to it. So if you&amp;rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give this article a read.
+Some snippets:
+ JavaScript runtimes contain a message queue which stores a list of messages to be processed and their associated callback functions. These messages are queued in response to external events (such as a mouse being clicked or receiving the response to an HTTP request) given a callback function has been provided.</description>
+    </item>
+    
+  </channel>
+</rss>

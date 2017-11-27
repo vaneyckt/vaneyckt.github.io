@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux on vaneyckt.io</title>
+    <link>https://vaneyckt.io/topics/linux/</link>
+    <description>Recent content in Linux on vaneyckt.io</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Mon, 24 Aug 2015 19:47:55 +0000</lastBuildDate>
+    
+	<atom:link href="https://vaneyckt.io/topics/linux/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Understanding iostat</title>
+      <link>https://vaneyckt.io/posts/understanding_iostat/</link>
+      <pubDate>Mon, 24 Aug 2015 19:47:55 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/understanding_iostat/</guid>
+      <description>I&amp;rsquo;ve been spending a lot of time lately looking at I/O performance and reading up about the iostat command. While this command provides a wealth of I/O performance data, the sheer amount of it all can make it hard to see the forest for the trees. In this post, we&amp;rsquo;ll talk about interpreting this data. Before we continue, I would first like to thank the authors of the blog posts mentioned below, as each of these has helped me understand iostat and its many complexities just a little bit better.</description>
+    </item>
+    
+    <item>
+      <title>Safer bash scripts with &#39;set -euxo pipefail&#39;</title>
+      <link>https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
+      <pubDate>Mon, 16 Mar 2015 19:43:34 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
+      <description>Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won&amp;rsquo;t. In this article, we&amp;rsquo;ll look at how we can improve on this.</description>
+    </item>
+    
+    <item>
+      <title>Installing chromedriver</title>
+      <link>https://vaneyckt.io/posts/installing_chromedriver/</link>
+      <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/installing_chromedriver/</guid>
+      <description>Some time ago I needed to install chromedriver on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.
+First of all, let&amp;rsquo;s install chromedriver.
+$ LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE) $ wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip $ unzip chromedriver_linux64.zip $ rm chromedriver_linux64.zip $ sudo mv chromedriver /usr/local/bin  Let&amp;rsquo;s see what happens when we try and run it.</description>
+    </item>
+    
+    <item>
+      <title>Getting connection information with lsof</title>
+      <link>https://vaneyckt.io/posts/getting_connection_information_with_lsof/</link>
+      <pubDate>Mon, 21 Oct 2013 17:21:52 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/getting_connection_information_with_lsof/</guid>
+      <description>The lsof command is one of those super useful commands for figuring out what connections are taking place on your machine. While the lsof command technically just lists open files, just about everything in linux (even sockets) is a file!
+Some useful commands:
+List all network connections $ lsof -i COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME Spotify 36908 vaneyckt 53u IPv4 0x2097c8deb175c0dd 0t0 TCP localhost:4381 (LISTEN) Spotify 36908 vaneyckt 54u IPv4 0x2097c8deab18027d 0t0 TCP localhost:4371 (LISTEN) Spotify 36908 vaneyckt 71u IPv4 0x2097c8deba747c1d 0t0 UDP *:57621 Spotify 36908 vaneyckt 72u IPv4 0x2097c8deb18ef4cf 0t0 TCP *:57621 (LISTEN) Spotify 36908 vaneyckt 77u IPv4 0x2097c8deb993b255 0t0 UDP ip-192-168-0-101.</description>
+    </item>
+    
+    <item>
+      <title>The dig command</title>
+      <link>https://vaneyckt.io/posts/the_dig_command/</link>
+      <pubDate>Tue, 08 Oct 2013 13:24:17 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/the_dig_command/</guid>
+      <description>Today I learned of the existence of the dig command. A very useful little tool for DNS lookups. Here&amp;rsquo;s an example of it in action.
+$ dig www.google.com ; &amp;lt;&amp;lt;&amp;gt;&amp;gt; DiG 9.8.3-P1 &amp;lt;&amp;lt;&amp;gt;&amp;gt; www.google.com ;; global options: +cmd ;; Got answer: ;; -&amp;gt;&amp;gt;HEADER&amp;lt;&amp;lt;- opcode: QUERY, status: NOERROR, id: 4868 ;; flags: qr rd ra; QUERY: 1, ANSWER: 6, AUTHORITY: 0, ADDITIONAL: 0 ;; QUESTION SECTION: ;www.google.com.	IN	A ;; ANSWER SECTION: www.</description>
+    </item>
+    
+  </channel>
+</rss>
