@@ -12,9 +12,11 @@ Condition variables are used for putting threads to sleep and waking them back u
 
 ### A mutex recap
 
-Mutexes are usually explained as locks that are responsible for ensuring that only one thread at a time can access a particular section of code. While this definition is correct, it has always seemed a bit too mechanical to me. That is to say, it foregoes any explanation of mutexes as a concept and instead focuses wholly on implementation details. There is, however, another way of looking at these data structures.
+A mutex is a data structure for protecting shared state between multiple threads. When a piece of code is wrapped inside a mutex, the mutex guarantees that only one thread at a time can execute this code. If another thread wants to start executing this code, it'll have to wait until our first thread is done with it. I realize this may all sound a bit abstract, so now is probably a good time to bring in some example code.
 
-At their core, mutexes are all about signaling when state changes made by one thread should become visible to others. That sounds super abstract, so now is probably a good time to bring in some code. The code below shows your standard "two threads trying to modify the same variable with and without mutexes" scenario used by every blog post about mutexes ever.
+#### Writing to shared state
+
+In this first example, we'll have a look at what happens when two threads try to modify the same shared variable. The snippet below shows two methods: `counters_with_mutex` and `counters_without_mutex`. Both methods start by creating a zero-initialized `counters` array before spawning 5 threads. Each thread will perform 100,000 loops, with every iteration incrementing all elements of the `counters` array by one. Both methods are the same in every way except for one thing: only one of them uses a mutex.
 
 ```ruby
 def counters_with_mutex
@@ -53,71 +55,20 @@ puts counters_with_mutex
 
 puts counters_without_mutex
 # => [500000, 447205, 500000, 500000, 500000, 500000, 203656, 500000, 500000, 500000]
+# note that we seem to have lost some increments here due to not using a mutex
 ```
 
-Surprising absolutely no one, the code that uses a mutex for dealing with multiple threads modifying the same variable produces the correct answer, whereas the other code seems to have lost some increments (more info [here](https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_the_mutex/)). This is often (and quite correctly) explained as the mutex acting as a lock that ensures a second thread won't be able to write to the array that the first thread is busy modifying. This is desirable behavior as the first thread would otherwise just end up overwriting the second thread's changes, thereby making it look like some increments went missing. However, there is another way of looking at this.
+As you can see, only the method that uses a mutex ends up producing the correct result. The method without a mutex seems to have lost some increments. This is because the lack of a mutex makes it possible for our second thread to interrupt our first thread at any point during its execution. This can lead to some serious problems.
 
-From now on, forget about the locking aspects of a mutex. Going forward, think of a mutex as a construct that developers use to indicate to the interpreter which variables are being shared across multiple threads. It is this indicating of shared state that captures what a mutex is really about; the locking is just an implementation detail! Let's have a look at a few scenarios with this new point of view.
+For example, imagine that our first thread has just read the first entry of the `counters` array, incremented it by one, and is now getting ready to write this incremented value back to our array. However, before our first thread can write this incremented value, it gets interrupted by the second thread. This second thread then goes on to read the current value of the first entry, increments it by one, and succeeds in writing the result back to our `counters` array. Now we have a problem!
 
-Our first scenario has three threads: two threads for incrementing the `increment_counters` array, and one thread for decrementing the `decrement_counters` array.
+We have a problem because the first thread got interrupted before it had a chance to write its incremented value to the array. When the first thread resumes, it will end up overwriting the value that the second thread just placed in the array. This will cause us to essentially lose an increment operation, which explains why our program output has entries in it that are less than 500,000.
 
-```ruby
-threads = []
-increment_mutex = Mutex.new
-increment_counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-decrement_counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+All these problems can be avoided by using a mutex. Remember that a thread executing code wrapped by a mutex cannot be interleaved with another thread wanting to execute this same code. Therefore, our second thread would never have gotten interleaved with the first thread, thereby avoiding the possibility of results getting overwritten.
 
-# we use a mutex to indicate to the interpreter that the
-# increment_counters array is shared between multiple threads
-threads += 2.times.map do
-  Thread.new do
-    100000.times do
-      increment_mutex.synchronize do
-        puts 'start an increment of increment_counters'
-        increment_counters.map! { |counter| counter + 1 }
-        puts 'finish an increment of increment_counters'
-      end
-    end
-  end
-end
+#### Reading from shared state
 
-# no need for a mutex here as there is only a single thread, so the
-# decrement_counters array is not shared between multiple threads
-threads += 1.times.map do
-  Thread.new do
-    100000.times do
-      puts '  start a decrement of decrement_counters'
-      decrement_counters.map! { |counter| counter - 1 }
-      puts '  finish a decrement of decrement_counters'
-    end
-  end
-end
-
-threads.each(&:join)
-
-puts increment_counters.inspect
-# => [200000, 200000, 200000, 200000, 200000, 200000, 200000, 200000, 200000, 200000]
-
-puts decrement_counters.inspect
-# => [-100000, -100000, -100000, -100000, -100000, -100000, -100000, -100000, -100000, -100000]
-```
-
-If we forget everything we know about mutexes and consider them to be purely indicators of shared state, then the only thing the `increment_mutex.synchronize do` block really does is tell the interpreter that the variable `increment_counters` is shared between multiple threads. The interpreter receives this information and now knows to never interleave the first two threads with each other.
-
-Moving on, we notice that the second half of our program has no mutex in it. This lack indicates to the interpreter that our third thread can be interleaved with any other thread without this causing any nasty side effects. It is perfectly okay for the interpreter to stop executing the critical section of the first (or second) thread halfway through and start executing the third thread instead. Our program output shows that this is indeed the case as it contains the lines shown below.
-
-```bash
-...
-start an increment of increment_counters
-  start a decrement of decrement_counters
-  finish a decrement of decrement_counters
-finish an increment of increment_counters
-...
-```
-
-In essence, a mutex indicates to the interpreter what state is shared between threads. The interpreter then uses this information to decide which threads can and which threads can't be interleaved. The fact that this logic is usually implemented with some kind of locking is just an implementation detail. The important thing here is that the mutex acts a mechanism that indicates to the interpreter which threads share the same state.
-
-While the above example may have come across as somewhat contrived, this next one seems to elude a lot of programmers that think of mutexes as just locks. Most developers think that the code shown below is without error. There's a rather pervasive misconception that a mutex is only required when writing to a shared variable, and not when reading from it. If that were true, then every line of the output of `puts flags.to_s` should consist of 10 repetitions of either `true` or `false`. As we can see below, this is not the case.
+There's a common misconception that a mutex is only required when writing to a shared variable, and not when reading from it. The snippet below shows 50 threads flipping the boolean values in the `flags` array over and over again. Many developers think this snippet is without error as the code responsible for changing these values was wrapped inside a mutex. If that were true, then every line of the output of `puts flags.to_s` should consist of 10 repetitions of either `true` or `false`. As we can see below, this is not the case.
 
 ```ruby
 mutex = Mutex.new
@@ -126,7 +77,9 @@ flags = [false, false, false, false, false, false, false, false, false, false]
 threads = 50.times.map do
   Thread.new do
     100000.times do
+      # don't do this! Reading from shared state requires a mutex!
       puts flags.to_s
+
       mutex.synchronize do
         flags.map! { |f| !f }
       end
@@ -137,13 +90,13 @@ threads.each(&:join)
 ```
 ```bash
 $ ruby flags.rb > output.log
-$ grep -Hnri 'true, false' output.log | wc -l
+$ grep 'true, false' output.log | wc -l
     30
 ```
 
-However, if we think of mutexes as constructs to be used for telling the interpreter about shared state between threads, it becomes immediately obvious that the above program cannot possibly be correct. The `flags` variable is clearly being shared by multiple threads, and as such all occurrences of it should be wrapped inside a mutex.
+What's happening here is that our mutex only guarantees that no two threads can modify the `flags` array at the same time. However, it is perfectly possible for one thread to start reading from this array while another thread is busy modifying it, thereby causing the first thread to read an array that contains both `true` and `false` entries. Luckily, all of this can be easily avoided by wrapping `puts flags.to_s` inside our mutex. This will guarantee that only one thread at a time can read from or write to the `flags` array.
 
-By not wrapping `puts flags.to_s` inside the mutex, the interpreter has no way of knowing that it shouldn't interleave a thread that is executing `flags.map! { |f| !f }` with another thread wanting to execute `puts flags.to_s`. This once again showcases the power of not treating mutexes as locks but as indicators of shared state that help the interpreter decide which instructions can be safely interleaved.
+Before moving on, I would just like to mention that even very experienced people have gotten tripped up by not using a mutex when accessing shared state. In fact, at one point there even was a [Java design pattern](http://www.javaworld.com/article/2074979/java-concurrency/double-checked-locking--clever--but-broken.html) that assumed it was safe to not always use a mutex to do so. Needless to say, this pattern has since been amended.
 
 ### Consumer-producer problems
 
@@ -231,11 +184,13 @@ threads += 5.times.map do
 end
 ```
 
-### Condition variables
+### Condition variables to the rescue
 
 So how we can create a more efficient solution to the consumer-producer problem? That is where condition variables come into play. Condition variables are used for putting threads to sleep and waking them only once a certain condition is met. Remember that our current solution to the producer-consumer problem is far from ideal because consumer threads need to constantly poll for new tasks to arrive. Things would be much more efficient if our consumer threads could go to sleep and be woken up only when a new task has arrived.
 
 Shown below is a solution to the consumer-producer problem that makes use of condition variables. We'll talk about how this works in a second. For now though, just have a look at the code and perhaps have a go at running it. If you were to run it, you would probably see that `This thread has nothing to do` does not show up anymore. Our new approach has completely gotten rid of consumer threads busy polling the `tasks` array.
+
+The use of a condition variable will now cause our consumer threads to wait for a task to be available in the `tasks` array before proceeding. As a result of this, we can now remove some of the checks we had to have in place in our original consumer code. I've added some comments to the code below to help highlight these removals.
 
 ```ruby
 tasks = []
@@ -278,16 +233,19 @@ threads += 5.times.map do
           cond_var.wait(mutex)
         end
 
-        if tasks.count > 0
-          task = tasks.shift
-          puts "Removed task: #{task.inspect}"
-        else
-          puts 'This thread has nothing to do'
-        end
+        # the `if tasks.count == 0` statement will never be true as the thread
+        # will now only reach this line if the tasks array is not empty
+        puts 'This thread has nothing to do' if tasks.count == 0
+
+        # similarly, we can now remove the `if tasks.count > 0` check that
+        # used to surround this code. We no longer need it as this code will
+        # now only get executed if the tasks array is not empty.
+        task = tasks.shift
+        puts "Removed task: #{task.inspect}"
       end
-      # execute task outside of mutex so we don't unnecessarily
-      # block other consumer threads
-      task.execute unless task.nil?
+      # Note that we have now removed `unless task.nil?` from this line as
+      # our thread can only arrive here if there is indeed a task available.
+      task.execute
     end
   end
 end
@@ -295,7 +253,7 @@ end
 threads.each(&:join)
 ```
 
-The first thing to notice is how we only had to write the five lines shown below to improve our previous solution with condition variables. Don't worry if some of the accompanying comments don't quite make sense yet. Now is also a good time to point out that the new code for both the producer and consumer threads was added inside the existing mutex synchronization blocks. Condition variables are not thread-safe and therefore always need to be used in conjunction with a mutex!
+Aside from us removing some `if` statements, our new code is essentially identical to our previous solution. The only exception to this are the five new lines shown below. Don't worry if some of the accompanying comments don't quite make sense yet. Now is also a good time to point out that the new code for both the producer and consumer threads was added inside the existing mutex synchronization blocks. Condition variables are not thread-safe and therefore always need to be used in conjunction with a mutex!
 
 ```ruby
 # declaring the condition variable
@@ -327,7 +285,7 @@ So what code does our newly awoken thread start executing once it gets scheduled
 
 This segues nicely into why we need to use `while tasks.empty?` when calling `wait` in a consumer thread. When our newly awoken thread resumes execution by returning from `cond_var.wait`, the first thing it'll do is complete its previously interrupted iteration through the `while` loop, thereby evaluating `while tasks.empty?` again. This actually causes us to neatly avoid a possible race condition.
 
-Let's say we don't use a `while` loop and use an `if` statement instead. The resulting code would then look like shown below. Unfortunately, there is a very hard to find problem with this code.
+Let's say we don't use a `while` loop and use an `if` statement instead. The resulting code would then look like shown below. Unfortunately, there is a very hard to find problem with this code. Note how we now need to re-add the previously removed `if tasks.count > 0` and `unless task.nil?` statements to our code below in order to ensure its safe execution.
 
 ```ruby
 # consumer threads
@@ -338,6 +296,9 @@ threads += 5.times.map do
       mutex.synchronize do
         cond_var.wait(mutex) if tasks.empty?
 
+        # using `if tasks.empty?` forces us to once again add this
+        # `if tasks.count > 0` check. We need this check to protect
+        # ourselves against a nasty race condition.
         if tasks.count > 0
           task = tasks.shift
           puts "Removed task: #{task.inspect}"
@@ -345,8 +306,9 @@ threads += 5.times.map do
           puts 'This thread has nothing to do'
         end
       end
-      # execute task outside of mutex so we don't unnecessarily
-      # block other consumer threads
+      # using `if tasks.empty?` forces us to re-add `unless task.nil?`
+      # in order to safeguard ourselves against a now newly introduced
+      # race condition
       task.execute unless task.nil?
     end
   end
@@ -363,7 +325,9 @@ A consumer thread that's awake will go back to sleep only when there are no more
 
 We're now in a position where two consumer threads are competing for ownership of the mutex in order to get scheduled. Let's say our first consumer thread wins this competition. This thread will now go and grab the task from the `tasks` array before relinquishing the mutex. Our second consumer thread then grabs the mutex and gets to run. However, as the `tasks` array is empty now, there is nothing for this second consumer thread to work on. So this second consumer thread now has to do an entire iteration of its `while true` loop for no real purpose at all.
 
-We can make our code more efficient by forcing each newly awakened consumer thread to check for available tasks and having it put itself to sleep again if no tasks are available. This behavior can be easily accomplished by replacing the `if tasks.empty?` statement with a `while tasks.empty?` loop. If tasks are available, a newly awoken thread will exit the loop and execute the rest of its code. However, if no tasks are found, then the loop is repeated, thereby causing the thread to put itself to sleep again by executing `cond_var.wait`. We'll see in a later section that there is yet another benefit to using this `while` loop.
+We now find ourselves in a situation where a complete iteration of the `while true` loop can occur even when the `tasks` array is empty. This is a not unlike the position we were in when our program was just busy polling the `tasks` array. Sure, our current program will be more efficient than busy polling, but we will still need to safeguard our code against the possibility of an iteration occurring when there is no task available. This is why we needed to re-add the `if tasks.count > 0` and `unless task.nil?` statements. Especially the latter of these two is important, as otherwise our program might crash with a `NilException`.
+
+Luckily, we can safely get rid of these easily overlooked safeguards by forcing each newly awakened consumer thread to check for available tasks and having it put itself to sleep again if no tasks are available. This behavior can be accomplished by replacing the `if tasks.empty?` statement with a `while tasks.empty?` loop. If tasks are available, a newly awoken thread will exit the loop and execute the rest of its code. However, if no tasks are found, then the loop is repeated, thereby causing the thread to put itself to sleep again by executing `cond_var.wait`. We'll see in a later section that there is yet another benefit to using this `while` loop.
 
 ### Building our own Queue class
 
@@ -455,7 +419,7 @@ One thing to point out in the above code is that `@cond_var.signal` can get call
 
 ### Spurious wakeups
 
-Spurious wakeups are an impossible to avoid edge-case in condition variables. The term refers to a sleeping thread getting woken up without any `signal` call having been made. It's important to point out that this is not being caused by a bug in the Ruby interpreter or anything like that. Instead, the designers of the threading libraries used by your OS found that allowing for the occasional spurious wakeup [greatly improves the speed of condition variable operations](https://stackoverflow.com/a/8594644/1420382). As such, any code that uses condition variables needs to take spurious wakeups into account.
+A "spurious wakeup" refers to a sleeping thread getting woken up without any `signal` call having been made. This is an impossible to avoid edge-case in condition variables. It's important to point out that this is not being caused by a bug in the Ruby interpreter or anything like that. Instead, the designers of the threading libraries used by your OS found that allowing for the occasional spurious wakeup [greatly improves the speed of condition variable operations](https://stackoverflow.com/a/8594644/1420382). As such, any code that uses condition variables needs to take spurious wakeups into account.
 
 So does this mean that we need to rewrite all the code that we've written in this article in an attempt to make it resistant to possible bugs introduced by spurious wakeups? You'll be glad to know that this isn't the case as all code snippets in this article have always wrapped the `cond_var.wait` statement inside a `while` loop!
 
