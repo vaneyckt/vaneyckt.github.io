@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Dtrace on vaneyckt.io</title>
+    <link>https://vaneyckt.io/topics/dtrace/</link>
+    <description>Recent content in Dtrace on vaneyckt.io</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Mon, 31 Oct 2016 20:24:12 +0000</lastBuildDate>
+    
+	<atom:link href="https://vaneyckt.io/topics/dtrace/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Using DTrace to measure mutex contention in Ruby</title>
+      <link>https://vaneyckt.io/posts/using_dtrace_to_measure_mutex_contention_in_ruby/</link>
+      <pubDate>Mon, 31 Oct 2016 20:24:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/using_dtrace_to_measure_mutex_contention_in_ruby/</guid>
+      <description>I recently found myself working on Ruby code containing a sizable number of threads and mutexes. It wasn&amp;rsquo;t before long that I started wishing for some tool that could tell me which particular mutexes were the most heavily contended. After all, this type of information can be worth its weight in gold when trying to diagnose why your threaded program is running slower than expected.
+This is where DTrace enters the picture.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rails on vaneyckt.io</title>
+    <link>https://vaneyckt.io/topics/rails/</link>
+    <description>Recent content in Rails on vaneyckt.io</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Sun, 17 Jan 2016 20:17:35 +0000</lastBuildDate>
+    
+	<atom:link href="https://vaneyckt.io/topics/rails/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>How to write your own rspec retry mechanism</title>
+      <link>https://vaneyckt.io/posts/how_to_write_your_own_rspec_retry_mechanism/</link>
+      <pubDate>Sun, 17 Jan 2016 20:17:35 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/how_to_write_your_own_rspec_retry_mechanism/</guid>
+      <description>Imagine you have an rspec test suite filled with system tests. Each system test simulates how a real user would interact with your app by opening a browser session through which it fills out text fields, clicks on buttons, and sends data to public endpoints. Unfortunately, browser drivers are not without bugs and sometimes your tests will fail because of these. Wouldn&amp;rsquo;t it be nice if we could automatically retry these failed tests?</description>
+    </item>
+    
+    <item>
+      <title>Adding a post-execution hook to the db:migrate task</title>
+      <link>https://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
+      <pubDate>Mon, 09 Jun 2014 16:31:22 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
+      <description>A few days ago we discovered that our MySQL database&amp;rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&amp;rsquo;t happen again, we looked into adding a post-execution hook to the rails db:migrate task.
+Our first attempt is shown below.</description>
+    </item>
+    
+    <item>
+      <title>Check the order of your rescue_from handlers!</title>
+      <link>https://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</link>
+      <pubDate>Mon, 11 Nov 2013 21:34:16 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</guid>
+      <description>Our rescue_from handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?
+class WidgetsController &amp;lt; ActionController::Base rescue_from ActionController::RoutingError, :with =&amp;gt; :render_404 rescue_from Exception, :with =&amp;gt; :render_500 end  Turns out it&amp;rsquo;s not okay at all. Handlers are searched from bottom to top. This means that they should always be defined in order of most generic to most specific. Or in other words, the above code is exactly the wrong thing to do.</description>
+    </item>
+    
+    <item>
+      <title>Using environment variables in migrations</title>
+      <link>https://vaneyckt.io/posts/using_environment_variables_in_migrations/</link>
+      <pubDate>Tue, 29 Oct 2013 17:42:28 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/using_environment_variables_in_migrations/</guid>
+      <description>Recently we had to run a migration that was so slow we couldn&amp;rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&amp;rsquo;t perform any safety checks.
+The first path would be run on a recent database dump, whereas the latter would be executed directly on the live database once the first had finished without error.</description>
+    </item>
+    
+    <item>
+      <title>Carefully converting your MySQL database to utf8</title>
+      <link>https://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</link>
+      <pubDate>Sun, 20 Oct 2013 17:19:31 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</guid>
+      <description>Converting all the data in your database can be a nail-biting experience. As you can see from the code below we are doing our best to be super careful. We convert each table separately and before each conversion we store the table&amp;rsquo;s column types and an MD5 hash of every row in the table (we were lucky enough to not have enormous tables). After converting the table we check that no column types or rows were changed.</description>
+    </item>
+    
+    <item>
+      <title>MySQL write locks also prevent reads</title>
+      <link>https://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</link>
+      <pubDate>Thu, 17 Oct 2013 17:20:45 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</guid>
+      <description>Locking a table with
+table_name = &#39;widgets&#39; ActiveRecord::Base.connection.execute(&amp;quot;LOCK TABLES #{table_name} WRITE&amp;quot;)  ensures that only the current connection can access that table. Other connections cannot even read from this table while it is locked!</description>
+    </item>
+    
+    <item>
+      <title>Rails migrations and the dangers of implicit commits</title>
+      <link>https://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</link>
+      <pubDate>Wed, 16 Oct 2013 18:45:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</guid>
+      <description>I recently came across the migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.
+# migration to convert table to utf8 class ConvertWidgetsTableToUtf8Unicode &amp;lt; ActiveRecord::Migration def up ActiveRecord::Base.transaction do table_name = &#39;widgets&#39; say &amp;quot;converting #{table_name} table to utf8_unicode_ci&amp;quot; execute(&amp;quot;ALTER TABLE #{table_name} CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci&amp;quot;) execute(&amp;quot;ALTER TABLE #{table_name} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci&amp;quot;) end end end  Notice how the utf8 conversion code is wrapped inside a transaction.</description>
+    </item>
+    
+    <item>
+      <title>URI.js and URL manipulation in rails</title>
+      <link>https://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/</link>
+      <pubDate>Sun, 13 Oct 2013 14:55:23 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/</guid>
+      <description>Manipulating urls in javascript often ends up being an exercise in string interpolation. This rarely produces good looking code. Recently we&amp;rsquo;ve started enforcing the use of the URI.js library to combat this.
+Our new approach has us embed any necessary urls in hidden input fields on the web page in question. Rather than hardcoding these urls, we use the named route functionality offered by rails as this provides more flexibility. When the page gets rendered, these named routes are converted to actual urls through ERB templating.</description>
+    </item>
+    
+    <item>
+      <title>Finding models from strings with rails</title>
+      <link>https://vaneyckt.io/posts/finding_models_from_strings_with_rails/</link>
+      <pubDate>Fri, 11 Oct 2013 16:27:35 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/finding_models_from_strings_with_rails/</guid>
+      <description>Imagine you have a Widget model that stores data in a table &amp;lsquo;widgets&amp;rsquo;. At some point in your rails app you find yourself being given a string &amp;lsquo;Widget&amp;rsquo; and are asked to find the Widget model. This can be done like shown here.
+str = &#39;Widget&#39; model = str.constantize  However, things get a bit harder when you have multiple Widget model subclasses (Widget::A, Widget::B), all of which are stored in the widgets table.</description>
+    </item>
+    
+    <item>
+      <title>Retrieving data in a time range with rails</title>
+      <link>https://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/</link>
+      <pubDate>Thu, 10 Oct 2013 19:22:45 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/</guid>
+      <description>I&amp;rsquo;m writing this mostly as a reminder to myself, since I keep forgetting this :)
+Instead of:
+widgets = Widget.where(&amp;quot;? &amp;lt;= created_at AND created_at &amp;lt;= ?&amp;quot;, time_from, time_to)  do this:
+widgets = Widget.where(:created_at =&amp;gt; time_from .. time_to)  </description>
+    </item>
+    
+    <item>
+      <title>Profiling rails assets precompilation</title>
+      <link>https://vaneyckt.io/posts/profiling_rails_assets_precompilation/</link>
+      <pubDate>Sun, 01 Sep 2013 21:01:02 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/profiling_rails_assets_precompilation/</guid>
+      <description>Assets precompilation on rails can take a fair bit of time. This is especially annoying in scenarios where you want to deploy your app multiple times a day. Let&amp;rsquo;s see if we can come up with a way to actually figure out where all this time is being spent. Also, while I will be focusing on rails 3.2 in this post, the general principle should be easy enough to apply to other rails versions.</description>
+    </item>
+    
+  </channel>
+</rss>

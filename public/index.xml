@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>vaneyckt.io</title>
+    <link>https://vaneyckt.io/</link>
+    <description>Recent content on vaneyckt.io</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Tom Van Eyck</copyright>
+    <lastBuildDate>Mon, 17 Jul 2017 10:21:34 +0000</lastBuildDate>
+    
+	<atom:link href="https://vaneyckt.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Ruby concurrency: in praise of condition variables</title>
+      <link>https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_condition_variables/</link>
+      <pubDate>Mon, 17 Jul 2017 10:21:34 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_condition_variables/</guid>
+      <description>In a previous post, we talked about the benefits conferred by Ruby mutexes. While a programmer&amp;rsquo;s familiarity with mutexes is likely to depend on what kind of programs she usually writes, most developers tend to be at least somewhat familiar with these particular synchronization primitives. This article, however, is going to focus on a much lesser-known synchronization construct: the condition variable.
+Condition variables are used for putting threads to sleep and waking them back up once a certain condition is met.</description>
+    </item>
+    
+    <item>
+      <title>Using DTrace to measure mutex contention in Ruby</title>
+      <link>https://vaneyckt.io/posts/using_dtrace_to_measure_mutex_contention_in_ruby/</link>
+      <pubDate>Mon, 31 Oct 2016 20:24:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/using_dtrace_to_measure_mutex_contention_in_ruby/</guid>
+      <description>I recently found myself working on Ruby code containing a sizable number of threads and mutexes. It wasn&amp;rsquo;t before long that I started wishing for some tool that could tell me which particular mutexes were the most heavily contended. After all, this type of information can be worth its weight in gold when trying to diagnose why your threaded program is running slower than expected.
+This is where DTrace enters the picture.</description>
+    </item>
+    
+    <item>
+      <title>Ruby concurrency: in praise of the mutex</title>
+      <link>https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_the_mutex/</link>
+      <pubDate>Thu, 17 Mar 2016 19:12:21 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_the_mutex/</guid>
+      <description>When reading about Ruby you will inevitably be introduced to the Global Interpreter Lock. This mechanism tends to come up in explanations of why Ruby threads run concurrently on a single core, rather than being scheduled across multiple cores in true parallel fashion. This single core scheduling approach also explains why adding threads to a Ruby program does not necessarily result in faster execution times.
+This post will start by explaining some of the details behind the GIL.</description>
+    </item>
+    
+    <item>
+      <title>How to write your own rspec retry mechanism</title>
+      <link>https://vaneyckt.io/posts/how_to_write_your_own_rspec_retry_mechanism/</link>
+      <pubDate>Sun, 17 Jan 2016 20:17:35 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/how_to_write_your_own_rspec_retry_mechanism/</guid>
+      <description>Imagine you have an rspec test suite filled with system tests. Each system test simulates how a real user would interact with your app by opening a browser session through which it fills out text fields, clicks on buttons, and sends data to public endpoints. Unfortunately, browser drivers are not without bugs and sometimes your tests will fail because of these. Wouldn&amp;rsquo;t it be nice if we could automatically retry these failed tests?</description>
+    </item>
+    
+    <item>
+      <title>The disaster that is Ruby&#39;s timeout method</title>
+      <link>https://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/</link>
+      <pubDate>Sat, 19 Dec 2015 19:20:03 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/the_disaster_that_is_rubys_timeout_method/</guid>
+      <description>On paper, Ruby&amp;rsquo;s timeout method looks like an incredibly useful piece of code. Ever had a network request occasionally slow down your entire program because it just wouldn&amp;rsquo;t finish? That&amp;rsquo;s where timeout comes in. It provides a hard guarantee that a block of code will be finished within a specified amount of time.
+require &#39;timeout&#39; timeout(5) do # block of code that should be interrupted if it takes more than 5 seconds end  There&amp;rsquo;s one thing the documentation doesn&amp;rsquo;t tell you though.</description>
+    </item>
+    
+    <item>
+      <title>A javascript closures recap</title>
+      <link>https://vaneyckt.io/posts/a_javascript_closures_recap/</link>
+      <pubDate>Sat, 26 Sep 2015 17:54:23 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/a_javascript_closures_recap/</guid>
+      <description>Javascript closures have always been one those things that I used to navigate by intuition. Recently however, upon stumbling across some code that I did not quite grok, it became clear I should try and obtain a more formal understanding. This post is mainly intended as a quick recap for my future self. It won&amp;rsquo;t go into all the details about closures; instead it will focus on the bits that I found most helpful.</description>
+    </item>
+    
+    <item>
+      <title>Understanding iostat</title>
+      <link>https://vaneyckt.io/posts/understanding_iostat/</link>
+      <pubDate>Mon, 24 Aug 2015 19:47:55 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/understanding_iostat/</guid>
+      <description>I&amp;rsquo;ve been spending a lot of time lately looking at I/O performance and reading up about the iostat command. While this command provides a wealth of I/O performance data, the sheer amount of it all can make it hard to see the forest for the trees. In this post, we&amp;rsquo;ll talk about interpreting this data. Before we continue, I would first like to thank the authors of the blog posts mentioned below, as each of these has helped me understand iostat and its many complexities just a little bit better.</description>
+    </item>
+    
+    <item>
+      <title>Safer bash scripts with &#39;set -euxo pipefail&#39;</title>
+      <link>https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</link>
+      <pubDate>Mon, 16 Mar 2015 19:43:34 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/</guid>
+      <description>Often times developers go about writing bash scripts the same as writing code in a higher-level language. This is a big mistake as higher-level languages offer safeguards that are not present in bash scripts by default. For example, a Ruby script will throw an error when trying to read from an uninitialized variable, whereas a bash script won&amp;rsquo;t. In this article, we&amp;rsquo;ll look at how we can improve on this.</description>
+    </item>
+    
+    <item>
+      <title>An introduction to javascript promises</title>
+      <link>https://vaneyckt.io/posts/an_introduction_to_javascript_promises/</link>
+      <pubDate>Sat, 07 Feb 2015 18:34:09 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/an_introduction_to_javascript_promises/</guid>
+      <description>I recently had to write some javascript code that required the sequential execution of half a dozen asynchronous requests. I figured this was the perfect time to learn a bit more about javascript promises. This post is a recap of what I read in these three amazing write-ups.
+What are promises? A Promise object represents a value that may not be available yet, but will be resolved at some point in future.</description>
+    </item>
+    
+    <item>
+      <title>Unwanted spot instance termination in multi-AZ ASG</title>
+      <link>https://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</link>
+      <pubDate>Sat, 24 Jan 2015 19:17:53 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/unwanted_spot_instance_termination_in_multi_az_asg/</guid>
+      <description>An auto scaling group is an AWS abstraction that facilitates increasing or decreasing the number of EC2 instances within your application&amp;rsquo;s architecture. Spot instances are unused AWS servers that are auctioned off for little money. The combination of these two allows for large auto scaling groups at low costs. However, you can lose your spot instances at a moment&amp;rsquo;s notice as soon as someone out there wants to pay more than you do.</description>
+    </item>
+    
+    <item>
+      <title>Creating an EC2 Instance in a VPC with the AWS CLI</title>
+      <link>https://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</link>
+      <pubDate>Wed, 29 Oct 2014 17:36:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/creating_an_ec2_instance_in_a_vpc_with_the_aws_cli/</guid>
+      <description>Setting up an EC2 instance on AWS used to be as straightforward as provisioning a machine and SSHing into it. However, this process has become a bit more complicated now that Amazon VPC has become the standard for managing machines in the cloud.
+So what exactly is a Virtual Private Cloud? Amazon defines a VPC as &amp;lsquo;a logically isolated section of the AWS Cloud&amp;rsquo;. Instances inside a VPC can by default only communicate with other instances in the same VPC and are therefore invisible to the rest of the internet.</description>
+    </item>
+    
+    <item>
+      <title>Finding and deleting old tags in a Github repository</title>
+      <link>https://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</link>
+      <pubDate>Fri, 18 Jul 2014 19:32:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/finding_and_deleting_old_tags_in_a_github_repo/</guid>
+      <description>It&amp;rsquo;s very easy for a Github repository to accumulate lots of tags over time. This onslaught of tags tends to be tolerated until it starts impacting git performance. It is at this point, when you have well in excess of tens of thousands of tags, that a call to action tends to be made. In this article, we&amp;rsquo;ll look at two approaches to rid yourself of these old tags.</description>
+    </item>
+    
+    <item>
+      <title>Adding a post-execution hook to the db:migrate task</title>
+      <link>https://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</link>
+      <pubDate>Mon, 09 Jun 2014 16:31:22 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/adding_a_post_execution_hook_to_the_db_migrate_task/</guid>
+      <description>A few days ago we discovered that our MySQL database&amp;rsquo;s default character set and collation had been changed to the wrong values. Worse yet, it looked like this change had happened many months ago; something which we had been completely unaware of until now! In order to make sure this didn&amp;rsquo;t happen again, we looked into adding a post-execution hook to the rails db:migrate task.
+Our first attempt is shown below.</description>
+    </item>
+    
+    <item>
+      <title>Installing chromedriver</title>
+      <link>https://vaneyckt.io/posts/installing_chromedriver/</link>
+      <pubDate>Wed, 14 May 2014 20:14:48 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/installing_chromedriver/</guid>
+      <description>Some time ago I needed to install chromedriver on a ubuntu machine. While this wasn&amp;rsquo;t too hard, I was nevertheless surprised by the number of open StackOverflow questions on this topic. So I decided to leave some notes for my future self.
+First of all, let&amp;rsquo;s install chromedriver.
+$ LATEST_RELEASE=$(curl http://chromedriver.storage.googleapis.com/LATEST_RELEASE) $ wget http://chromedriver.storage.googleapis.com/$LATEST_RELEASE/chromedriver_linux64.zip $ unzip chromedriver_linux64.zip $ rm chromedriver_linux64.zip $ sudo mv chromedriver /usr/local/bin  Let&amp;rsquo;s see what happens when we try and run it.</description>
+    </item>
+    
+    <item>
+      <title>Programmatically rotating the Android screen</title>
+      <link>https://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</link>
+      <pubDate>Thu, 20 Mar 2014 20:08:17 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/programmatically_rotating_the_android_screen/</guid>
+      <description>A lot of digital ink has been spilled on this subject, so I figured it might be worth to briefly talk about this. You can either change the orientation through ADB or through an app. While the ADB approach is the easiest, it might not work on all devices or on all Android versions. For example, the dumpsys output of a Kindle Fire is different than that of a Samsung Galaxy S4, so you might need to tweak the grepping of the output.</description>
+    </item>
+    
+    <item>
+      <title>Programmatically creating Android touch events</title>
+      <link>https://vaneyckt.io/posts/programmatically_creating_android_touch_events/</link>
+      <pubDate>Tue, 04 Mar 2014 20:40:56 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/programmatically_creating_android_touch_events/</guid>
+      <description>Recent versions of Android have the adb shell input touch functionality to simulate touch events on an Android device or simulator. However, older Android versions (like 2.3) do not support this command. Luckily it is possible to recreate this functionality by running adb shell getevent to capture events as they are being generated. These events can then later be replayed using the adb shell sendevent command.
+Running adb shell getevent when touching the screen might get you something like shown below.</description>
+    </item>
+    
+    <item>
+      <title>Some lesser known Github API functionality</title>
+      <link>https://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</link>
+      <pubDate>Sat, 08 Feb 2014 18:05:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/some_lesser_known_github_api_functionality/</guid>
+      <description>One of our automation tools occasionally needs to interact with our Github repositories. Unfortunately, the current implementation of this tool leaves something to be desired as it requires cloning these repositories to local disk. Changes against these local repositories are then made on local branches, after which these branches get pushed to Github.
+However, in order to save on disk space this tool will only ever create a single local copy of each repository.</description>
+    </item>
+    
+    <item>
+      <title>The amazing bitwise XOR operator</title>
+      <link>https://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</link>
+      <pubDate>Sun, 12 Jan 2014 19:35:25 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/the_amazing_bitwise_xor_operator/</guid>
+      <description>One of my colleagues recently mentioned this interview question to me.
+ Imagine there is an array which contains 2n+1 elements, n of which have exactly one duplicate. Can you find the one unique element in this array?
+ This seemed simple enough and I quickly came up with the Ruby solution below.
+&amp;gt; array = [3, 5, 4, 5, 3] # =&amp;gt; [3, 5, 4, 5, 3] &amp;gt; count = array.</description>
+    </item>
+    
+    <item>
+      <title>A visual explanation of SQL joins</title>
+      <link>https://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</link>
+      <pubDate>Sun, 17 Nov 2013 20:22:17 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/a_visual_explanation_of_sql_joins/</guid>
+      <description>I admit that I find myself going to this article every time I need to write some joins. Hopefully putting it here will save me from always having to google it.</description>
+    </item>
+    
+    <item>
+      <title>Check the order of your rescue_from handlers!</title>
+      <link>https://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</link>
+      <pubDate>Mon, 11 Nov 2013 21:34:16 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/check_the_order_of_your_rescue_from_handlers/</guid>
+      <description>Our rescue_from handlers used to be defined like shown below. This might look okay to you. At first glance everything looks fine, right?
+class WidgetsController &amp;lt; ActionController::Base rescue_from ActionController::RoutingError, :with =&amp;gt; :render_404 rescue_from Exception, :with =&amp;gt; :render_500 end  Turns out it&amp;rsquo;s not okay at all. Handlers are searched from bottom to top. This means that they should always be defined in order of most generic to most specific. Or in other words, the above code is exactly the wrong thing to do.</description>
+    </item>
+    
+    <item>
+      <title>The javascript event loop</title>
+      <link>https://vaneyckt.io/posts/the_javascript_event_loop/</link>
+      <pubDate>Sun, 10 Nov 2013 20:50:04 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/the_javascript_event_loop/</guid>
+      <description>Sometimes you come across an article that is so well written you can&amp;rsquo;t do anything but link to it. So if you&amp;rsquo;ve ever wondered why the javascript runtime is so good at asynchronous operations, then you should definitely give this article a read.
+Some snippets:
+ JavaScript runtimes contain a message queue which stores a list of messages to be processed and their associated callback functions. These messages are queued in response to external events (such as a mouse being clicked or receiving the response to an HTTP request) given a callback function has been provided.</description>
+    </item>
+    
+    <item>
+      <title>Bug hunting with git bisect</title>
+      <link>https://vaneyckt.io/posts/bug_hunting_with_git_bisect/</link>
+      <pubDate>Mon, 04 Nov 2013 20:02:14 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/bug_hunting_with_git_bisect/</guid>
+      <description>Today I was looking into what I thought was going to be a simple bug. The problem seemed straightforward enough, so I did a quick grep of the codebase, found three pieces of code that looked like likely culprits, made some modifications, triggered the bug, and found that absolutely nothing had changed. Half an hour and a lot of additional digging later I was stumped. I had no idea what was going on.</description>
+    </item>
+    
+    <item>
+      <title>Why is MySQL converting my NULLs to blanks?</title>
+      <link>https://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</link>
+      <pubDate>Fri, 01 Nov 2013 19:17:56 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/why_is_mysql_converting_my_nulls_to_blanks/</guid>
+      <description>A while ago I ran into an issue where some records were showing a blank value in a given column. This was a bit weird as a blank value had never been written to that column. After a bit of searching we found that we had a bug that had inadvertently been writing the occasional NULL value to that particular column though. So how did those NULLs get turned into blanks?</description>
+    </item>
+    
+    <item>
+      <title>Using environment variables in migrations</title>
+      <link>https://vaneyckt.io/posts/using_environment_variables_in_migrations/</link>
+      <pubDate>Tue, 29 Oct 2013 17:42:28 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/using_environment_variables_in_migrations/</guid>
+      <description>Recently we had to run a migration that was so slow we couldn&amp;rsquo;t afford the downtime it would cause. In order to get around this, it was decided to put two code paths in the migration: one that was slow and thorough, and one that was quick but didn&amp;rsquo;t perform any safety checks.
+The first path would be run on a recent database dump, whereas the latter would be executed directly on the live database once the first had finished without error.</description>
+    </item>
+    
+    <item>
+      <title>Getting connection information with lsof</title>
+      <link>https://vaneyckt.io/posts/getting_connection_information_with_lsof/</link>
+      <pubDate>Mon, 21 Oct 2013 17:21:52 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/getting_connection_information_with_lsof/</guid>
+      <description>The lsof command is one of those super useful commands for figuring out what connections are taking place on your machine. While the lsof command technically just lists open files, just about everything in linux (even sockets) is a file!
+Some useful commands:
+List all network connections $ lsof -i COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME Spotify 36908 vaneyckt 53u IPv4 0x2097c8deb175c0dd 0t0 TCP localhost:4381 (LISTEN) Spotify 36908 vaneyckt 54u IPv4 0x2097c8deab18027d 0t0 TCP localhost:4371 (LISTEN) Spotify 36908 vaneyckt 71u IPv4 0x2097c8deba747c1d 0t0 UDP *:57621 Spotify 36908 vaneyckt 72u IPv4 0x2097c8deb18ef4cf 0t0 TCP *:57621 (LISTEN) Spotify 36908 vaneyckt 77u IPv4 0x2097c8deb993b255 0t0 UDP ip-192-168-0-101.</description>
+    </item>
+    
+    <item>
+      <title>Carefully converting your MySQL database to utf8</title>
+      <link>https://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</link>
+      <pubDate>Sun, 20 Oct 2013 17:19:31 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/carefully_converting_your_mysql_database_to_utf8/</guid>
+      <description>Converting all the data in your database can be a nail-biting experience. As you can see from the code below we are doing our best to be super careful. We convert each table separately and before each conversion we store the table&amp;rsquo;s column types and an MD5 hash of every row in the table (we were lucky enough to not have enormous tables). After converting the table we check that no column types or rows were changed.</description>
+    </item>
+    
+    <item>
+      <title>Character set vs collation</title>
+      <link>https://vaneyckt.io/posts/character_set_vs_collation/</link>
+      <pubDate>Sat, 19 Oct 2013 20:31:43 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/character_set_vs_collation/</guid>
+      <description>There&amp;rsquo;s a surprising amount of confusion about the difference between these two terms. The best explanation I&amp;rsquo;ve found is here.
+ A character set is a subset of all written glyphs. A character encoding specifies how those characters are mapped to numeric values. Some character encodings, like UTF-8 and UTF-16, can encode any character in the Universal Character Set. Others, like US-ASCII or ISO-8859-1 can only encode a small subset, since they use 7 and 8 bits per character, respectively.</description>
+    </item>
+    
+    <item>
+      <title>MySQL write locks also prevent reads</title>
+      <link>https://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</link>
+      <pubDate>Thu, 17 Oct 2013 17:20:45 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/mysql_write_locks_also_prevent_reads/</guid>
+      <description>Locking a table with
+table_name = &#39;widgets&#39; ActiveRecord::Base.connection.execute(&amp;quot;LOCK TABLES #{table_name} WRITE&amp;quot;)  ensures that only the current connection can access that table. Other connections cannot even read from this table while it is locked!</description>
+    </item>
+    
+    <item>
+      <title>Rails migrations and the dangers of implicit commits</title>
+      <link>https://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</link>
+      <pubDate>Wed, 16 Oct 2013 18:45:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/rails_migrations_and_the_dangers_of_implicit_commits/</guid>
+      <description>I recently came across the migration below. At first sight it looks like everything is okay, but there is actually a very dangerous assumption being made here.
+# migration to convert table to utf8 class ConvertWidgetsTableToUtf8Unicode &amp;lt; ActiveRecord::Migration def up ActiveRecord::Base.transaction do table_name = &#39;widgets&#39; say &amp;quot;converting #{table_name} table to utf8_unicode_ci&amp;quot; execute(&amp;quot;ALTER TABLE #{table_name} CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci&amp;quot;) execute(&amp;quot;ALTER TABLE #{table_name} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci&amp;quot;) end end end  Notice how the utf8 conversion code is wrapped inside a transaction.</description>
+    </item>
+    
+    <item>
+      <title>Iterating over a hash containing arrays</title>
+      <link>https://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/</link>
+      <pubDate>Tue, 15 Oct 2013 16:46:02 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/iterating_over_a_hash_containing_arrays/</guid>
+      <description>Last week I was implementing some auditing functionality in a rails app. At some point I was writing a page that would display how the attributes of a given ActiveRecord object had been changed. One of my colleagues spotted this and pointed out the following neat bit of syntactic sugar in Ruby.
+changes = {:attribute_a =&amp;gt; [1, 2], :attribute_b =&amp;gt; [3, 4]} changes.each do |attribute, (before, after)| puts &amp;quot;#{attribute}: #{before} - #{after}&amp;quot; end  I later learned you can even do things like this.</description>
+    </item>
+    
+    <item>
+      <title>URI.js and URL manipulation in rails</title>
+      <link>https://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/</link>
+      <pubDate>Sun, 13 Oct 2013 14:55:23 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/uri_js_and_url_manipulation_in_rails/</guid>
+      <description>Manipulating urls in javascript often ends up being an exercise in string interpolation. This rarely produces good looking code. Recently we&amp;rsquo;ve started enforcing the use of the URI.js library to combat this.
+Our new approach has us embed any necessary urls in hidden input fields on the web page in question. Rather than hardcoding these urls, we use the named route functionality offered by rails as this provides more flexibility. When the page gets rendered, these named routes are converted to actual urls through ERB templating.</description>
+    </item>
+    
+    <item>
+      <title>The css !important keyword</title>
+      <link>https://vaneyckt.io/posts/the_css_important_keyword/</link>
+      <pubDate>Sat, 12 Oct 2013 15:03:23 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/the_css_important_keyword/</guid>
+      <description>Today I learned about the css !important keyword. I was trying to change the way code snippets (gists) were being displayed on a site, but found my css rules being ignored.
+As it turned out, the javascript snippets used for embedding gists were adding an additional css stylesheet to the page. Since this stylesheet was getting added after my own stylesheet, its rules had priority over my own. The solution was to add !</description>
+    </item>
+    
+    <item>
+      <title>Finding models from strings with rails</title>
+      <link>https://vaneyckt.io/posts/finding_models_from_strings_with_rails/</link>
+      <pubDate>Fri, 11 Oct 2013 16:27:35 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/finding_models_from_strings_with_rails/</guid>
+      <description>Imagine you have a Widget model that stores data in a table &amp;lsquo;widgets&amp;rsquo;. At some point in your rails app you find yourself being given a string &amp;lsquo;Widget&amp;rsquo; and are asked to find the Widget model. This can be done like shown here.
+str = &#39;Widget&#39; model = str.constantize  However, things get a bit harder when you have multiple Widget model subclasses (Widget::A, Widget::B), all of which are stored in the widgets table.</description>
+    </item>
+    
+    <item>
+      <title>Retrieving data in a time range with rails</title>
+      <link>https://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/</link>
+      <pubDate>Thu, 10 Oct 2013 19:22:45 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/retrieving_data_in_a_time_range_with_rails/</guid>
+      <description>I&amp;rsquo;m writing this mostly as a reminder to myself, since I keep forgetting this :)
+Instead of:
+widgets = Widget.where(&amp;quot;? &amp;lt;= created_at AND created_at &amp;lt;= ?&amp;quot;, time_from, time_to)  do this:
+widgets = Widget.where(:created_at =&amp;gt; time_from .. time_to)  </description>
+    </item>
+    
+    <item>
+      <title>GET vs POST</title>
+      <link>https://vaneyckt.io/posts/get_vs_post/</link>
+      <pubDate>Wed, 09 Oct 2013 16:09:32 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/get_vs_post/</guid>
+      <description>Today I was looking into why a particular GET request was failing on IE. As it turned out this was due to IE not appreciating long query strings. While going through our nginx logs, we also found nginx had a default query string limit that was being hit sporadically by some other customers as well. The solution in both cases was to move the affected calls from GET to POST.</description>
+    </item>
+    
+    <item>
+      <title>The dig command</title>
+      <link>https://vaneyckt.io/posts/the_dig_command/</link>
+      <pubDate>Tue, 08 Oct 2013 13:24:17 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/the_dig_command/</guid>
+      <description>Today I learned of the existence of the dig command. A very useful little tool for DNS lookups. Here&amp;rsquo;s an example of it in action.
+$ dig www.google.com ; &amp;lt;&amp;lt;&amp;gt;&amp;gt; DiG 9.8.3-P1 &amp;lt;&amp;lt;&amp;gt;&amp;gt; www.google.com ;; global options: +cmd ;; Got answer: ;; -&amp;gt;&amp;gt;HEADER&amp;lt;&amp;lt;- opcode: QUERY, status: NOERROR, id: 4868 ;; flags: qr rd ra; QUERY: 1, ANSWER: 6, AUTHORITY: 0, ADDITIONAL: 0 ;; QUESTION SECTION: ;www.google.com.	IN	A ;; ANSWER SECTION: www.</description>
+    </item>
+    
+    <item>
+      <title>Profiling rails assets precompilation</title>
+      <link>https://vaneyckt.io/posts/profiling_rails_assets_precompilation/</link>
+      <pubDate>Sun, 01 Sep 2013 21:01:02 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/profiling_rails_assets_precompilation/</guid>
+      <description>Assets precompilation on rails can take a fair bit of time. This is especially annoying in scenarios where you want to deploy your app multiple times a day. Let&amp;rsquo;s see if we can come up with a way to actually figure out where all this time is being spent. Also, while I will be focusing on rails 3.2 in this post, the general principle should be easy enough to apply to other rails versions.</description>
+    </item>
+    
+    <item>
+      <title>Regarding if statement scope in Ruby</title>
+      <link>https://vaneyckt.io/posts/regarding_if_statement_scope_in_ruby/</link>
+      <pubDate>Sat, 31 Aug 2013 20:22:58 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/regarding_if_statement_scope_in_ruby/</guid>
+      <description>I recently learned that if statements in Ruby do not introduce scope. This means that you can write code like shown below and it&amp;rsquo;ll work fine.
+# perfectly valid Ruby code if true foo = 5 end puts foo  At first this seemed a bit weird to me. It wasn&amp;rsquo;t until I read this that I realized Ruby was even more versatile than I had first thought. As it turns out, it is this somewhat unconventional scoping rule that allows us to conditionally replace methods.</description>
+    </item>
+    
+    <item>
+      <title>EC2 instance cost comparison</title>
+      <link>https://vaneyckt.io/posts/ec2_instance_cost_comparison/</link>
+      <pubDate>Sun, 11 Aug 2013 21:24:12 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/ec2_instance_cost_comparison/</guid>
+      <description>Amazon&amp;rsquo;s pricing scheme for its ec2 instances never struck me as particularly transparent. Until recently some of my DevOps colleagues even estimated cost by cross-referencing instance details with pricing information. While this approach gives reasonable results for finding the cost of a given instance type, it doesn&amp;rsquo;t lend itself very well to comparing prices across a range of different types.
+When talking to an ex-colleague of mine about the hardships encountered for such a common task, he pointed me to this absolutely brilliant page.</description>
+    </item>
+    
+  </channel>
+</rss>
