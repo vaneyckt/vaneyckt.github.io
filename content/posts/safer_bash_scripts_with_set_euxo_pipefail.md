@@ -26,6 +26,9 @@ echo "bar"
 # ------
 # line 4: foo: command not found
 # bar
+#
+# Note how the script didn't exit when the foo command could not be found.
+# Instead it continued on and echoed 'bar'.
 ```
 
 #### After
@@ -40,26 +43,73 @@ echo "bar"
 # output
 # ------
 # line 5: foo: command not found
+#
+# This time around the script exited immediately when the foo command wasn't found.
+# Such behavior is much more in line with that of higher-level languages.
 ```
 
-#### Prevent immediate exit
+#### Any command returning a non-zero exit code will cause an immediate exit
 ```bash
 #!/bin/bash
 set -e
 
-# 'foo' is a non-existing command
-foo || true
+# 'ls' is an existing command, but giving it a nonsensical param will cause
+# it to exit with exit code 1
+$(ls foobar)
 echo "bar"
 
 # output
 # ------
-# line 5: foo: command not found
+# ls: foobar: No such file or directory
+#
+# I'm putting this in here to illustrate that it's not just non-existing commands
+# that will cause an immediate exit.
+```
+
+#### Preventing an immediate exit
+```bash
+#!/bin/bash
+set -e
+
+foo || true
+$(ls foobar) || true
+echo "bar"
+
+# output
+# ------
+# line 4: foo: command not found
+# ls: foobar: No such file or directory
 # bar
+#
+# Sometimes we want to ensure that, even when 'set -e' is used, the failure of
+# a particular command does not cause an immediate exit. We can use '|| true' for this.
+```
+
+#### Failing commands in a conditional statement will not cause an immediate exit
+```bash
+#!/bin/bash
+set -e
+
+# we make 'ls' exit with exit code 1 by giving it a nonsensical param
+if ls foobar; then
+  echo "foo"
+else
+  echo "bar"
+fi
+
+# output
+# ------
+# ls: foobar: No such file or directory
+# bar
+#
+# Note that 'ls foobar' did not cause an immediate exit despite exiting with
+# exit code 1. This is because the command was evaluated as part of a
+# conditional statement.
 ```
 
 ### set -o pipefail
 
-The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the `-e` option to only be able to act on the exit code of a pipeline's last command. This is where `-o pipefail` comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or zero if all commands of the pipeline exit successfully.
+The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the `-e` option to only be able to act on the exit code of a pipeline's last command. This is where `-o pipefail` comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or to zero if all commands of the pipeline exit successfully.
 
 #### Before
 ```bash
