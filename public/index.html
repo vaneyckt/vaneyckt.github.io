@@ -46,6 +46,7 @@
 
   <link href='https://fonts.googleapis.com/css?family=Raleway:400,300' rel='stylesheet' type='text/css'>
 
+  
   <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -2152,6 +2153,9 @@ echo &quot;bar&quot;
 # ------
 # line 4: foo: command not found
 # bar
+#
+# Note how the script didn't exit when the foo command could not be found.
+# Instead it continued on and echoed 'bar'.
 </code></pre>
 
 <h4 id="after">After</h4>
@@ -2166,26 +2170,75 @@ echo &quot;bar&quot;
 # output
 # ------
 # line 5: foo: command not found
+#
+# This time around the script exited immediately when the foo command wasn't found.
+# Such behavior is much more in line with that of higher-level languages.
 </code></pre>
 
-<h4 id="prevent-immediate-exit">Prevent immediate exit</h4>
+<h4 id="any-command-returning-a-non-zero-exit-code-will-cause-an-immediate-exit">Any command returning a non-zero exit code will cause an immediate exit</h4>
 
 <pre><code class="language-bash">#!/bin/bash
 set -e
 
-# 'foo' is a non-existing command
-foo || true
+# 'ls' is an existing command, but giving it a nonsensical param will cause
+# it to exit with exit code 1
+$(ls foobar)
 echo &quot;bar&quot;
 
 # output
 # ------
-# line 5: foo: command not found
-# bar
+# ls: foobar: No such file or directory
+#
+# I'm putting this in here to illustrate that it's not just non-existing commands
+# that will cause an immediate exit.
 </code></pre>
+
+<h4 id="preventing-an-immediate-exit">Preventing an immediate exit</h4>
+
+<pre><code class="language-bash">#!/bin/bash
+set -e
+
+foo || true
+$(ls foobar) || true
+echo &quot;bar&quot;
+
+# output
+# ------
+# line 4: foo: command not found
+# ls: foobar: No such file or directory
+# bar
+#
+# Sometimes we want to ensure that, even when 'set -e' is used, the failure of
+# a particular command does not cause an immediate exit. We can use '|| true' for this.
+</code></pre>
+
+<h4 id="failing-commands-in-a-conditional-statement-will-not-cause-an-immediate-exit">Failing commands in a conditional statement will not cause an immediate exit</h4>
+
+<pre><code class="language-bash">#!/bin/bash
+set -e
+
+# we make 'ls' exit with exit code 1 by giving it a nonsensical param
+if ls foobar; then
+  echo &quot;foo&quot;
+else
+  echo &quot;bar&quot;
+fi
+
+# output
+# ------
+# ls: foobar: No such file or directory
+# bar
+#
+# Note that 'ls foobar' did not cause an immediate exit despite exiting with
+# exit code 1. This is because the command was evaluated as part of a
+# conditional statement.
+</code></pre>
+
+<p>That&rsquo;s all for <code>set -e</code>. However, <code>set -e</code> by itself is far from enough. We can further improve upon the behavior created by <code>set -e</code> by combining it with <code>set -o pipefail</code>. Let&rsquo;s have a look at that next.</p>
 
 <h3 id="set-o-pipefail">set -o pipefail</h3>
 
-<p>The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the <code>-e</code> option to only be able to act on the exit code of a pipeline&rsquo;s last command. This is where <code>-o pipefail</code> comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or zero if all commands of the pipeline exit successfully.</p>
+<p>The bash shell normally only looks at the exit code of the last command of a pipeline. This behavior is not ideal as it causes the <code>-e</code> option to only be able to act on the exit code of a pipeline&rsquo;s last command. This is where <code>-o pipefail</code> comes in. This particular option sets the exit code of a pipeline to that of the rightmost command to exit with a non-zero status, or to zero if all commands of the pipeline exit successfully.</p>
 
 <h4 id="before-1">Before</h4>
 
@@ -2201,6 +2254,9 @@ echo &quot;bar&quot;
 # a
 # line 5: foo: command not found
 # bar
+#
+# Note how the non-existing foo command does not cause an immediate exit, as
+# it's non-zero exit code is ignored by piping it with '| echo &quot;a&quot;'.
 </code></pre>
 
 <h4 id="after-1">After</h4>
@@ -2216,11 +2272,16 @@ echo &quot;bar&quot;
 # ------
 # a
 # line 5: foo: command not found
+#
+# This time around the non-existing foo command causes an immediate exit, as
+# '-o pipefail' will prevent piping from causing non-zero exit codes to be ignored.
 </code></pre>
+
+<p>This section hopefully made it clear that <code>-o pipefail</code> provides an important improvement upon just using <code>-e</code> by itself. However, as we shall see in the next section, we can still do more to make our scripts behave like higher-level languages.</p>
 
 <h3 id="set-u">set -u</h3>
 
-<p>This option causes the bash shell to treat unset variables as an error and exit immediately. This brings us much closer to the behavior of higher-level languages.</p>
+<p>This option causes the bash shell to treat unset variables as an error and exit immediately. Unset variables are a common cause of bugs in shell scripts, so having unset variables cause an immediate exit is often highly desirable behavior.</p>
 
 <h4 id="before-2">Before</h4>
 
@@ -2234,6 +2295,10 @@ echo &quot;bar&quot;
 # ------
 #
 # bar
+#
+# The default behavior will not cause unset variables to trigger an immediate exit.
+# In this particular example, echoing the non-existing $a variable will just cause
+# an empty line to be printed.
 </code></pre>
 
 <h4 id="after-2">After</h4>
@@ -2241,17 +2306,61 @@ echo &quot;bar&quot;
 <pre><code class="language-bash">#!/bin/bash
 set -euo pipefail
 
-echo $a
+echo &quot;$a&quot;
 echo &quot;bar&quot;
 
 # output
 # ------
 # line 5: a: unbound variable
+#
+# Notice how 'bar' no longer gets printed. We can clearly see that '-u' did indeed
+# cause an immediate exit upon encountering an unset variable.
 </code></pre>
+
+<h4 id="dealing-with-a-b-variable-assignments">Dealing with ${a:-b} variable assignments</h4>
+
+<p>Sometimes you&rsquo;ll want to use a <a href="https://unix.stackexchange.com/questions/122845/using-a-b-for-variable-assignment-in-scripts/122878">${a:-b} variable assignment</a> to ensure a variable is assigned a default value of <code>b</code> when <code>a</code> is either empty or undefined. The <code>-u</code> option is smart enough to not cause an immediate exit in such a scenario.</p>
+
+<pre><code class="language-bash">#!/bin/bash
+set -euo pipefail
+
+DEFAULT=5
+RESULT=${VAR:-$DEFAULT}
+echo &quot;$RESULT&quot;
+
+# output
+# ------
+# 5
+#
+# Even though VAR was not defined, the '-u' option realizes there's no need to cause
+# an immediate exit in this scenario as a default value has been provided.
+</code></pre>
+
+<h4 id="using-conditional-statements-that-check-if-variables-are-set">Using conditional statements that check if variables are set</h4>
+
+<p>Sometimes you want your script to not immediately exit when an unset variable is encountered. A common example is checking for a variable&rsquo;s existence inside an <code>if</code> statement.</p>
+
+<pre><code class="language-bash">#!/bin/bash
+set -euo pipefail
+
+if [ -z &quot;${MY_VAR:-}&quot; ]; then
+  echo &quot;MY_VAR was not set&quot;
+fi
+
+# output
+# ------
+# MY_VAR was not set
+#
+# In this scenario we don't want our program to exit when the unset MY_VAR variable
+# is evaluated. We can prevent such an exit by using the same syntax as we did in the
+# previous example, but this time around we specify no default value.
+</code></pre>
+
+<p>This section has brought us a lot closer to making our bash shell behave like higher-level languages. While <code>-euo pipefail</code> is great for the early detection of all kinds of problems, sometimes it won&rsquo;t be enough. This is why in the next section we&rsquo;ll look at an option that will help us figure out those really tricky bugs that you encounter every once in a while.</p>
 
 <h3 id="set-x">set -x</h3>
 
-<p>The <code>-x</code> option causes bash to print each command before executing it. This can be of great help when you have to try and debug a bash script failure through its logs. Note that arguments get expanded before a command gets printed. This causes our logs to display the actual argument values at the time of execution!</p>
+<p>The <code>-x</code> option causes bash to print each command before executing it. This can be a great help when trying to debug a bash script failure. Note that arguments get expanded before a command gets printed, which will cause our logs to contain the actual argument values that were present at the time of execution!</p>
 
 <pre><code class="language-bash">#!/bin/bash
 set -euxo pipefail
@@ -2269,7 +2378,66 @@ echo &quot;bar&quot;
 # bar
 </code></pre>
 
-<p>And that&rsquo;s it. I hope this post showed you why using <code>set -euxo pipefail</code> is such a good idea. If you have any other options you want to suggest, then please let me know and I&rsquo;ll be happy to add them to this list.</p>
+<p>That&rsquo;s it for the <code>-x</code> option. It&rsquo;s pretty straightforward, but can be a great help for debugging. Next up, we&rsquo;ll look at an option I had never heard of before that was suggested by a reader of this blog.</p>
+
+<h3 id="reader-suggestion-set-e">Reader suggestion: set -E</h3>
+
+<p><a href="http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_12_02.html">Traps</a> are pieces of code that fire when a bash script catches certain signals. Aside from the usual signals (e.g. SIGINT, SIGTERM, &hellip;), traps can also be used to catch special bash signals like <code>EXIT</code>, <code>DEBUG</code>, <code>RETURN</code>, and <code>ERR</code>. However, reader Kevin Gibbs pointed out that using <code>-e</code> without <code>-E</code> will cause an <code>ERR</code> trap to not fire in certain scenarios.</p>
+
+<h4 id="before-3">Before</h4>
+
+<pre><code class="language-bash">#!/bin/bash
+set -euo pipefail
+
+trap &quot;echo ERR trap fired!&quot; ERR
+
+myfunc()
+{
+  # 'foo' is a non-existing command
+  foo
+}
+
+myfunc
+echo &quot;bar&quot;
+
+# output
+# ------
+# line 9: foo: command not found
+#
+# Notice that while '-e' did indeed cause an immediate exit upon trying to execute
+# the non-existing foo command, it did not case the ERR trap to be fired.
+</code></pre>
+
+<h4 id="after-3">After</h4>
+
+<pre><code class="language-bash">#!/bin/bash
+set -Eeuo pipefail
+
+trap &quot;echo ERR trap fired!&quot; ERR
+
+myfunc()
+{
+  # 'foo' is a non-existing command
+  foo
+}
+
+myfunc
+echo &quot;bar&quot;
+
+# output
+# ------
+# line 9: foo: command not found
+# ERR trap fired!
+#
+# Not only do we still have an immediate exit, we can also clearly see that the
+# ERR trap was actually fired now.
+</code></pre>
+
+<p>The documentation states that <code>-E</code> needs to be set if we want the <code>ERR</code> trap to be inherited by shell functions, command substitutions, and commands that are executed in a subshell environment. The <code>ERR</code> trap is normally not inherited in such cases.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>I hope this post showed you why using <code>set -euxo pipefail</code> (or <code>set -Eeuxo pipefail</code>) is such a good idea. If you have any other options you want to suggest, then please let me know and I&rsquo;ll be happy to add them to this list.</p>
 
             <hr>
           </div>
@@ -4026,5 +4194,9 @@ end
     </div>
   </div>
 
+  
+  <a href="https://imgur.com/VZpijF9">
+    <img src="https://i.imgur.com/VZpijF9.png" title="Viewer Count Tracking Pixel"/>
+  </a>
 </body>
 </html>
