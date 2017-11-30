@@ -258,7 +258,7 @@ That's it for the `-x` option. It's pretty straightforward, but can be a great h
 
 ### Reader suggestion: set -E
 
-[Traps](http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_12_02.html) are pieces of code that fire when a bash script catches certain signals. Aside from the usual signals (e.g. SIGINT, SIGTERM, ...), traps can also be used to catch special bash signals like `EXIT`, `DEBUG`, `RETURN`, and `ERR`. However, reader Kevin Gibbs pointed out that using `-e` without `-E` will cause an `ERR` trap to not fire in certain scenarios.
+[Traps](http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_12_02.html) are pieces of code that fire when a bash script catches certain signals. Aside from the usual signals (e.g. `SIGINT`, `SIGTERM`, ...), traps can also be used to catch special bash signals like `EXIT`, `DEBUG`, `RETURN`, and `ERR`. However, reader Kevin Gibbs pointed out that using `-e` without `-E` will cause an `ERR` trap to not fire in certain scenarios.
 
 #### Before
 
