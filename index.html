@@ -86,7 +86,7 @@
       
 
     <p class="footnote">powered by <a href="http://hugo.spf13.com">Hugo</a> <br/>
-    &copy; 2016 Tom Van Eyck. All rights reserved.</p>
+    &copy; 2018 Tom Van Eyck. All rights reserved.</p>
   </div>
 </div>
 
@@ -94,6 +94,335 @@
   <div class="content container">
     <div class="posts">
 
+      
+        
+          <div class="post">
+            <h1 class="post-title">
+              <a href="https://vaneyckt.io/posts/ruby_concurrency_building_a_timeout_queue/">
+                Ruby concurrency: building a timeout queue
+              </a>
+            </h1>
+
+            <span class="post-date">Feb 12, 2018</span>
+
+            
+
+            
+
+<p>Ruby&rsquo;s built-in <code>Queue</code> class is an incredibly handy data structure for all kinds of problems. Its versatility can be attributed to its <code>pop</code> method, which can be used in both a blocking and a non-blocking manner. However, when using a blocking <code>pop</code>, you may not always want to run the risk of this <code>pop</code> potentially blocking indefinitely. Instead, you might wish for your <code>pop</code> to block only until a given timeout interval has expired, after which it&rsquo;ll throw an exception. We&rsquo;ll refer to a queue that supports such <code>pop</code> behavior as a <code>TimeoutQueue</code>. This post will show you how to build such a queue.</p>
+
+<h3 id="setting-the-stage">Setting the stage</h3>
+
+<p>Going forward, I&rsquo;ll assume you&rsquo;re comfortable will all the concepts introduced in <a href="https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_condition_variables/">my earlier post on condition variables</a>. Our starting point will be the <code>SimpleQueue</code> implementation that we wrote as part of that post. The code for this is shown below. If some of its concepts are unfamiliar to you, then I&rsquo;d highly recommend reading my earlier post before continuing on.</p>
+
+<pre><code class="language-ruby">class SimpleQueue
+  def initialize
+    @elems = []
+    @mutex = Mutex.new
+    @cond_var = ConditionVariable.new
+  end
+
+  def &lt;&lt;(elem)
+    @mutex.synchronize do
+      @elems &lt;&lt; elem
+      @cond_var.signal
+    end
+  end
+
+  def pop(blocking = true)
+    @mutex.synchronize do
+      if blocking
+        while @elems.empty?
+          @cond_var.wait(@mutex)
+        end
+      end
+      raise ThreadError, 'queue empty' if @elems.empty?
+      @elems.shift
+    end
+  end
+end
+</code></pre>
+
+<p>This <code>SimpleQueue</code> class behaves very similarly to Ruby&rsquo;s built-in <code>Queue</code> class:</p>
+
+<ul>
+<li>a non-blocking <code>pop</code> called on a non-empty queue will return immediately</li>
+<li>a non-blocking <code>pop</code> called on an empty queue will raise a <code>ThreadError</code></li>
+<li>a blocking <code>pop</code> called on a non-empty queue will return immediately</li>
+<li>a blocking <code>pop</code> called on an empty queue will wait for data to arrive before returning</li>
+</ul>
+
+<p>It is the scenario described by the last of these four bullet points that we want to improve upon. In its current implementation, a blocking <code>pop</code> called on an empty queue will block for as long as the queue remains empty. As there is no guarantee that the queue will ever receive data, this could be a very long time indeed. In order to prevent such indefinite waits from occurring, we are going to add timeout functionality to this blocking <code>pop</code>.</p>
+
+<p>Before moving on to the next section, let&rsquo;s write a bit of code to prove that the four bullet points above do, in fact, hold true for our <code>SimpleQueue</code> implementation.</p>
+
+<pre><code class="language-ruby">simple_queue = SimpleQueue.new
+
+# non-blocking pop, non-empty queue
+simple_queue &lt;&lt; 'foobar'
+simple_queue.pop(false) # =&gt; immediately returns 'foobar'
+
+# non-blocking pop, empty queue
+simple_queue.pop(false) # =&gt; immediately raises a ThreadError exception
+
+# blocking pop, non-empty queue
+simple_queue &lt;&lt; 'foobar'
+simple_queue.pop # =&gt; immediately returns 'foobar'
+
+# blocking pop, empty queue - new data is added after 5s
+Thread.new { sleep 5; simple_queue &lt;&lt; 'foobar' }
+simple_queue.pop # =&gt; waits for 5s for data to arrive, then returns 'foobar'
+</code></pre>
+
+<p>At this point, we can rest assured that our <code>SimpleQueue</code> class does indeed behave like Ruby&rsquo;s built-in <code>Queue</code> class. Now let&rsquo;s continue on to the next section where we&rsquo;ll start adding timeout functionality to the blocking <code>pop</code> method.</p>
+
+<h3 id="a-first-attempt-at-adding-timeout-functionality">A first attempt at adding timeout functionality</h3>
+
+<p>The next few sections will focus exclusively on improving the <code>pop</code> method code shown below. We&rsquo;ll see how we can add timeout functionality to this method with just a few well-chosen lines of code.</p>
+
+<pre><code class="language-ruby">def pop(blocking = true)
+  @mutex.synchronize do
+    if blocking
+      while @elems.empty?
+        @cond_var.wait(@mutex)
+      end
+    end
+    raise ThreadError, 'queue empty' if @elems.empty?
+    @elems.shift
+  end
+end
+</code></pre>
+
+<p>A first attempt at introducing timeout functionality could see us start by scrolling through <a href="http://ruby-doc.org/stdlib-2.0.0/libdoc/thread/rdoc/ConditionVariable.html">Ruby&rsquo;s condition variable documentation</a>. Doing so, we might spot that the <code>wait</code> method can take an optional <code>timeout</code> parameter that will cause this method to return if it is still waiting after <code>timeout</code> seconds have passed.</p>
+
+<blockquote>
+<p><em>wait(mutex, timeout = nil)</em></p>
+
+<p>Releases the lock held in mutex and waits; reacquires the lock on wakeup.
+If timeout is given, this method returns after timeout seconds passed, even if no other thread doesn’t signal.</p>
+</blockquote>
+
+<p>This could cause us to decide that we&rsquo;d just need to modify our <code>pop</code> method to make use of this timeout functionality. Our code would then probably end up looking something like the snippet shown below.</p>
+
+<pre><code class="language-ruby">def pop(blocking = true, timeout = nil)
+  @mutex.synchronize do
+    if blocking
+      while @elems.empty?
+        @cond_var.wait(@mutex, timeout)
+      end
+    end
+    raise ThreadError, 'queue empty' if @elems.empty?
+    @elems.shift
+  end
+end
+</code></pre>
+
+<p>This code allows for the user to pass a <code>timeout</code> parameter to the <code>pop</code> method. This value will then get used by our condition variable&rsquo;s <code>wait</code> method. Seems pretty easy, right? Let&rsquo;s write some Ruby code to test whether the above code will allow a blocking <code>pop</code> method to timeout when called on an empty queue.</p>
+
+<pre><code class="language-ruby">timeout_queue = TimeoutQueue.new
+
+# blocking pop, empty queue - new data is added after 5s
+Thread.new { sleep 5; timeout_queue &lt;&lt; 'foobar' }
+timeout_queue.pop # =&gt; waits for 5s for data to arrive, then returns 'foobar'
+
+# blocking pop, empty queue - no new data is added
+timeout_queue.pop(true, 10) # =&gt; blocks indefinitely - something is wrong!
+</code></pre>
+
+<p>Our <code>timeout</code> parameter seems to have had no effect whatsoever. Instead of timing out, our blocking <code>pop</code> will still wait indefinitely for new data to arrive. What&rsquo;s happening here is that <code>@cond_var.wait(@mutex, timeout)</code> will indeed return after its timeout interval has passed. However, keep in mind that this statement lives inside the <code>while @elems.empty?</code> loop.</p>
+
+<p>What&rsquo;ll happen is that <code>@cond_var.wait(@mutex, timeout)</code> will return after ten seconds. At this point, the loop&rsquo;s predicate will be re-evaluated. If the queue has remained empty, then the loop will repeat for another iteration from which it&rsquo;ll return after another ten seconds. As you can see, we&rsquo;re stuck in an infinite loop of 10-second intervals that we&rsquo;ll only be able to break out of once some data gets added to the queue. It looks like we&rsquo;ll have to come up with a better approach if we want our blocking <code>pop</code> to timeout correctly.</p>
+
+<h3 id="how-not-to-improve-upon-our-first-attempt">How not to improve upon our first attempt</h3>
+
+<p>At first glance, it might seem reasonable to infer that the above approach&rsquo;s poor behavior is solely due to the presence of the <code>while @elems.empty?</code> loop. As such, one might conclude that the best way to improve this behavior would involve replacing our <code>while</code> loop with an <code>if</code> statement. The resulting code would then look something like this.</p>
+
+<pre><code class="language-ruby">def pop(blocking = true, timeout = nil)
+  @mutex.synchronize do
+    if blocking
+      if @elems.empty?
+        @cond_var.wait(@mutex, timeout)
+      end
+    end
+    raise ThreadError, 'queue empty' if @elems.empty?
+    @elems.shift
+  end
+end
+</code></pre>
+
+<p>Let&rsquo;s see what happens when we use this implementation and run it against the Ruby code snippet that we produced earlier.</p>
+
+<pre><code class="language-ruby">timeout_queue = TimeoutQueue.new
+
+# blocking pop, empty queue - new data is added after 5s
+Thread.new { sleep 5; timeout_queue &lt;&lt; 'foobar' }
+timeout_queue.pop # =&gt; waits for 5s for data to arrive, then returns 'foobar'
+
+# blocking pop, empty queue - no new data is added
+timeout_queue.pop(true, 10) # =&gt; raises ThreadError after 10s
+</code></pre>
+
+<p>Our new approach seems to work pretty well. However, replacing our <code>while</code> loop with an <code>if</code> statement is just about the worst thing we could do. As I&rsquo;ve mentioned in great detail in <a href="https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_condition_variables/">my earlier post</a>, using an <code>if</code> statement not only introduces a subtle race condition, but it also makes our code no longer impervious to spurious wakeups.</p>
+
+<p>The race condition story is a bit too long to repeat here. However, I&rsquo;ll try to briefly readdress the topic of spurious wakeups. Spurious wakeups occur when a condition variable is woken up out of its <code>wait</code> state for no reason. This illustrious behavior is due to the <a href="https://en.wikipedia.org/wiki/Spurious_wakeup">POSIX library&rsquo;s implementation of condition variables</a>. As such, this is not something we can easily control. This is why we&rsquo;ll need to ensure that any code we write will behave correctly in the face of any such wakeups occurring.</p>
+
+<p>Knowing what we know now, let&rsquo;s look back at the code we wrote earlier. Imagine that a spurious wakeup were to occur immediately after our condition variable entered its <code>wait</code> state. If our code were to be using an <code>if</code> statement, then such a wakeup could instantly cause a <code>ThreadError</code> to be raised. This is not what we want! We only want a <code>ThreadError</code> to be raised after the timeout interval has expired!</p>
+
+<h3 id="adding-timeout-functionality-the-right-way">Adding timeout functionality the right way</h3>
+
+<p>In this section, we&rsquo;ll see how we can correctly implement timeout functionality. Up until now, we&rsquo;ve been trying to have our one <code>pop</code> method handle the two possible scenarios of the user specifying a timeout interval, as well as that of the user not specifying a timeout interval. While it&rsquo;s possible for us to continue this trend, the resulting logic will be unusually complex. For simplicity&rsquo;s sake, we&rsquo;ll create a new <code>pop_with_timeout</code> method that we&rsquo;ll use to explain the scenario where a timeout interval was specified.</p>
+
+<p>Our goal will be to improve on the code shown below. Notice that this code is pretty much identical to the code we covered in the previous section. The only real difference is that the <code>timeout</code> parameter no longer defaults to <code>nil</code>. Instead, we now expect the user to always provide a positive value for this parameter.</p>
+
+<pre><code class="language-ruby">def pop_with_timeout(blocking = true, timeout)
+  @mutex.synchronize do
+    if blocking
+      while @elems.empty?
+        @cond_var.wait(@mutex, timeout)
+      end
+    end
+    raise ThreadError, 'queue empty' if @elems.empty?
+    @elems.shift
+  end
+end
+</code></pre>
+
+<p>Thinking back to the previous section, one of the problems with our approach is the value of <code>timeout</code> in <code>@cond_var.wait(@mutex, timeout)</code>. If we could get this value to decrease as time passes, then our code would be resistant to spurious wakeups. For example, if our condition variable were to be spuriously awoken after just 4 seconds into a 10-second timeout interval, then the next iteration of the <code>while</code> loop should cause our condition variable to re-enter its <code>wait</code> state for 6 seconds.</p>
+
+<p>First of all, if we want the value passed to <code>@cond_var.wait</code> to decrease as time goes by, then we should start by storing when <code>@cond_var.wait</code> gets called. So let&rsquo;s introduce a <code>start_time</code> variable that does this.</p>
+
+<pre><code class="language-ruby">def pop_with_timeout(blocking = true, timeout)
+  @mutex.synchronize do
+    if blocking
+      start_time = Time.now.to_f
+
+      while @elems.empty?
+        @cond_var.wait(@mutex, timeout)
+      end
+    end
+    raise ThreadError, 'queue empty' if @elems.empty?
+    @elems.shift
+  end
+end
+</code></pre>
+
+<p>Next up, we want to start decreasing the timeout value passed to <code>@cond_var.wait</code>. Keep in mind that Ruby will raise an exception if this value were to be negative. So we should also add some logic that prevents this from happening.</p>
+
+<pre><code class="language-ruby">def pop_with_timeout(blocking = true, timeout)
+  @mutex.synchronize do
+    if blocking
+      start_time = Time.now.to_f
+
+      while @elems.empty?
+        remaining_time = (start_time + timeout) - Time.now.to_f
+
+        if remaining_time &gt; 0
+          @cond_var.wait(@mutex, remaining_time)
+        end
+      end
+    end
+    raise ThreadError, 'queue empty' if @elems.empty?
+    @elems.shift
+  end
+end
+</code></pre>
+
+<p>Our code is starting to look pretty good. We&rsquo;ve introduced a new <code>remaining_time</code> variable to help us keep track of the time remaining in our timeout interval. By recalculating this variable with every iteration of our <code>while</code> loop, we ensure that its value decreases as time passes. So if a spurious wakeup were to prematurely awaken our condition variable, then the next iteration of our <code>while</code> loop would put it to sleep again for an appropriate amount of time.</p>
+
+<p>Unfortunately, this code has an annoying shortcoming in that it doesn&rsquo;t break free from the <code>while @elems.empty?</code> loop once the timeout interval has expired. Right now, this loop will keep repeating itself until the queue is no longer empty. What we really want is for us to escape from this loop once our queue is no longer empty OR our <code>remaining_time</code> value becomes zero or less. Luckily, this is quite straightforward to solve.</p>
+
+<pre><code class="language-ruby">def pop_with_timeout(blocking = true, timeout)
+  @mutex.synchronize do
+    if blocking
+      start_time = Time.now.to_f
+
+      while @elems.empty? &amp;&amp; (remaining_time = (start_time + timeout) - Time.now.to_f) &gt; 0
+        @cond_var.wait(@mutex, remaining_time)
+      end
+    end
+    raise ThreadError, 'queue empty' if @elems.empty?
+    @elems.shift
+  end
+end
+</code></pre>
+
+<p>We can write the above approach slightly more succinctly by replacing <code>start_time</code> with <code>timeout_time</code>. This gives us our final <code>pop_with_timeout</code> code shown here.</p>
+
+<pre><code class="language-ruby">def pop_with_timeout(blocking = true, timeout)
+  @mutex.synchronize do
+    if blocking
+      timeout_time = Time.now.to_f + timeout
+
+      while @elems.empty? &amp;&amp; (remaining_time = timeout_time - Time.now.to_f) &gt; 0
+        @cond_var.wait(@mutex, remaining_time)
+      end
+    end
+    raise ThreadError, 'queue empty' if @elems.empty?
+    @elems.shift
+  end
+end
+</code></pre>
+
+<p>The final <code>TimeoutQueue</code> class is shown below. The <code>pop_with_timeout</code> logic has been put inside the regular <code>pop</code> method in order to minimize code duplication. It should be pretty easy to recognize the bits and pieces that we&rsquo;ve covered as part of this article.</p>
+
+<pre><code class="language-ruby">class TimeoutQueue
+  def initialize
+    @elems = []
+    @mutex = Mutex.new
+    @cond_var = ConditionVariable.new
+  end
+
+  def &lt;&lt;(elem)
+    @mutex.synchronize do
+      @elems &lt;&lt; elem
+      @cond_var.signal
+    end
+  end
+
+  def pop(blocking = true, timeout = nil)
+    @mutex.synchronize do
+      if blocking
+        if timeout.nil?
+          while @elems.empty?
+            @cond_var.wait(@mutex)
+          end
+        else
+          timeout_time = Time.now.to_f + timeout
+          while @elems.empty? &amp;&amp; (remaining_time = timeout_time - Time.now.to_f) &gt; 0
+            @cond_var.wait(@mutex, remaining_time)
+          end
+        end
+      end
+      raise ThreadError, 'queue empty' if @elems.empty?
+      @elems.shift
+    end
+  end
+end
+</code></pre>
+
+<p>Let&rsquo;s see how our <code>TimeoutQueue</code> fares when we plug it into our trusty Ruby snippet.</p>
+
+<pre><code class="language-ruby">timeout_queue = TimeoutQueue.new
+
+# blocking pop, empty queue - new data is added after 5s
+Thread.new { sleep 5; timeout_queue &lt;&lt; 'foobar' }
+timeout_queue.pop # =&gt; waits for 5s for data to arrive, then returns 'foobar'
+
+# blocking pop, empty queue - no new data is added
+timeout_queue.pop(true, 10) # =&gt; raises ThreadError after 10s
+</code></pre>
+
+<p>This is exactly the behavior that we want. This is the same behavior we saw back when we replaced our <code>while</code> loop with an <code>if</code> statement. However, this time around our queue will behave correctly in the face of spurious wakeups. That is to say, if our condition variable were to be woken up early, then our <code>while</code> loop would ensure it is put back to sleep again. This <code>while</code> loop also protects us from a subtle race condition that would have otherwise been introduced if we had used an <code>if</code> statement instead. More information about this race condition can be found in <a href="https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_condition_variables/">one of my earlier posts</a>. We have now successfully created a fully functioning <code>TimeoutQueue</code> class!</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>I hope this article has been helpful for those wanting to add timeout functionality to their Ruby queues. Condition variables are a notoriously poorly documented subject in Ruby, and hopefully, this post goes some way towards alleviating this. I also want to give a shout-out to Job Vranish whose <a href="https://spin.atomicobject.com/2014/07/07/ruby-queue-pop-timeout/">two</a> <a href="https://spin.atomicobject.com/2017/06/28/queue-pop-with-timeout-fixed/">posts</a> on condition variables got me to start learning more about them well over a year ago.</p>
+
+<p>Let me just put up my usual disclaimer stating that while everything mentioned above is correct to the best of my knowledge, I’m unable to guarantee that absolutely no mistakes snuck in while writing this. As always, please feel free to contact me with any corrections.</p>
+
+            <hr>
+          </div>
+        
       
         
           <div class="post">
