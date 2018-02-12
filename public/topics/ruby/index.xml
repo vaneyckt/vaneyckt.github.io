@@ -7,10 +7,19 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
-    <lastBuildDate>Mon, 17 Jul 2017 10:21:34 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 12 Feb 2018 10:21:34 +0000</lastBuildDate>
     
 	<atom:link href="https://vaneyckt.io/topics/ruby/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Ruby concurrency: building a timeout queue</title>
+      <link>https://vaneyckt.io/posts/ruby_concurrency_building_a_timeout_queue/</link>
+      <pubDate>Mon, 12 Feb 2018 10:21:34 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/ruby_concurrency_building_a_timeout_queue/</guid>
+      <description>Ruby&amp;rsquo;s built-in Queue class is an incredibly handy data structure for all kinds of problems. Its versatility can be attributed to its pop method, which can be used in both a blocking and a non-blocking manner. However, when using a blocking pop, you may not always want to run the risk of this pop potentially blocking indefinitely. Instead, you might wish for your pop to block only until a given timeout interval has expired, after which it&amp;rsquo;ll throw an exception.</description>
+    </item>
     
     <item>
       <title>Ruby concurrency: in praise of condition variables</title>
