@@ -10,7 +10,7 @@ Ruby's built-in `Queue` class is an incredibly handy data structure for all kind
 
 ### Setting the stage
 
-Going forward, I'll assume you're comfortable will all the concepts introduced in [my earlier post on condition variables](https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_condition_variables/). Our starting point will be the `SimpleQueue` implementation that we wrote as part of that post. The code for this is shown below. If some of its concepts are unfamiliar to you, then I'd highly recommend reading my earlier post before continuing on.
+Going forward, I'll assume you're comfortable with all the concepts introduced in [my earlier post on condition variables](https://vaneyckt.io/posts/ruby_concurrency_in_praise_of_condition_variables/). Our starting point will be the `SimpleQueue` implementation that we wrote as part of that post. The code for this is shown below. If some of its concepts are unfamiliar to you, then I'd highly recommend reading my earlier post before continuing on.
 
 ```ruby
 class SimpleQueue
