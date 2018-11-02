@@ -7,10 +7,20 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Tom Van Eyck</copyright>
-    <lastBuildDate>Mon, 12 Feb 2018 10:21:34 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 04 Nov 2018 11:12:56 +0000</lastBuildDate>
     
 	<atom:link href="https://vaneyckt.io/topics/ruby/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Solving problems with random number generators</title>
+      <link>https://vaneyckt.io/posts/solving_problems_with_random_number_generators/</link>
+      <pubDate>Sun, 04 Nov 2018 11:12:56 +0000</pubDate>
+      
+      <guid>https://vaneyckt.io/posts/solving_problems_with_random_number_generators/</guid>
+      <description>I recently came across the following blog post detailing a very nice Ruby solution to the following problem:
+ you are constantly creating robots, each of which must be given a unique name this name must follow the pattern letter letter number number number names need to be assigned at random, e.g. you can&amp;rsquo;t just call your first robot AA000, your second robot AA001, &amp;hellip; there needs to be a way to reset this name generator  The author came up with a very beautiful Ruby solution that makes clever use of ranges.</description>
+    </item>
     
     <item>
       <title>Ruby concurrency: building a timeout queue</title>
