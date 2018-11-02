@@ -2,6 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://vaneyckt.io/posts/solving_problems_with_random_number_generators/</loc>
+    <lastmod>2018-11-04T11:12:56+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://vaneyckt.io/posts/ruby_concurrency_building_a_timeout_queue/</loc>
     <lastmod>2018-02-12T10:21:34+00:00</lastmod>
   </url>
@@ -257,7 +262,7 @@
   
   <url>
     <loc>https://vaneyckt.io/posts/</loc>
-    <lastmod>2018-02-12T10:21:34+00:00</lastmod>
+    <lastmod>2018-11-04T11:12:56+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -269,7 +274,7 @@
   
   <url>
     <loc>https://vaneyckt.io/topics/ruby/</loc>
-    <lastmod>2018-02-12T10:21:34+00:00</lastmod>
+    <lastmod>2018-11-04T11:12:56+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -281,7 +286,7 @@
   
   <url>
     <loc>https://vaneyckt.io/</loc>
-    <lastmod>2018-02-12T10:21:34+00:00</lastmod>
+    <lastmod>2018-11-04T11:12:56+00:00</lastmod>
     <priority>0</priority>
   </url>
   
