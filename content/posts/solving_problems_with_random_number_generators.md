@@ -343,6 +343,6 @@ name_generator.next # => HK923
 
 The really nice thing about this approach is that by writing our own random number generator we have essentially created a lazily evaluated pseudo-random shuffle. It's the kind of thing you would never want to use in a library that requires proper random numbers (e.g. encryption), but works great for problems like this.
 
-Because of the lazily evaluated nature of our solution, we can now generate names across arbitrarily large ranges. Remember how it used to take 133 seconds to generate the first random name in the range `'AAAA000'..'ZZZZ999'`? We can now do this in just 0.1 seconds. That's a pretty good speed improvement for generating robot names!
+Because of the lazily evaluated nature of our solution, we can now generate names across arbitrarily large ranges. Remember how it used to take 133 seconds to generate the first random name in the range `'AAAA000'..'ZZZZ999'`? We can now do this in just 0.1 seconds! That's a pretty good speed improvement for generating robot names!
 
 Finishing up, I would just like to mention that this was a bit of a weird article for me to write. I'm not really at home with creating random number generators, so there is a real chance that some bugs might have crept in here or there. As always, if you think I got anything wrong, please feel free to get in touch and let me know.
