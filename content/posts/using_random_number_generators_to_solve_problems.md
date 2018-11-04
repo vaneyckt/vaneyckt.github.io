@@ -1,6 +1,6 @@
 +++
 date = "2018-11-04T11:12:56+00:00"
-title = "Solving problems with random number generators"
+title = "Using random number generators to solve problems"
 type = "post"
 ogtype = "article"
 topics = [ "ruby" ]
